@@ -35,4 +35,10 @@ class Maybe_(Spec, ):
         Maybe(a + a).contains(a).should_not.be.ok
         Empty().contains(a).should_not.be.ok
 
+    def get_or_else(self):
+        e = Empty()
+        a = 1
+        e.get_or_else(a).should.equal(a)
+        (e | a).should.equal(a)
+
 __all__ = ['Maybe_']

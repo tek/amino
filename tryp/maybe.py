@@ -1,4 +1,6 @@
-from typing import TypeVar, Generic, Callable, Union, Tuple, Iterable
+from typing import TypeVar, Generic, Callable, Union, Iterable, Any
+from typing import Tuple  # NOQA
+
 from functools import wraps, partial  # type: ignore
 from operator import eq, is_not  # type: ignore
 
@@ -57,17 +59,25 @@ class Maybe(Iterable[A], Generic[A]):
     def get_or_else(self, a: A):
         return self.cata(identity, a)
 
+    __or__ = get_or_else
+
     def or_else(self, ma):
         return self.cata(lambda v: self, ma)
 
+    def exists(self, f: Callable[[A], bool]):
+        return self.cata(f, False)
+
     def contains(self, v):
-        return self.cata(_ == v, False)
+        return self.exists(_ == v)
 
     def zip(self, other: 'Maybe[B]') -> 'Maybe[Tuple[A, B]]':
         if self.isJust and other.isJust:
             return Just((self._get, other._get))
         else:
             return Empty()
+
+    def foreach(self, f: Callable[[A], Any]):
+        self.cata(f, None)
 
     def __iter__(self):
         return iter(self.toList)
