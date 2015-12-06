@@ -24,10 +24,10 @@ class Maybe_(Spec, ):
         b = 'end'
         Maybe(a).map(_ + b)._get.should.equal(a + b)
 
-    def flatMap(self):
+    def flat_map(self):
         a = 'start'
         b = 'end'
-        Maybe(a).flatMap(lambda v: Maybe(v + b))._get.should.equal(a + b)
+        Maybe(a).flat_map(lambda v: Maybe(v + b))._get.should.equal(a + b)
 
     def contains(self):
         a = 'start'

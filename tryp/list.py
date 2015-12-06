@@ -29,10 +29,26 @@ class List(typing.List[A], Generic[A]):
     def map(self, f: Callable[[A], B]) -> 'List[B]':
         return List.wrap(list(map(f, self)))
 
-    def flatMap(self, f: Callable[[A], 'Iterable[B]']) -> 'List[B]':
+    def flat_map(self, f: Callable[[A], 'Iterable[B]']) -> 'List[B]':
         return List.wrap(flatten(map(f, self)))
 
     def find(self, f: Callable[[A], bool]):
         return Maybe(find(f, self))
+
+    @property
+    def is_empty(self):
+        return self.length == 0
+
+    @property
+    def length(self):
+        return len(self)
+
+    @property
+    def head(self):
+        return self.lift(0)
+
+    @property
+    def last(self):
+        return self.lift(-1)
 
 __all__ = ['List']

@@ -46,13 +46,13 @@ class Maybe(Iterable[A], Generic[A]):
     def smap(self, f: Callable[[A], B]) -> 'Maybe[B]':
         return self.cata(F(lambda v: Just(v)) << F(lambda v: f(*v)), Empty())
 
-    def flatMap(self, f: Callable[[A], 'Maybe[B]']) -> 'Maybe[B]':
+    def flat_map(self, f: Callable[[A], 'Maybe[B]']) -> 'Maybe[B]':
         e = Empty()  # type: Maybe[B]
         return self.cata(f, e)
 
     def filter(self, f: Callable[[A], B]):
         l = lambda a: self if f(a) else Empty()
-        return self.flatMap(l)
+        return self.flat_map(l)
 
     def get_or_else(self, a: A):
         return self.cata(identity, a)
