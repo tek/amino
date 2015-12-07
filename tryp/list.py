@@ -54,4 +54,7 @@ class List(typing.List[A], Generic[A]):
     def last(self):
         return self.lift(-1)
 
+    def __add__(self, other: typing.List[A]):
+        return List.wrap(typing.List.__add__(self, other))
+
 __all__ = ['List']
