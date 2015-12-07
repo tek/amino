@@ -31,6 +31,10 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
         return Maybe(find(lambda a: f(self[a]), self.keys()))\
             .map(lambda k: (k, self[k]))
 
+    def find_key(self, f: Callable[[A], bool]) -> Maybe[Tuple[A, B]]:
+        return Maybe(find(f, self.keys()))\
+            .map(lambda k: (k, self[k]))
+
     @property
     def values(self):
         return List(*Dict.values(self))

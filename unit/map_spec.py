@@ -1,6 +1,8 @@
 import sure  # NOQA
 from flexmock import flexmock  # NOQA
 
+from fn import _  # type: ignore
+
 from tek import Spec  # type: ignore
 
 from tryp import Map, Empty, Just
@@ -37,5 +39,16 @@ class Map_(Spec, ):
         m2 = m ** Map({k2: v2})
         m2.get(k2).should.equal(Just(v2))
         m.get(k2).should.equal(Empty())
+
+    def find(self):
+        k1 = 'key'
+        v1 = 'value'
+        k2 = 'key2'
+        v2 = 'value2'
+        m = Map({k1: v1, k2: v2})
+        m.find(_ == v1).should.equal(Just((k1, v1)))
+        m.find_key(_ == k2).should.equal(Just((k2, v2)))
+        m.find(_ == 'invalid').should.equal(Empty())
+        m.find_key(_ == 'invalid').should.equal(Empty())
 
 __all__ = ['Map_']
