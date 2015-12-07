@@ -32,6 +32,10 @@ class Maybe(Iterable[A], Generic[A]):
         except exc:
             return Empty()
 
+    @staticmethod
+    def typed(value: A, tpe: type):
+        return Maybe.inst(value, lambda a: isinstance(a, tpe))
+
     @property
     def _get(self) -> Union[A, None]:
         pass
