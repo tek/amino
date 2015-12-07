@@ -24,7 +24,7 @@ class List(typing.List[A], Generic[A]):
         return List(*l)
 
     def lift(self, index: int) -> Maybe[A]:
-        return Maybe.from_call(self.__getitem__, index)
+        return Maybe.from_call(self.__getitem__, index, exc=IndexError)
 
     def map(self, f: Callable[[A], B]) -> 'List[B]':
         return List.wrap(list(map(f, self)))
