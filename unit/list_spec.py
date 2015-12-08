@@ -51,4 +51,9 @@ class List_(Spec, ):
         List(1, 2, 3).head.contains(1).should.be.ok
         List(1, 2, 3).last.contains(3).should.be.ok
 
+    def distinct(self):
+        List(1, 3, 6, 3, 6, 9, 5, 3, 6, 7, 1, 2, 5).distinct.should.equal(
+            List(1, 3, 6, 9, 5, 7, 2)
+        )
+
 __all__ = ['List_']

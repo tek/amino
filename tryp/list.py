@@ -61,6 +61,11 @@ class List(typing.List[A], Generic[A]):
     def last(self):
         return self.lift(-1)
 
+    @property
+    def distinct(self):
+        seen = set()
+        return List.wrap(x for x in self if x not in seen and not seen.add(x))
+
     def __add__(self, other: typing.List[A]):
         return List.wrap(typing.List.__add__(self, other))
 
