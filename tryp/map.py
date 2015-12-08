@@ -51,4 +51,8 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
     def values(self):
         return List(*Dict.values(self))
 
+    @property
+    def is_empty(self):
+        return self.keys.is_empty
+
 __all__ = ['Map']
