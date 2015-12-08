@@ -66,7 +66,7 @@ class List(typing.List[A], Generic[A]):
         seen = set()
         return List.wrap(x for x in self if x not in seen and not seen.add(x))
 
-    def __add__(self, other: typing.List[A]):
+    def __add__(self, other: typing.List[A]) -> 'List[A]':
         return List.wrap(typing.List.__add__(self, other))
 
 __all__ = ['List']
