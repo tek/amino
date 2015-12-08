@@ -38,6 +38,9 @@ class List(typing.List[A], Generic[A]):
     def find(self, f: Callable[[A], bool]):
         return Maybe(find(f, self))
 
+    def filter(self, f: Callable[[A], bool]):
+        return List.wrap(filter(f, self))
+
     @property
     def is_empty(self):
         return self.length == 0
