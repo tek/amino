@@ -28,12 +28,24 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
         return Map(dicttoolz.merge(self, other))
 
     def find(self, f: Callable[[B], bool]) -> Maybe[Tuple[A, B]]:
-        return Maybe(find(lambda a: f(self[a]), self.keys()))\
+        return Maybe(find(lambda a: f(self[a]), self.keys_view))\
             .map(lambda k: (k, self[k]))
 
     def find_key(self, f: Callable[[A], bool]) -> Maybe[Tuple[A, B]]:
-        return Maybe(find(f, self.keys()))\
+        return Maybe(find(f, self.keys_view))\
             .map(lambda k: (k, self[k]))
+
+    @property
+    def keys_view(self):
+        return Dict.keys(self)
+
+    @property
+    def values_view(self):
+        return Dict.values(self)
+
+    @property
+    def keys(self):
+        return List(*Dict.keys(self))
 
     @property
     def values(self):
