@@ -9,6 +9,8 @@ from tryp.list import List
 
 A = TypeVar('A')
 B = TypeVar('B')
+C = TypeVar('C')
+D = TypeVar('D')
 
 
 class Map(Dict[A, B], Generic[A, B]):  # type: ignore
@@ -35,11 +37,23 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
         return Maybe(find(f, self.keys_view))\
             .map(lambda k: (k, self[k]))
 
+    def valfilter(self, f: Callable[[B], bool]) -> 'Map[A, B]':
+        return Map(dicttoolz.valfilter(f, self))
+
     def keyfilter(self, f: Callable[[A], bool]) -> 'Map[A, B]':
         return Map(dicttoolz.keyfilter(f, self))
 
-    def itemfilter(self, f: Callable[[B], bool]) -> 'Map[A, B]':
+    def filter(self, f: Callable[[Tuple[A, B]], bool]) -> 'Map[A, B]':
         return Map(dicttoolz.itemfilter(f, self))
+
+    def valmap(self, f: Callable[[B], C]) -> 'Map[A, C]':
+        return Map(dicttoolz.valmap(f, self))
+
+    def keymap(self, f: Callable[[A], C]) -> 'Map[C, B]':
+        return Map(dicttoolz.keymap(f, self))
+
+    def map(self, f: Callable[[Tuple[A, B]], Tuple[C, D]]) -> 'Map[C, D]':
+        return Map(dicttoolz.itemmap(f, self))
 
     @property
     def keys_view(self):
