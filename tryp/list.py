@@ -49,6 +49,9 @@ class List(typing.List[A], Generic[A]):
     def filter(self, f: Callable[[A], bool]):
         return List.wrap(filter(f, self))
 
+    def contains(self, value):
+        return value in self
+
     @property
     def is_empty(self):
         return self.length == 0

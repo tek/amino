@@ -38,6 +38,11 @@ class List_(Spec, ):
         l.find(_ % 2 == 0).should.equal(Just(6))
         l.find(_ == 3).should.equal(Empty())
 
+    def contains(self):
+        l = List(1, 6, 9)
+        l.contains(6).should.be.ok
+        l.contains(5).should_not.be.ok
+
     def lift(self):
         l = List(1, 4, 7)
         l.lift(1).should.equal(Just(4))
