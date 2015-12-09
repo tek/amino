@@ -89,6 +89,9 @@ class Maybe(Iterable[A], Generic[A]):
     def isJust(self):
         return (isinstance(self, Just))
 
+    def __nonzero__(self):
+        return self.isJust
+
     @property
     def toList(self):
         from tryp.list import List
