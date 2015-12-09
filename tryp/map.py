@@ -1,6 +1,7 @@
 from typing import TypeVar, Dict, Generic, Tuple, Callable
 
 from toolz import dicttoolz  # type: ignore
+from fn import _  # type: ignore
 
 from tek.tools import find  # type: ignore
 
@@ -54,6 +55,14 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
 
     def map(self, f: Callable[[Tuple[A, B]], Tuple[C, D]]) -> 'Map[C, D]':
         return Map(dicttoolz.itemmap(f, self))
+
+    def flat_map(
+            self,
+            f: Callable[[A, B], Maybe[Tuple[C, D]]]
+    ) -> 'Map[C, D]':
+        filtered = List.wrap([f(a, b) for a, b in self.items()])\
+            .flatten
+        return Map(filtered)
 
     @property
     def keys_view(self):
