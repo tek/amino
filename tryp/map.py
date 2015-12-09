@@ -35,6 +35,12 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
         return Maybe(find(f, self.keys_view))\
             .map(lambda k: (k, self[k]))
 
+    def keyfilter(self, f: Callable[[A], bool]) -> 'Map[A, B]':
+        return Map(dicttoolz.keyfilter(f, self))
+
+    def itemfilter(self, f: Callable[[B], bool]) -> 'Map[A, B]':
+        return Map(dicttoolz.itemfilter(f, self))
+
     @property
     def keys_view(self):
         return Dict.keys(self)
