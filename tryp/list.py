@@ -35,6 +35,10 @@ class List(typing.List[A], Generic[A]):
     def flat_map(self, f: Callable[[A], 'Iterable[B]']) -> 'List[B]':
         return List.wrap(flatten(map(f, self)))
 
+    @property
+    def flatten(self):
+        return self.flat_map(lambda a: a)
+
     def foreach(self, f: Callable[[A], B]) -> None:
         for el in self:
             f(el)
