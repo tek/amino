@@ -48,10 +48,10 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
         return Map(dicttoolz.itemfilter(f, self))
 
     def valmap(self, f: Callable[[B], C]) -> 'Map[A, C]':
-        return Map(dicttoolz.valmap(f, self))
+        return Map(dicttoolz.valmap(f, dict(self)))
 
     def keymap(self, f: Callable[[A], C]) -> 'Map[C, B]':
-        return Map(dicttoolz.keymap(f, self))
+        return Map(dicttoolz.keymap(f, dict(self)))
 
     def map(self, f: Callable[[Tuple[A, B]], Tuple[C, D]]) -> 'Map[C, D]':
         return Map(dicttoolz.itemmap(f, self))

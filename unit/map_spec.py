@@ -61,6 +61,16 @@ class Map_(Spec, ):
         res.should.have.key(len(k1)).being.equal(len(v1))
         res.should.have.key(len(k2)).being.equal(len(v2))
 
+    def keymap(self):
+        k1 = 'key'
+        v1 = 'value'
+        k2 = 'key2'
+        v2 = 'value2'
+        m = Map({k1: v1, k2: v2})
+        res = m.keymap(lambda a: len(a))
+        res.should.have.key(len(k1)).being.equal(v1)
+        res.should.have.key(len(k2)).being.equal(v2)
+
     def flat_map(self):
         k1 = 'key'
         v1 = 'value'
