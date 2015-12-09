@@ -22,13 +22,10 @@ class Maybe(Iterable[A], Generic[A]):
         return Just(value) if checker(value) else Empty()
 
     @staticmethod
-    def from_call(callback: Callable[..., A], *args, **kwargs):
-        '''Execute callback and catch possible (all by default)
-        exceptions. If exception is raised Empty will be returned.
-        '''
+    def from_call(f: Callable[..., A], *args, **kwargs):
         exc = kwargs.pop('exc', Exception)
         try:
-            return Maybe.inst(callback(*args, **kwargs))
+            return Maybe.inst(f(*args, **kwargs))
         except exc:
             return Empty()
 
@@ -40,11 +37,13 @@ class Maybe(Iterable[A], Generic[A]):
     def _get(self) -> Union[A, None]:
         pass
 
-    def cata(self, f: Callable[[A], B], b: B) -> B:
+    def cata(self, f: Callable[[A], B], b: Union[B, Callable[[], B]]) -> B:
         if self.isJust:
             return f(self._get)
+        elif isinstance(b, Callable):  # type: ignore
+            return b()  # type: ignore
         else:
-            return b
+            return b  # type: ignore
 
     def map(self, f: Callable[[A], B]) -> 'Maybe[B]':
         return self.cata(F(lambda v: Just(v)) << F(f), Empty())
@@ -60,12 +59,12 @@ class Maybe(Iterable[A], Generic[A]):
         l = lambda a: self if f(a) else Empty()
         return self.flat_map(l)
 
-    def get_or_else(self, a: A):
+    def get_or_else(self, a: Union[A, Callable[[], A]]):
         return self.cata(identity, a)
 
     __or__ = get_or_else
 
-    def or_else(self, ma):
+    def or_else(self, ma: Union['Maybe[A]', Callable[[], 'Maybe[A]']]):
         return self.cata(lambda v: self, ma)
 
     def exists(self, f: Callable[[A], bool]):
