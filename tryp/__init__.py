@@ -6,6 +6,8 @@ from tryp.map import Map
 from tryp.future import Future
 from tryp.boolean import Boolean
 
+development = False
+
 
 __all__ = ['Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future',
-           'Boolean']
+           'Boolean', 'development']
