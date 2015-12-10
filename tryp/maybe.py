@@ -57,6 +57,10 @@ class Maybe(Iterable[A], Generic[A]):
         e = Empty()  # type: Maybe[B]
         return self.cata(f, e)
 
+    @property
+    def flatten(self):
+        return self.flat_map(_)
+
     def filter(self, f: Callable[[A], B]):
         l = lambda a: self if f(a) else Empty()
         return self.flat_map(l)

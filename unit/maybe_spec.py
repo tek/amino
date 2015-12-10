@@ -29,6 +29,9 @@ class Maybe_(Spec, ):
         b = 'end'
         Maybe(a).flat_map(lambda v: Maybe(v + b))._get.should.equal(a + b)
 
+    def flatten(self):
+        Just(Just(1)).flatten.should.equal(Just(1))
+
     def contains(self):
         a = 'start'
         Maybe(a).contains(a).should.be.ok
