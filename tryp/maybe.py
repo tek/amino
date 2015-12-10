@@ -14,6 +14,8 @@ B = TypeVar('B')
 
 class Maybe(Iterable[A], Generic[A]):
 
+    __slots__ = ()
+
     def __new__(tp, value: A, checker=partial(is_not, None)):
         return Maybe.inst(value, checker)
 
