@@ -13,7 +13,7 @@ def tryp_logger(name: str):
     return tryp_root_logger.getChild(name)
 
 
-def tryp_logging():
+def tryp_stdout_logging():
     tryp_root_logger.addHandler(logging.StreamHandler(stream=sys.stdout))
     if tryp.development:
         tryp_root_logger.setLevel(logging.DEBUG)
@@ -33,4 +33,4 @@ class Logging(object):
     def log(self):
         return tryp_logger(self.__class__.__name__)
 
-__all__ = ['tryp_root_logger', 'tryp_logging', 'tryp_file_logging']
+__all__ = ['tryp_root_logger', 'tryp_stdout_logging', 'tryp_file_logging']
