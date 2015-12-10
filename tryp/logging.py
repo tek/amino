@@ -19,7 +19,7 @@ def tryp_stdout_logging():
         tryp_root_logger.setLevel(logging.DEBUG)
 
 
-logfile = Path.home() / '.python' / 'log'
+logfile = Path.home() / '.python' / 'log'  # type: ignore
 
 
 def tryp_file_logging():

@@ -125,6 +125,9 @@ class Just(Maybe):
             return False
         return eq(self.x, other.x)
 
+    def __hash__(self):
+        return hash(self._get)
+
 
 class Empty(Maybe):
 
@@ -142,6 +145,9 @@ class Empty(Maybe):
 
     def __eq__(self, other):
         return isinstance(other, Empty)
+
+    def __hash__(self):
+        return hash('Empty')
 
 
 def may(f):
