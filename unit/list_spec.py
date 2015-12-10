@@ -10,9 +10,6 @@ from tryp import List, Empty, Just
 
 class List_(Spec, ):
 
-    def setup(self, *a, **kw):
-        super(List_, self).setup(*a, **kw)
-
     def map(self):
         List(1, 2, 3) \
             .map(_ + 1) \
@@ -24,8 +21,8 @@ class List_(Spec, ):
             .should.equal(List(1, 2, 2, 3, 3, 4))
 
     def flatten_maybes(self):
-        List(Just(4), Empty(), Just(5), Empty()) \
-            .flat_map(_.toList) \
+        List(Just(4), Empty(), Just(5), Empty())\
+            .flatten\
             .should.equal(List(4, 5))
 
     def flat_map_maybe(self):
