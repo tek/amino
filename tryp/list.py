@@ -2,6 +2,8 @@ import itertools
 import typing
 from typing import TypeVar, Callable, Generic, Iterable
 
+from fn import _  # type: ignore
+
 from tek.tools import find  # type: ignore
 
 from tryp.maybe import Maybe
@@ -29,7 +31,7 @@ class List(typing.List[A], Generic[A]):
     def map(self, f: Callable[[A], B]) -> 'List[B]':
         return List.wrap(list(map(f, self)))
 
-    def smap(self, f: Callable[[A], B]) -> 'List[B]':
+    def smap(self, f: Callable[..., B]) -> 'List[B]':
         return List.wrap(list(itertools.starmap(f, self)))
 
     def flat_map(self, f: Callable[[A], 'Iterable[B]']) -> 'List[B]':
@@ -75,5 +77,8 @@ class List(typing.List[A], Generic[A]):
 
     def __add__(self, other: typing.List[A]) -> 'List[A]':
         return List.wrap(typing.List.__add__(self, other))
+
+    def without(self, el) -> 'List[A]':
+        return self.filter(_ != el)
 
 __all__ = ['List']
