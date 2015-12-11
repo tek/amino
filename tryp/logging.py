@@ -2,9 +2,27 @@ import logging
 import sys
 from pathlib import Path  # type: ignore
 
-from lazy import lazy  # type: ignore
+from tryp.lazy import lazy  # type: ignore
 
 import tryp
+
+VERBOSE = 15
+DDEBUG = 5
+logging.addLevelName(VERBOSE, 'VERBOSE')
+logging.addLevelName(DDEBUG, 'DDEBUG')
+
+
+def verbose(self, message, *args, **kws):
+    if self.isEnabledFor(VERBOSE):
+        self._log(VERBOSE, message, args, **kws)
+
+
+def ddebug(self, message, *args, **kws):
+    if self.isEnabledFor(DDEBUG):
+        self._log(DDEBUG, message, args, **kws)
+
+logging.Logger.verbose = verbose  # type: ignore
+logging.Logger.ddebug = ddebug  # type: ignore
 
 log = tryp_root_logger = logging.getLogger('tryp')
 
