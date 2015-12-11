@@ -48,14 +48,18 @@ class Maybe(Iterable[A], Generic[A]):
             return b  # type: ignore
 
     def map(self, f: Callable[[A], B]) -> 'Maybe[B]':
-        return self.cata(F(lambda v: Just(v)) << F(f), Empty())
+        return self.cata(lambda v: Just(f(v)), Empty())
 
-    def smap(self, f: Callable[[A], B]) -> 'Maybe[B]':
-        return self.cata(F(lambda v: Just(v)) << F(lambda v: f(*v)), Empty())
+    def smap(self, f: Callable[..., B]) -> 'Maybe[B]':
+        return self.cata(lambda v: Just(f(*v)), Empty())  # type: ignore
 
     def flat_map(self, f: Callable[[A], 'Maybe[B]']) -> 'Maybe[B]':
         e = Empty()  # type: Maybe[B]
         return self.cata(f, e)
+
+    def flat_smap(self, f: Callable[..., 'Maybe[B]']) -> 'Maybe[B]':
+        e = Empty()  # type: Maybe[B]
+        return self.cata(lambda v: f(*v), e)  # type: ignore
 
     @property
     def flatten(self):
