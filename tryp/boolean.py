@@ -9,6 +9,9 @@ class Boolean(object):
     def maybe(self, value):
         return Maybe(value) if self else Empty()
 
+    def flat_maybe(self, value: Maybe):
+        return value if self else Empty()
+
     def __nonzero__(self):
         return self.value
 
