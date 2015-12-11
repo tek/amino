@@ -33,12 +33,18 @@ def tryp_logger(name: str):
 _stdout_logging_initialized = False
 
 
-def tryp_stdout_logging():
+def init_loglevel(logger: logging.Logger, level: int=None):
+    if level is not None:
+        logger.setLevel(level)
+    elif tryp.development:
+        logger.setLevel(VERBOSE)
+
+
+def tryp_stdout_logging(level: int=None):
     global _stdout_logging_initialized
     if not _stdout_logging_initialized:
         tryp_root_logger.addHandler(logging.StreamHandler(stream=sys.stdout))
-        if tryp.development:
-            tryp_root_logger.setLevel(logging.DEBUG)
+        init_loglevel(tryp_root_logger, level)
         _stdout_logging_initialized = True
 
 
@@ -46,18 +52,23 @@ logfile = Path.home() / '.python' / 'log'  # type: ignore
 _file_logging_initialized = False
 
 
-def tryp_file_logging():
+def tryp_file_logging(level: int=None):
     global _file_logging_initialized
     if not _file_logging_initialized:
         logfile.parent.mkdir(exist_ok=True)
         tryp_root_logger.addHandler(logging.FileHandler(str(logfile)))
+        init_loglevel(tryp_root_logger, level)
         _file_logging_initialized = True
 
 
 class Logging(object):
 
+    @property
+    def log(self) -> logging.Logger:
+        return self._log
+
     @lazy
-    def log(self):
+    def _log(self) -> logging.Logger:
         return tryp_logger(self.__class__.__name__)
 
 __all__ = ['tryp_root_logger', 'tryp_stdout_logging', 'tryp_file_logging']
