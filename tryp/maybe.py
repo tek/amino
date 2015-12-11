@@ -158,7 +158,14 @@ def may(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         return Maybe.inst(f(*args, **kwargs))
+    return wrapper
 
+
+def flat_may(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        res = f(*args, **kwargs)
+        return res if isinstance(res, Maybe) else Maybe(res)
     return wrapper
 
 __all__ = ['Maybe', 'Just', 'Empty', 'may']
