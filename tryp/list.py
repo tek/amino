@@ -89,4 +89,7 @@ class List(typing.List[A], Generic[A]):
         l, r = reduce(splitter, self, ((), (),))
         return List.wrap(l), List.wrap(r)
 
+    def split_type(self, tpe: type):
+        return self.split(lambda a: isinstance(a, tpe))
+
 __all__ = ['List']

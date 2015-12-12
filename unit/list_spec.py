@@ -64,4 +64,10 @@ class List_(Spec, ):
         l.should.equal(List(5, 8, 9, 7))
         r.should.equal(List(2, 2, 4, 1))
 
+    def split_type(self):
+        z = List('a', 2, 'b', 'c', 3)
+        l, r = z.split_type(str)
+        l.should.equal(List('a', 'b', 'c'))
+        r.should.equal(List(2, 3))
+
 __all__ = ['List_']
