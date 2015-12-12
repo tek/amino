@@ -58,4 +58,10 @@ class List_(Spec, ):
             List(1, 3, 6, 9, 5, 7, 2)
         )
 
+    def split(self):
+        z = List(5, 2, 8, 2, 9, 4, 1, 7)
+        l, r = z.split(_ >= 5)
+        l.should.equal(List(5, 8, 9, 7))
+        r.should.equal(List(2, 2, 4, 1))
+
 __all__ = ['List_']

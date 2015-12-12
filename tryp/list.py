@@ -1,6 +1,7 @@
 import itertools
 import typing
 from typing import TypeVar, Callable, Generic, Iterable
+from functools import reduce
 
 from fn import _  # type: ignore
 
@@ -80,5 +81,12 @@ class List(typing.List[A], Generic[A]):
 
     def without(self, el) -> 'List[A]':
         return self.filter(_ != el)
+
+    def split(self, f: Callable[[A], bool]):
+        def splitter(z, e):
+            l, r = z
+            return (l + (e,), r) if f(e) else (l, r + (e,))
+        l, r = reduce(splitter, self, ((), (),))
+        return List.wrap(l), List.wrap(r)
 
 __all__ = ['List']
