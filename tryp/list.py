@@ -1,13 +1,14 @@
 import itertools
 import typing
 from typing import TypeVar, Callable, Generic, Iterable
-from functools import reduce
+from functools import reduce  # type: ignore
 
 from fn import _  # type: ignore
 
 from tek.tools import find  # type: ignore
 
 from tryp.maybe import Maybe
+from tryp.func import curried
 
 A = TypeVar('A', covariant=True)
 B = TypeVar('B')
@@ -91,5 +92,9 @@ class List(typing.List[A], Generic[A]):
 
     def split_type(self, tpe: type):
         return self.split(lambda a: isinstance(a, tpe))
+
+    @curried
+    def fold_left(self, z: B, f: Callable[[B, A], B]) -> B:
+        return reduce(f, self, z)
 
 __all__ = ['List']

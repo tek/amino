@@ -8,7 +8,7 @@ from tek import Spec  # type: ignore
 from tryp import List, Empty, Just
 
 
-class List_(Spec, ):
+class List_(Spec):
 
     def map(self):
         List(1, 2, 3) \
@@ -69,5 +69,9 @@ class List_(Spec, ):
         l, r = z.split_type(str)
         l.should.equal(List('a', 'b', 'c'))
         r.should.equal(List(2, 3))
+
+    def fold_left(self):
+        List(1, 2, 3).fold_left('')(lambda a, b: str(b) + a)\
+            .should.equal('321')
 
 __all__ = ['List_']
