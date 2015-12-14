@@ -1,10 +1,10 @@
-from typing import TypeVar, Generic, Callable, Union, Iterable, Any
+from typing import TypeVar, Generic, Callable, Union, Any
 from typing import Tuple  # NOQA
 
 from functools import wraps, partial  # type: ignore
 from operator import eq, is_not  # type: ignore
 
-from fn import F, _  # type: ignore
+from fn import _  # type: ignore
 from fn.op import identity  # type: ignore
 
 A = TypeVar('A')
@@ -12,7 +12,7 @@ A = TypeVar('A')
 B = TypeVar('B')
 
 
-class Maybe(Iterable[A], Generic[A]):
+class Maybe(Generic[A]):
 
     __slots__ = ()
 
@@ -91,6 +91,10 @@ class Maybe(Iterable[A], Generic[A]):
 
     def foreach(self, f: Callable[[A], Any]):
         self.cata(f, None)
+
+    def error(self, f: Callable[[], Any]) -> 'Maybe[A]':
+        self.cata(identity, f)
+        return self
 
     def __iter__(self):
         return iter(self.toList)
