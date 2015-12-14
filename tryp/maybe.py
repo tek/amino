@@ -7,6 +7,8 @@ from operator import eq, is_not  # type: ignore
 from fn import _  # type: ignore
 from fn.op import identity  # type: ignore
 
+from tryp.logging import log
+
 A = TypeVar('A')
 
 B = TypeVar('B')
@@ -99,6 +101,10 @@ class Maybe(Generic[A]):
     def observe(self, f: Callable[[A], Any]):
         self.foreach(f)
         return self
+
+    def debug(self, prefix=None):
+        prefix = '' if prefix is None else prefix + ' '
+        self.observe(lambda a: log.verbose(prefix + str(a)))
 
     def __iter__(self):
         return iter(self.toList)

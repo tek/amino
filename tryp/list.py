@@ -9,6 +9,7 @@ from tek.tools import find  # type: ignore
 
 from tryp.maybe import Maybe
 from tryp.func import curried
+from tryp.logging import log
 
 A = TypeVar('A', covariant=True)
 B = TypeVar('B')
@@ -96,5 +97,10 @@ class List(typing.List[A], Generic[A]):
     @curried
     def fold_left(self, z: B, f: Callable[[B, A], B]) -> B:
         return reduce(f, self, z)
+
+    def debug(self, prefix=None):
+        prefix = '' if prefix is None else prefix + ' '
+        log.verbose(prefix + str(self))
+        return self
 
 __all__ = ['List']
