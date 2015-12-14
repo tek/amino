@@ -96,6 +96,10 @@ class Maybe(Generic[A]):
         self.cata(identity, f)
         return self
 
+    def observe(self, f: Callable[[A], Any]):
+        self.foreach(f)
+        return self
+
     def __iter__(self):
         return iter(self.toList)
 
