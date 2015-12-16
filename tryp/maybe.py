@@ -1,8 +1,9 @@
 from typing import TypeVar, Generic, Callable, Union, Any
 from typing import Tuple  # NOQA
-
 from functools import wraps, partial  # type: ignore
 from operator import eq, is_not  # type: ignore
+import inspect
+import traceback
 
 from fn import _  # type: ignore
 from fn.op import identity  # type: ignore
@@ -31,6 +32,10 @@ class Maybe(Generic[A]):
         try:
             return Maybe.inst(f(*args, **kwargs))
         except exc:
+            if exc == Exception:
+                stack = traceback.format_stack(inspect.currentframe().f_back)
+                log.exception('Maybe.from_call:')
+                log.error(''.join(stack))
             return Empty()
 
     @staticmethod
