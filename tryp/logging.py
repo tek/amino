@@ -12,19 +12,25 @@ logging.addLevelName(VERBOSE, 'VERBOSE')
 logging.addLevelName(DDEBUG, 'DDEBUG')
 
 
-def verbose(self, message, *args, **kws):
-    if self.isEnabledFor(VERBOSE):
-        self._log(VERBOSE, message, args, **kws)
+class Logger(logging.Logger):
+
+    def verbose(self, message, *args, **kws):
+        if self.isEnabledFor(VERBOSE):
+            self._log(VERBOSE, message, args, **kws)
+
+    def ddebug(self, message, *args, **kws):
+        if self.isEnabledFor(DDEBUG):
+            self._log(DDEBUG, message, args, **kws)
 
 
-def ddebug(self, message, *args, **kws):
-    if self.isEnabledFor(DDEBUG):
-        self._log(DDEBUG, message, args, **kws)
-
-logging.Logger.verbose = verbose  # type: ignore
-logging.Logger.ddebug = ddebug  # type: ignore
+logging.Logger.verbose = Logger.verbose  # type: ignore
+logging.Logger.ddebug = Logger.ddebug  # type: ignore
 
 log = tryp_root_logger = logging.getLogger('tryp')
+
+
+def install_logger_class():
+    logging.setLoggerClass(Logger)
 
 
 def tryp_logger(name: str):
@@ -66,11 +72,11 @@ def tryp_file_logging(level: int=None, handler_level: int=logging.INFO):
 class Logging(object):
 
     @property
-    def log(self) -> logging.Logger:
+    def log(self) -> Logger:
         return self._log
 
     @lazy
-    def _log(self) -> logging.Logger:
+    def _log(self) -> Logger:
         return tryp_logger(self.__class__.__name__)
 
 __all__ = ['tryp_root_logger', 'tryp_stdout_logging', 'tryp_file_logging']
