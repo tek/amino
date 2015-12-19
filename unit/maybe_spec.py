@@ -14,10 +14,10 @@ class Maybe_(Spec, ):
         super(Maybe_, self).setup(*a, **kw)
 
     def none(self):
-        Maybe(None).isJust.should_not.be.ok
+        Maybe(None).is_just.should_not.be.ok
 
     def just(self):
-        Maybe('value').isJust.should.be.ok
+        Maybe('value').is_just.should.be.ok
 
     def map(self):
         a = 'start'

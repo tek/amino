@@ -47,7 +47,7 @@ class Maybe(Generic[A]):
         pass
 
     def cata(self, f: Callable[[A], B], b: Union[B, Callable[[], B]]) -> B:
-        if self.isJust:
+        if self.is_just:
             return f(self._get)
         elif isinstance(b, Callable):  # type: ignore
             return b()  # type: ignore
@@ -91,7 +91,7 @@ class Maybe(Generic[A]):
         return self.exists(_ == v)
 
     def zip(self, other: 'Maybe[B]') -> 'Maybe[Tuple[A, B]]':
-        if self.isJust and other.isJust:
+        if self.is_just and other.is_just:
             return Just((self._get, other._get))
         else:
             return Empty()
@@ -115,11 +115,11 @@ class Maybe(Generic[A]):
         return iter(self.toList)
 
     @property
-    def isJust(self):
+    def is_just(self):
         return (isinstance(self, Just))
 
     def __nonzero__(self):
-        return self.isJust
+        return self.is_just
 
     @property
     def toList(self):
