@@ -118,6 +118,10 @@ class Maybe(Generic[A]):
     def is_just(self):
         return (isinstance(self, Just))
 
+    @property
+    def is_empty(self):
+        return not self.is_just
+
     def __nonzero__(self):
         return self.is_just
 
