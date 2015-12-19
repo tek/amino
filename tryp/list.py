@@ -1,13 +1,13 @@
 import itertools
 import typing
-from typing import TypeVar, Callable, Generic, Iterable
+from typing import TypeVar, Callable, Generic, Iterable, Any
 from functools import reduce  # type: ignore
 
 from fn import _  # type: ignore
 
 from tek.tools import find  # type: ignore
 
-from tryp.maybe import Maybe
+from tryp.maybe import Maybe, Just, Empty
 from tryp.func import curried
 from tryp.logging import log
 
@@ -102,5 +102,12 @@ class List(typing.List[A], Generic[A]):
         prefix = '' if prefix is None else prefix + ' '
         log.verbose(prefix + str(self))
         return self
+
+    def index_where(self, pred: Callable[[Any], bool]):
+        gen = (Just(i) for i, a in enumerate(self) if pred(a))
+        return next(gen, Empty())  # type: ignore
+
+    def index_of(self, target: Any):
+        return self.index_where(_ == target)
 
 __all__ = ['List']
