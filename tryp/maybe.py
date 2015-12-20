@@ -60,6 +60,9 @@ class Maybe(Generic[A]):
     def smap(self, f: Callable[..., B]) -> 'Maybe[B]':
         return self.cata(lambda v: Just(f(*v)), Empty())  # type: ignore
 
+    def ssmap(self, f: Callable[..., B]) -> 'Maybe[B]':
+        return self.cata(lambda v: Just(f(**v)), Empty())  # type: ignore
+
     def flat_map(self, f: Callable[[A], 'Maybe[B]']) -> 'Maybe[B]':
         e = Empty()  # type: Maybe[B]
         return self.cata(f, e)
