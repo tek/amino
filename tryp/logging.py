@@ -54,11 +54,12 @@ def tryp_stdout_logging(level: int=None):
         _stdout_logging_initialized = True
 
 
-logfile = Path.home() / '.python' / 'log'  # type: ignore
+default_logfile = Path.home() / '.python' / 'log'  # type: ignore
 _file_logging_initialized = False
 
 
-def tryp_file_logging(level: int=None, handler_level: int=logging.INFO):
+def tryp_file_logging(level: int=None, logfile=default_logfile,
+                      handler_level: int=logging.INFO):
     global _file_logging_initialized
     if not _file_logging_initialized:
         logfile.parent.mkdir(exist_ok=True)
