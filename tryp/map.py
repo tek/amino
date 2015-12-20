@@ -25,6 +25,9 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
     def get(self, key):
         return Dict.get(self, key)
 
+    def __str__(self):
+        return str(dict(self))
+
     def __add__(self, item: Tuple[A, B]):
         return Map(dicttoolz.assoc(self, *item))
 
