@@ -38,6 +38,10 @@ class AssBuilder(sure.AssertionBuilder):
         assert isinstance(self.obj, Path), err.format(self.obj)
         return self._bool(lambda a: a.exists(), "path", "exist")
 
+    @sure.assertionmethod
+    def start_with(self, prefix):
+        return self.match('^{}'.format(prefix))
+
 
 def install_assertion_builder(builder):
     sure.AssertionBuilder = builder
