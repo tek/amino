@@ -7,6 +7,7 @@ from tek.tools import find  # type: ignore
 
 from tryp.maybe import may, Maybe
 from tryp.list import List
+from tryp.boolean import Boolean
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -94,5 +95,8 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
 
     def at(self, *keys):
         return self.keyfilter(lambda a: a in keys)
+
+    def has_key(self, name):
+        return Boolean(name in self)
 
 __all__ = ['Map']
