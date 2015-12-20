@@ -1,11 +1,10 @@
 from typing import TypeVar, Dict, Generic, Tuple, Callable
 
 from toolz import dicttoolz  # type: ignore
-from fn import _  # type: ignore
 
 from tek.tools import find  # type: ignore
 
-from tryp.maybe import may, Maybe
+from tryp.maybe import may, Maybe, Just
 from tryp.list import List
 from tryp.boolean import Boolean
 
@@ -24,6 +23,13 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
     @may
     def get(self, key):
         return Dict.get(self, key)
+
+    def get_all(self, *keys):
+        def append(zm, k):
+            return zm.flat_map(
+                lambda z: self.get(k).map(lambda a: z + List(a))
+            )
+        return List(*keys).fold_left(Just(List()))(append)
 
     def __str__(self):
         return str(dict(self))
