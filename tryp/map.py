@@ -34,6 +34,12 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
     def get_or_else(self, key, default: Callable):
         return self.get(key).get_or_else(default())
 
+    def set_if_missing(self, key: A, default: Callable[[], B]):
+        if key in self:
+            return self
+        else:
+            return self + (key, default())
+
     def __str__(self):
         return str(dict(self))
 
