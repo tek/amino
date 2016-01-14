@@ -110,4 +110,8 @@ class List(typing.List[A], Generic[A]):
     def index_of(self, target: Any):
         return self.index_where(_ == target)
 
+    @property
+    def reversed(self):
+        return List.wrap(reversed(self))
+
 __all__ = ['List']
