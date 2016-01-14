@@ -4,7 +4,7 @@ from tryp.maybe import Empty, Maybe
 class Boolean(object):
 
     def __init__(self, value: bool) -> None:
-        self.value = value
+        self.value = bool(value)
 
     def maybe(self, value):
         return Maybe(value) if self else Empty()
@@ -13,6 +13,9 @@ class Boolean(object):
         return value if self else Empty()
 
     def __nonzero__(self):
+        return self.value
+
+    def __bool__(self):
         return self.value
 
 __all__ = ['Boolean']
