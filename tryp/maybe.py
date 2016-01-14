@@ -42,6 +42,10 @@ class Maybe(Generic[A]):
     def typed(value: A, tpe: type):
         return Maybe.inst(value, lambda a: isinstance(a, tpe))
 
+    @staticmethod
+    def wrap(mb: Union['Maybe[A]', None]):
+        return mb if mb is not None and isinstance(mb, Just) else Empty()
+
     @property
     def _get(self) -> Union[A, None]:
         pass
