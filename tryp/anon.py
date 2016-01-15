@@ -1,20 +1,34 @@
-from operator import methodcaller
+class AnonFunc(object):
+
+    def __init__(self, name, a, kw):
+        self.name = name
+        self.a = a
+        self.kw = kw
+
+    def __call__(self, obj):
+        if not hasattr(obj, self.name):
+            raise AttributeError(
+                '{!r} has no method \'{}\''.format(obj, self.name))
+        return getattr(obj, self.name)(*self.a, **self.kw)
+
+    def __repr__(self):
+        return '{}({})'.format(self.__class__.__name__, self.name)
 
 
-class FuncRef(object):
+class MethodRef(object):
 
     def __init__(self, name: str) -> None:
         self.name = name
 
     def __call__(self, *a, **kw):
-        return methodcaller(self.name, *a, **kw)
+        return AnonFunc(self.name, a, kw)
 
 
-class Lambda(object):
+class MethodLambda(object):
 
     def __getattr__(self, name):
-        return FuncRef(name)
+        return MethodRef(name)
 
-__ = Lambda()
+__ = MethodLambda()
 
 __all__ = ('__')
