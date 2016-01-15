@@ -12,17 +12,17 @@ class AssBuilder(sure.AssertionBuilder):
         if isinstance(self.obj, Maybe):
             return self.just_contain(what)
         else:
-            return super(AssBuilder, self).contain(what)
+            return super().contain(what)
 
     @sure.assertionmethod
     def just_contain(self, what):
         self.obj.should.be.a(Maybe)
         if self.negative:
             msg = "{} contains {}, expected {}"
-            assert isinstance(self.obj, Empty) or self.obj._get != what,\
+            assert self.obj.is_empty or self.obj._get != what,\
                 msg.format(self.obj, self.obj._get, what)
         else:
-            self.be.a(Just)
+            self.be.just
             self.obj._get.should.equal(what)
         return True
 
@@ -31,6 +31,15 @@ class AssBuilder(sure.AssertionBuilder):
         assert pred(self.obj) ^ self.negative,\
             'expected {} \'{}\' {} {}'.format(agent, self.obj, no, action)
         return True
+
+    def just(self):
+        return self.be.a(Just)
+
+    def empty(self):
+        if isinstance(self.obj, Maybe):
+            return self.be.a(Empty)
+        else:
+            return super().empty()
 
     @sure.assertionproperty
     def exist(self):
