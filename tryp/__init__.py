@@ -6,9 +6,10 @@ from tryp.map import Map
 from tryp.future import Future
 from tryp.boolean import Boolean
 from tryp.func import curried
+from tryp.anon import __
 
 development = False
 
 
-__all__ = ['Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future',
-           'Boolean', 'development', 'flat_may', 'curried']
+__all__ = ('Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future',
+           'Boolean', 'development', 'flat_may', 'curried', '__')
