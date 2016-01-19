@@ -71,7 +71,7 @@ class ImplicitsMeta(GenericMeta):
                 if hasattr(mod, imp_cls):
                     instances = getattr(mod, imp_cls)()
                     inst.implicits = instances
-                    Instances.add(instances)
+                    Instances.add(name, instances)
                     ImplicitsMeta._attach_operators(inst)
                     return inst
                 else:
@@ -153,8 +153,8 @@ class AllInstances(object):
     def __init__(self):
         self._instances = dict()
 
-    def add(self, inst: ImplicitInstances):
-        self._instances[inst.tpe] = inst
+    def add(self, name, inst: ImplicitInstances):
+        self._instances[name] = inst
 
     def lookup(self, f, a):
         for t in a.__mro__:
@@ -169,6 +169,6 @@ class AllInstances(object):
             if inst is not None:
                 return inst
 
-Instances = AllInstances()
+Instances = AllInstances()  # type: AllInstances
 
 __all__ = ('TypeClasses', 'TC', 'tc_prop', 'TypeClass')

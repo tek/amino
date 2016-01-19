@@ -9,7 +9,7 @@ from fn import _  # type: ignore
 from fn.op import identity  # type: ignore
 
 from tryp.logging import log
-from tryp.tc.base import Implicits, ImplicitInstances
+from tryp.tc.base import Implicits, ImplicitInstances, tc_prop
 from tryp.lazy import lazy
 from tryp.tc.monad import Monad
 from tryp.tc.optional import Optional
@@ -19,7 +19,6 @@ B = TypeVar('B')
 
 
 class MaybeInstances(ImplicitInstances):
-    tpe = 'Maybe'
 
     @lazy
     def _instances(self):
