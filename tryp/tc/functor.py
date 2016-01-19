@@ -14,4 +14,7 @@ class Functor(Generic[F], TypeClass):
     def map(self, fa: F, f: Callable[[A], B]) -> F:
         ...
 
+    def __truediv__(self, fa, f):
+        return self.map(fa, f)
+
 __all__ = ('Functor')

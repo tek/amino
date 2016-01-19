@@ -21,6 +21,7 @@ class Maybe_(Spec):
         a = 'start'
         b = 'end'
         Maybe(a).map(_ + b)._get.should.equal(a + b)
+        (Maybe(a) / (_ + b))._get.should.equal(a + b)
 
     def flat_map(self):
         a = 'start'
@@ -60,5 +61,14 @@ class Maybe_(Spec):
         a = Just(5)
         ac = lambda: a
         e.or_else(ac).should.equal(a)
+
+    def tap(self):
+        a = 1
+        b = 6
+        def setter(c):
+            nonlocal a
+            a = c + 1
+        (Just(b) % setter).should.contain(b)
+        a.should.equal(b + 1)
 
 __all__ = ['Maybe_']

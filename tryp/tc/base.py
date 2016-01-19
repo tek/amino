@@ -34,6 +34,8 @@ class ImplicitInstancesNotFound(Exception):
 
 operators = (
     '__floordiv__',
+    '__truediv__',
+    '__mod__',
 )
 
 
@@ -43,9 +45,14 @@ class ImplicitsMeta(GenericMeta):
         snake = snake_case(name)
         return 'tryp.{}'.format(snake), '{}Instances'.format(name)
 
+    def _mk_operator(name):
+        def dispatch(self, other):
+            return self._operator(name, other)
+        return dispatch
+
     def _attach_operators(inst):
         for op in operators:
-            setattr(inst, op, lambda s, o: (inst._operator(s, op, o)))
+            setattr(inst, op, ImplicitsMeta._mk_operator(op))
 
     def __new__(cls, name, bases, namespace, imp_mod=None, imp_cls=None,
                 implicits=False, **kw):
@@ -89,8 +96,8 @@ class Implicits(object, metaclass=ImplicitsMeta):
 
     def __getattr__(self, name):
         imp = self._lookup_implicit_attr(name)
-        err = '\'{}\' has no attribute \'{}\''.format(self, name)
         if imp is None:
+            err = '\'{}\' has no attribute \'{}\''.format(self, name)
             raise AttributeError(err)
         else:
             return imp
@@ -127,7 +134,8 @@ class GlobalTypeClasses(TypeClasses):
     @property
     def instances(self):
         from tryp.map import Map
-        return Map({Show: Show()})
+        from tryp.tc.tap import Tap
+        return Map({Show: Show(), Tap: Tap()})
 
 
 TC = GlobalTypeClasses()
@@ -149,11 +157,17 @@ class AllInstances(object):
         self._instances[inst.tpe] = inst
 
     def lookup(self, f, a):
-        inst = self._instances.get(a.__name__, {}).instances.get(f) | None
-        if inst is None:
-            raise ImplicitNotFound(f, a)
-        else:
-            return inst
+        for t in a.__mro__:
+            inst = self._lookup_type(f, t)
+            if inst is not None:
+                return inst
+        raise ImplicitNotFound(f, a)
+
+    def _lookup_type(self, f, a):
+        if a.__name__ in self._instances:
+            inst = self._instances[a.__name__].instances.get(f) | None
+            if inst is not None:
+                return inst
 
 Instances = AllInstances()
 
