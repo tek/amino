@@ -32,7 +32,7 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
         return List(*keys).fold_left(Just(List()))(append)
 
     def get_or_else(self, key, default: Callable):
-        return self.get(key).get_or_else(default())
+        return self.get(key).get_or_else(default)
 
     def set_if_missing(self, key: A, default: Callable[[], B]):
         if key in self:
