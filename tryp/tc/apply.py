@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Generic
+from typing import TypeVar
 
 from tryp.tc.functor import Functor
 
@@ -7,7 +7,7 @@ F = TypeVar('F')
 A = TypeVar('A')
 
 
-class Apply(Generic[F], Functor):
+class Apply(Functor):
 
     @abc.abstractmethod
     def ap(self, fa: F, f: F) -> F:
