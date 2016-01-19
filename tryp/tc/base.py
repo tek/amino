@@ -13,6 +13,14 @@ class TypeClassMeta(GenericMeta):
     def __getitem__(self, tpe: type):
         return Instances.lookup(self, tpe)
 
+    def exists(self, tpe: type):
+        try:
+            self[tpe]
+        except ImplicitNotFound:
+            return False
+        else:
+            return True
+
 
 class TypeClass(object, metaclass=TypeClassMeta):
     pass
@@ -36,6 +44,7 @@ operators = (
     '__floordiv__',
     '__truediv__',
     '__mod__',
+    '__or__',
 )
 
 
