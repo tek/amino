@@ -1,3 +1,5 @@
+import os
+
 import tek  # type: ignore
 
 import tryp
@@ -13,4 +15,12 @@ class Spec(tek.Spec):
         install_assertion_builder(AssBuilder)
         super(Spec, self).setup(*a, **kw)
 
-__all__ = ('Spec')
+
+class IntegrationSpec(Spec):
+
+    def setup(self, *a, **kw):
+        os.environ['PROTEOME_INTEGRATION'] = '1'
+        tryp.integration_test = True
+        super().setup(*a, **kw)
+
+__all__ = ('Spec', 'IntegrationSpec')
