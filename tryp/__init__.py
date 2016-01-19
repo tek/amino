@@ -2,11 +2,11 @@ import os
 
 from fn import _  # type: ignore
 
-from tryp.maybe import Maybe, Just, Empty, may, flat_may
-from tryp.list import List
-from tryp.map import Map
+from tryp.maybe import Maybe, Just, Empty, may, flat_may  # type: ignore
+from tryp.list import List  # type: ignore
+from tryp.map import Map  # type: ignore
 from tryp.future import Future
-from tryp.boolean import Boolean
+from tryp.boolean import Boolean  # type: ignore
 from tryp.func import curried
 from tryp.anon import __
 

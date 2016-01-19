@@ -3,7 +3,7 @@ from flexmock import flexmock  # NOQA
 
 from fn import _
 
-from tek import Spec  # type: ignore
+from tryp.test import Spec
 
 from tryp import List, Empty, Just
 

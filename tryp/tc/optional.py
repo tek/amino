@@ -1,7 +1,7 @@
 import abc
 from typing import TypeVar, Generic, Callable
 
-from tryp.typeclass import TypeClass, tc_prop
+from tryp.tc.base import TypeClass, tc_prop
 from tryp import Maybe
 
 F = TypeVar('F')

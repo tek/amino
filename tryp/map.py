@@ -4,9 +4,9 @@ from toolz import dicttoolz  # type: ignore
 
 from tek.tools import find  # type: ignore
 
-from tryp.maybe import may, Maybe, Just
-from tryp.list import List
-from tryp.boolean import Boolean
+from tryp.maybe import may, Maybe, Just  # type: ignore
+from tryp.list import List  # type: ignore
+from tryp.boolean import Boolean  # type: ignore
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -31,7 +31,7 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
             )
         return List(*keys).fold_left(Just(List()))(append)
 
-    def get_or_else(self, key, default: Callable):
+    def get_or_else(self, key, default: Callable[[], C]):
         return self.get(key).get_or_else(default)
 
     def set_if_missing(self, key: A, default: Callable[[], B]):

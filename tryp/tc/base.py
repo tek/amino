@@ -1,6 +1,6 @@
 import importlib
 import abc
-from typing import GenericMeta, Dict
+from typing import GenericMeta, Dict  # type: ignore
 from functools import partial
 
 from tryp.util.string import snake_case
@@ -8,7 +8,13 @@ from tryp.lazy import lazy
 from tryp.tc.show import Show
 
 
-class TypeClass(object, metaclass=abc.ABCMeta):
+class TypeClassMeta(GenericMeta):
+
+    def __getitem__(self, tpe: type):
+        return Instances.lookup(self, tpe)
+
+
+class TypeClass(object, metaclass=TypeClassMeta):
     pass
 
 
@@ -26,11 +32,20 @@ class ImplicitInstancesNotFound(Exception):
         super().__init__(msg)
 
 
+operators = (
+    '__floordiv__',
+)
+
+
 class ImplicitsMeta(GenericMeta):
 
     def _infer_implicits(name):
         snake = snake_case(name)
         return 'tryp.{}'.format(snake), '{}Instances'.format(name)
+
+    def _attach_operators(inst):
+        for op in operators:
+            setattr(inst, op, lambda s, o: (inst._operator(s, op, o)))
 
     def __new__(cls, name, bases, namespace, imp_mod=None, imp_cls=None,
                 implicits=False, **kw):
@@ -47,8 +62,10 @@ class ImplicitsMeta(GenericMeta):
                 raise err
             else:
                 if hasattr(mod, imp_cls):
-                    Instances = getattr(mod, imp_cls)
-                    inst.implicits = Instances()
+                    instances = getattr(mod, imp_cls)()
+                    inst.implicits = instances
+                    Instances.add(instances)
+                    ImplicitsMeta._attach_operators(inst)
                     return inst
                 else:
                     raise err
@@ -61,7 +78,7 @@ def tc_prop(f):
 
 class Implicits(object, metaclass=ImplicitsMeta):
 
-    def __getattr__(self, name):
+    def _lookup_implicit_attr(self, name):
         for inst in self.implicits.instances.values:
             if hasattr(inst, name):
                 f = getattr(inst, name)
@@ -69,18 +86,33 @@ class Implicits(object, metaclass=ImplicitsMeta):
                     return f(self)
                 else:
                     return partial(f, self)
+
+    def __getattr__(self, name):
+        imp = self._lookup_implicit_attr(name)
         err = '\'{}\' has no attribute \'{}\''.format(self, name)
-        raise AttributeError(err)
+        if imp is None:
+            raise AttributeError(err)
+        else:
+            return imp
+
+    def _operator(self, name, other):
+        op = self._lookup_implicit_attr(name)
+        if op is None:
+            err = '\'{}\' has no implicit operator \'{}\''.format(self, name)
+            raise TypeError(err)
+        else:
+            return op(other)
 
 
 class ImplicitInstances(object, metaclass=abc.ABCMeta):
+    tpe = None
 
     @lazy
     def instances(self):
         return (TC.instances ** self._instances **
                 self._override_instances)
 
-    @abc.abstractproperty
+    @abc.abstractproperty  # type: ignore
     def _instances(self) -> Dict[type, TypeClass]:
         ...
 
@@ -100,4 +132,29 @@ class GlobalTypeClasses(TypeClasses):
 
 TC = GlobalTypeClasses()
 
-__all__ = ('TypeClasses', 'TC')
+
+class ImplicitNotFound(Exception):
+
+    def __init__(self, tc, a):
+        msg = 'no type class found for {}[{}]'.format(tc, a)
+        super().__init__(msg)
+
+
+class AllInstances(object):
+
+    def __init__(self):
+        self._instances = dict()
+
+    def add(self, inst: ImplicitInstances):
+        self._instances[inst.tpe] = inst
+
+    def lookup(self, f, a):
+        inst = self._instances.get(a.__name__, {}).instances.get(f) | None
+        if inst is None:
+            raise ImplicitNotFound(f, a)
+        else:
+            return inst
+
+Instances = AllInstances()
+
+__all__ = ('TypeClasses', 'TC', 'tc_prop', 'TypeClass')

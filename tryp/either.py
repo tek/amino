@@ -1,12 +1,11 @@
 from typing import TypeVar, Generic, Callable, Union  # type: ignore
-import abc
 
 from tryp import Empty, Just, Map
-from tryp.typeclass import Implicits, tc_prop
-from tryp.tc.functor import Functor
-from tryp.typeclass import ImplicitInstances
+from tryp.tc.base import Implicits, tc_prop
+from tryp.tc.base import ImplicitInstances
 from tryp.lazy import lazy
 from tryp.tc.optional import Optional
+from tryp.tc.monad import Monad
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -17,7 +16,7 @@ class EitherInstances(ImplicitInstances):
 
     @lazy
     def _instances(self):
-        return Map({Functor: EitherFunctor(), Optional: EitherOptional()})
+        return Map({Monad: EitherMonad(), Optional: EitherOptional()})
 
 
 class Either(Generic[A, B], Implicits, implicits=True):
@@ -42,10 +41,14 @@ class Left(Either):
     pass
 
 
-class EitherFunctor(Functor):
+class EitherMonad(Monad):
 
-    def map(self, fa: Either[A, B], f: Callable[[B], C]) -> Either[A, C]:
-        return Right(f(fa.value)) if isinstance(fa, Right) else fa
+    def pure(self, a: A):
+        return Right(a)
+
+    def flat_map(self, fa: Either[A, B], f: Callable[[B], Either[A, C]]
+                 ) -> Either[A, C]:
+        return f(fa.value) if isinstance(fa, Right) else fa
 
 
 class EitherOptional(Optional):

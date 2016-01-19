@@ -1,9 +1,8 @@
 import sure  # NOQA
 from flexmock import flexmock  # NOQA
 
-from tek import Spec  # type: ignore
-
 from tryp.lazy import lazy
+from tryp.test import Spec
 
 
 class Test(object):

@@ -9,20 +9,21 @@ from fn import _  # type: ignore
 from fn.op import identity  # type: ignore
 
 from tryp.logging import log
-from tryp.typeclass import Implicits, ImplicitInstances
-from tryp.tc.functor import Functor
+from tryp.tc.base import Implicits, ImplicitInstances
 from tryp.lazy import lazy
+from tryp.tc.monad import Monad
 
 A = TypeVar('A')
 B = TypeVar('B')
 
 
 class MaybeInstances(ImplicitInstances):
+    tpe = 'Maybe'
 
     @lazy
     def _instances(self):
         from tryp import Map
-        return Map({Functor: MaybeFunctor()})
+        return Map({Monad: MaybeMonad()})
 
 
 class Maybe(Generic[A], Implicits, implicits=True):
@@ -73,10 +74,6 @@ class Maybe(Generic[A], Implicits, implicits=True):
 
     def ssmap(self, f: Callable[..., B]) -> 'Maybe[B]':
         return self.cata(lambda v: Just(f(**v)), Empty())  # type: ignore
-
-    def flat_map(self, f: Callable[[A], 'Maybe[B]']) -> 'Maybe[B]':
-        e = Empty()  # type: Maybe[B]
-        return self.cata(f, e)
 
     def flat_smap(self, f: Callable[..., 'Maybe[B]']) -> 'Maybe[B]':
         e = Empty()  # type: Maybe[B]
@@ -215,9 +212,12 @@ def flat_may(f):
     return wrapper
 
 
-class MaybeFunctor(Functor):
+class MaybeMonad(Monad):
 
-    def map(self, fa: Maybe[A], f: Callable[[A], B]) -> Maybe[A]:
-        return fa.cata(lambda v: Just(f(v)), Empty())
+    def pure(self, a: A):
+        return Just(a)
+
+    def flat_map(self, fa: Maybe[A], f: Callable[[A], Maybe[B]]) -> Maybe[B]:
+        return fa.cata(lambda v: f(v), Empty())
 
 __all__ = ['Maybe', 'Just', 'Empty', 'may']

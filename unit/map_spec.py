@@ -1,14 +1,11 @@
-import sure  # NOQA
-from flexmock import flexmock  # NOQA
-
 from fn import _  # type: ignore
 
-from tek import Spec  # type: ignore
+from tryp.test import Spec
 
 from tryp import Map, Empty, Just
 
 
-class Map_(Spec, ):
+class Map_(Spec):
 
     def setup(self, *a, **kw):
         super(Map_, self).setup(*a, **kw)

@@ -9,7 +9,7 @@ class lazy(Generic[A]):
     def __init__(self, func: Callable[[Any], A]) -> None:
         self.func = func
         self._attr_name = '_{}__value'.format(self.func.__name__)
-        functools.wraps(self.func)(self)
+        functools.wraps(self.func)(self)  # type: ignore
 
     def __get__(self, inst, inst_cls) -> Union[A, 'lazy[A]']:
         if inst is None:

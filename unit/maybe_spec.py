@@ -1,14 +1,12 @@
-import sure  # NOQA
-from flexmock import flexmock  # NOQA
+from fn import _, F  # type: ignore
 
-from fn import _
-
-from tek import Spec  # type: ignore
+from tryp.test import Spec
 
 from tryp import Maybe, Empty, Just
+from tryp.tc.monad import Monad
 
 
-class Maybe_(Spec, ):
+class Maybe_(Spec):
 
     def setup(self, *a, **kw):
         super(Maybe_, self).setup(*a, **kw)
@@ -27,7 +25,8 @@ class Maybe_(Spec, ):
     def flat_map(self):
         a = 'start'
         b = 'end'
-        Maybe(a).flat_map(lambda v: Maybe(v + b))._get.should.equal(a + b)
+        Maybe(a).flat_map(lambda v: Maybe(v + b)).should.contain(a + b)
+        (Maybe(a) // (F(_ + b) >> Monad[Maybe].pure)).should.contain(a + b)
 
     def flatten(self):
         Just(Just(1)).flatten.should.equal(Just(1))

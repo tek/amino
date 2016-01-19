@@ -1,7 +1,4 @@
-import sure  # NOQA
-from flexmock import flexmock  # NOQA
-
-from fn import _
+from fn import _  # type: ignore
 
 from tryp.either import Left, Right  # type: ignore
 from tryp import Empty  # type: ignore

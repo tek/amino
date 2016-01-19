@@ -1,7 +1,7 @@
 import abc
 from typing import TypeVar, Generic, Callable
 
-from tryp.typeclass import TypeClass
+from tryp.tc.base import TypeClass
 
 F = TypeVar('F')
 A = TypeVar('A')
@@ -11,7 +11,7 @@ B = TypeVar('B')
 class Functor(Generic[F], TypeClass):
 
     @abc.abstractmethod
-    def map(self, fa: F, f: Callable[[A], B]) -> B:
+    def map(self, fa: F, f: Callable[[A], B]) -> F:
         ...
 
 __all__ = ('Functor')
