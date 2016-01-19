@@ -30,7 +30,7 @@ class Map_(Spec, ):
         m2.get(k2).should.equal(Just(v2))
         m.get(k2).should.equal(Empty())
 
-    def addMulti(self):
+    def add_multi(self):
         key = 'key'
         val = 'value'
         k2 = 'key2'

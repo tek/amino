@@ -9,13 +9,23 @@ from fn import _  # type: ignore
 from fn.op import identity  # type: ignore
 
 from tryp.logging import log
+from tryp.typeclass import Implicits, ImplicitInstances
+from tryp.tc.functor import Functor
+from tryp.lazy import lazy
 
 A = TypeVar('A')
-
 B = TypeVar('B')
 
 
-class Maybe(Generic[A]):
+class MaybeInstances(ImplicitInstances):
+
+    @lazy
+    def _instances(self):
+        from tryp import Map
+        return Map({Functor: MaybeFunctor()})
+
+
+class Maybe(Generic[A], Implicits, implicits=True):
 
     __slots__ = ()
 
@@ -58,9 +68,6 @@ class Maybe(Generic[A]):
         else:
             return b  # type: ignore
 
-    def map(self, f: Callable[[A], B]) -> 'Maybe[B]':
-        return self.cata(lambda v: Just(f(v)), Empty())
-
     def smap(self, f: Callable[..., B]) -> 'Maybe[B]':
         return self.cata(lambda v: Just(f(*v)), Empty())  # type: ignore
 
@@ -97,6 +104,9 @@ class Maybe(Generic[A]):
     def contains(self, v):
         return self.exists(_ == v)
 
+    def __contains__(self, v):
+        return self.contains(v)
+
     def zip(self, other: 'Maybe[B]') -> 'Maybe[Tuple[A, B]]':
         if self.is_just and other.is_just:
             return Just((self._get, other._get))
@@ -113,6 +123,8 @@ class Maybe(Generic[A]):
     def observe(self, f: Callable[[A], Any]):
         self.foreach(f)
         return self
+
+    effect = observe
 
     def debug(self, prefix=None):
         prefix = '' if prefix is None else prefix + ' '
@@ -201,5 +213,11 @@ def flat_may(f):
         res = f(*args, **kwargs)
         return res if isinstance(res, Maybe) else Maybe(res)
     return wrapper
+
+
+class MaybeFunctor(Functor):
+
+    def map(self, fa: Maybe[A], f: Callable[[A], B]) -> Maybe[A]:
+        return fa.cata(lambda v: Just(f(v)), Empty())
 
 __all__ = ['Maybe', 'Just', 'Empty', 'may']

@@ -1,30 +1,57 @@
-from typing import TypeVar, Generic, Callable, Union
-from functools import wraps, partial  # type: ignore
-from operator import eq, is_not  # type: ignore
-from abc import ABCMeta, abstractmethod
+from typing import TypeVar, Generic, Callable, Union  # type: ignore
+import abc
 
-from fn import F, _  # type: ignore
+from tryp import Empty, Just, Map
+from tryp.typeclass import Implicits, tc_prop
+from tryp.tc.functor import Functor
+from tryp.typeclass import ImplicitInstances
+from tryp.lazy import lazy
+from tryp.tc.optional import Optional
 
 A = TypeVar('A')
-
 B = TypeVar('B')
+C = TypeVar('C')
 
 
-class Either(Generic[A, B], metaclass=ABCMeta):
+class EitherInstances(ImplicitInstances):
 
-    def __init__(self):
-        self.value = None  # type: Union[A, B, None]
+    @lazy
+    def _instances(self):
+        return Map({Functor: EitherFunctor(), Optional: EitherOptional()})
 
 
-class Left(Either):
+class Either(Generic[A, B], Implicits, implicits=True):
 
-    def __init__(self, value: A) -> None:
+    def __init__(self, value: Union[A, B]):
         self.value = value
+
+    @property
+    def is_right(self):
+        return isinstance(self, Right)
+
+    @property
+    def is_left(self):
+        return isinstance(self, Left)
 
 
 class Right(Either):
+    pass
 
-    def __init__(self, value: B) -> None:
-        self.value = value
 
-__all__ = ['Either']
+class Left(Either):
+    pass
+
+
+class EitherFunctor(Functor):
+
+    def map(self, fa: Either[A, B], f: Callable[[B], C]) -> Either[A, C]:
+        return Right(f(fa.value)) if isinstance(fa, Right) else fa
+
+
+class EitherOptional(Optional):
+
+    @tc_prop
+    def to_maybe(self, fa: Either):
+        return Just(fa.value) if fa.is_right else Empty()
+
+__all__ = ['Either', 'Left', 'Right']
