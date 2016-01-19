@@ -69,16 +69,6 @@ class Maybe(Generic[A], Implicits, implicits=True):
         else:
             return b  # type: ignore
 
-    def smap(self, f: Callable[..., B]) -> 'Maybe[B]':
-        return self.cata(lambda v: Just(f(*v)), Empty())  # type: ignore
-
-    def ssmap(self, f: Callable[..., B]) -> 'Maybe[B]':
-        return self.cata(lambda v: Just(f(**v)), Empty())  # type: ignore
-
-    def flat_smap(self, f: Callable[..., 'Maybe[B]']) -> 'Maybe[B]':
-        e = Empty()  # type: Maybe[B]
-        return self.cata(lambda v: f(*v), e)  # type: ignore
-
     @property
     def flatten(self):
         return self.flat_map(_)
