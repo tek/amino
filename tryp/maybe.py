@@ -12,6 +12,7 @@ from tryp.logging import log
 from tryp.tc.base import Implicits, ImplicitInstances
 from tryp.lazy import lazy
 from tryp.tc.monad import Monad
+from tryp.tc.optional import Optional
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -23,7 +24,7 @@ class MaybeInstances(ImplicitInstances):
     @lazy
     def _instances(self):
         from tryp import Map
-        return Map({Monad: MaybeMonad()})
+        return Map({Monad: MaybeMonad(), Optional: MaybeOptional()})
 
 
 class Maybe(Generic[A], Implicits, implicits=True):
@@ -219,5 +220,12 @@ class MaybeMonad(Monad):
 
     def flat_map(self, fa: Maybe[A], f: Callable[[A], Maybe[B]]) -> Maybe[B]:
         return fa.cata(lambda v: f(v), Empty())
+
+
+class MaybeOptional(Optional):
+
+    @tc_prop
+    def to_maybe(self, fa: Maybe):
+        return fa
 
 __all__ = ['Maybe', 'Just', 'Empty', 'may']
