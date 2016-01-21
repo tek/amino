@@ -1,3 +1,3 @@
-from .spec import Spec  # NOQA
+from .spec import Spec, IntegrationSpec  # NOQA
 
-__all__ = ('Spec')
+__all__ = ('Spec', 'IntegrationSpec')
