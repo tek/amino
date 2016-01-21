@@ -49,6 +49,9 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
     def __pow__(self, other: 'Map[A, B]'):
         return Map(dicttoolz.merge(self, other))
 
+    def __sub__(self, key: A):
+        return Map(dicttoolz.dissoc(self, key))
+
     def find(self, f: Callable[[B], bool]) -> Maybe[Tuple[A, B]]:
         return Maybe(find(lambda a: f(self[a]), self.keys_view))\
             .map(lambda k: (k, self[k]))
