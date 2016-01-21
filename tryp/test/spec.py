@@ -19,7 +19,7 @@ class Spec(tek.Spec):
 class IntegrationSpec(Spec):
 
     def setup(self, *a, **kw):
-        os.environ['PROTEOME_INTEGRATION'] = '1'
+        os.environ['TRYP_INTEGRATION'] = '1'
         tryp.integration_test = True
         super().setup(*a, **kw)
 

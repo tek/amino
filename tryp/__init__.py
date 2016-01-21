@@ -11,7 +11,7 @@ from tryp.func import curried
 from tryp.anon import __
 
 development = False
-integration_test = 'PROTEOME_INTEGRATION' in os.environ
+integration_test = 'TRYP_INTEGRATION' in os.environ
 
 
 __all__ = ('Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future',
