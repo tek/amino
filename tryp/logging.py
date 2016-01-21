@@ -74,10 +74,10 @@ class Logging(object):
 
     @property
     def log(self) -> Logger:
-        return self._log
+        return self._log  # type: ignore
 
     @lazy
     def _log(self) -> Logger:
         return tryp_logger(self.__class__.__name__)
 
-__all__ = ['tryp_root_logger', 'tryp_stdout_logging', 'tryp_file_logging']
+__all__ = ('tryp_root_logger', 'tryp_stdout_logging', 'tryp_file_logging')

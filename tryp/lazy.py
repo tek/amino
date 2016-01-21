@@ -6,7 +6,7 @@ A = TypeVar('A')
 
 class lazy(Generic[A]):
 
-    def __init__(self, func: Callable[[Any], A]) -> None:
+    def __init__(self, func: Callable[..., A]) -> None:
         self.func = func
         self._attr_name = '_{}__value'.format(self.func.__name__)
         functools.wraps(self.func)(self)  # type: ignore
