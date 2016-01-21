@@ -1,4 +1,5 @@
 import os
+import time
 
 import tek  # type: ignore
 
@@ -14,6 +15,9 @@ class Spec(tek.Spec):
         tryp_stdout_logging()
         install_assertion_builder(AssBuilder)
         super(Spec, self).setup(*a, **kw)
+
+    def _wait(self, seconds):
+        time.sleep(seconds)
 
 
 class IntegrationSpec(Spec):
