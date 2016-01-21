@@ -32,6 +32,11 @@ class Either(Generic[A, B], Implicits, implicits=True):
     def is_left(self):
         return isinstance(self, Left)
 
+    def leffect(self, f):
+        if self.is_left:
+            f(self.value)
+        return self
+
 
 class Right(Either):
     pass
