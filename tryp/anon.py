@@ -31,4 +31,4 @@ class MethodLambda(object):
 
 __ = MethodLambda()
 
-__all__ = ('__')
+__all__ = ('__', )
