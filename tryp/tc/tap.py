@@ -14,7 +14,7 @@ class Tap(Generic[F], TypeClass):
         def effect(a):
             f(a)
             return fa
-        return Monad[type(fa)].flat_map(fa, effect)
+        return Monad[type(fa)].flat_map(fa, effect)  # type: ignore
 
     def __mod__(self, fa, f):
         return self.tap(fa, f)

@@ -121,7 +121,6 @@ class Implicits(object, metaclass=ImplicitsMeta):
 
 
 class ImplicitInstances(object, metaclass=abc.ABCMeta):
-    tpe = None
 
     @lazy
     def instances(self):
@@ -143,7 +142,7 @@ class GlobalTypeClasses(TypeClasses):
     @property
     def instances(self):
         from tryp.map import Map
-        from tryp.tc.tap import Tap
+        from tryp.tc.tap import Tap  # type: ignore
         return Map({Show: Show(), Tap: Tap()})
 
 

@@ -10,7 +10,7 @@ B = TypeVar('B')
 
 class Monad(FlatMap, Applicative):
 
-    def map(self, fa: F, f: Callable[[A], B]) -> F:
+    def map(self, fa: F, f: Callable[[A], B]) -> F:  # type: ignore
         return self.flat_map(fa, lambda a: self.pure(f(a)))
 
     def smap(self, fa: F, f: Callable[..., B]) -> F:

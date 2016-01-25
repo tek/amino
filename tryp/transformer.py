@@ -1,7 +1,7 @@
 import abc
 from typing import Generic, Callable, Any, TypeVar
 
-from fn import F
+from fn import F  # type: ignore
 
 A = TypeVar('A')
 
@@ -16,7 +16,7 @@ class Transformer(Generic[A], metaclass=abc.ABCMeta):
         ...
 
     def flat_map(self, f: Callable[[A], Any]) -> 'Transformer':
-        return self.__class__(f(self.val))
+        return self.__class__(f(self.val))  # type: ignore
 
     __floordiv__ = flat_map
 
