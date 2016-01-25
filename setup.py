@@ -10,7 +10,6 @@ setup(
     url='https://github.com/tek/tryp',
     packages=find_packages(exclude=['unit', 'unit.*']),
     install_requires=[
-        'tek',
         'fn',
         'toolz',
     ]

@@ -2,8 +2,6 @@ from typing import TypeVar, Dict, Generic, Tuple, Callable
 
 from toolz import dicttoolz  # type: ignore
 
-from tek.tools import find  # type: ignore
-
 from tryp.maybe import may, Maybe, Just  # type: ignore
 from tryp.list import List  # type: ignore
 from tryp.boolean import Boolean  # type: ignore
@@ -53,12 +51,10 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
         return Map(dicttoolz.dissoc(self, key))
 
     def find(self, f: Callable[[B], bool]) -> Maybe[Tuple[A, B]]:
-        return Maybe(find(lambda a: f(self[a]), self.keys_view))\
-            .map(lambda k: (k, self[k]))
+        return self.to_list.find(lambda item: f(item[1]))
 
     def find_key(self, f: Callable[[A], bool]) -> Maybe[Tuple[A, B]]:
-        return Maybe(find(f, self.keys_view))\
-            .map(lambda k: (k, self[k]))
+        return self.to_list.find(lambda item: f(item[0]))
 
     def valfilter(self, f: Callable[[B], bool]) -> 'Map[A, B]':
         return Map(dicttoolz.valfilter(f, self))

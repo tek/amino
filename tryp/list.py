@@ -5,8 +5,6 @@ from functools import reduce  # type: ignore
 
 from fn import _  # type: ignore
 
-from tek.tools import find  # type: ignore
-
 from tryp.maybe import Maybe, Just, Empty
 from tryp.func import curried
 from tryp.logging import log
@@ -52,7 +50,7 @@ class List(typing.List[A], Generic[A]):
             f(el)
 
     def find(self, f: Callable[[A], bool]):
-        return Maybe(find(f, self))
+        return Maybe(next(filter(f, self), None))
 
     def filter(self, f: Callable[[A], bool]):
         return List.wrap(filter(f, self))
