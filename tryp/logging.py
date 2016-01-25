@@ -22,9 +22,14 @@ class Logger(logging.Logger):
         if self.isEnabledFor(DDEBUG):
             self._log(DDEBUG, message, args, **kws)
 
+    def caught_exception(self, when, exc, *a, **kw):
+        headline = 'caught exception during {}'.format(when)
+        self.exception(headline, exc_info=(type(exc), exc, exc.__traceback__))
+
 
 logging.Logger.verbose = Logger.verbose  # type: ignore
 logging.Logger.ddebug = Logger.ddebug  # type: ignore
+logging.Logger.caught_exception = Logger.caught_exception  # type: ignore
 
 log = tryp_root_logger = logging.getLogger('tryp')
 
