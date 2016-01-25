@@ -35,4 +35,8 @@ def decode_dict(value):
 def decode_exc(value):
     return decode_list(value.args).head | str(value)
 
-__all__ = ('snake_case', 'decode')
+
+def camelcaseify(name, sep=''):
+    return sep.join([n.capitalize() for n in name.split('_')])
+
+__all__ = ('snake_case', 'decode', 'camelcaseify')
