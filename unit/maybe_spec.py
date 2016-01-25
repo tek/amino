@@ -65,10 +65,19 @@ class Maybe_(Spec):
     def tap(self):
         a = 1
         b = 6
+
         def setter(c):
             nonlocal a
             a = c + 1
         (Just(b) % setter).should.contain(b)
         a.should.equal(b + 1)
+
+    def map2(self):
+        a = 17
+        b = 13
+        ja = Just(a)
+        jb = Just(b)
+        ja.product(jb).smap(_ + _).should.contain(a + b)
+        ja.map2(jb, _ + _).should.contain(a + b)
 
 __all__ = ['Maybe_']

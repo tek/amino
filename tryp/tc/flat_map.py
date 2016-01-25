@@ -1,11 +1,8 @@
 import abc
-from typing import TypeVar, Callable
+from typing import Callable, Tuple
 
 from tryp.tc.apply import Apply
-
-F = TypeVar('F')
-A = TypeVar('A')
-B = TypeVar('B')
+from tryp.tc.functor import F, A, B
 
 
 class FlatMap(Apply):
@@ -22,5 +19,13 @@ class FlatMap(Apply):
 
     def __floordiv__(self, fa, f):
         return self.flat_map(fa, f)
+
+    def flat_map2(self, fa: F, fb: B, f: Callable[[A, B], F]) -> F:
+        def unpack(tp: Tuple[A, B]):
+            return f(tp[0], tp[1])
+        return self.flat_map(self.product(fa, fb), unpack)  # type: ignore
+
+    def product(self, fa: F, fb: F) -> F:
+        return self.flat_map(fa, lambda a: self.map(fb, lambda b: (a, b)))
 
 __all__ = ('FlatMap')
