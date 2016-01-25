@@ -61,13 +61,14 @@ class Maybe(Generic[A], Implicits, implicits=True):
     def _get(self) -> Union[A, None]:
         pass
 
-    def cata(self, f: Callable[[A], B], b: Union[B, Callable[[], B]]) -> B:
-        if self.is_just:
-            return f(self._get)
-        elif isinstance(b, Callable):  # type: ignore
+    def _call_by_name(self, b: Union[B, Callable[[], B]]):
+        if isinstance(b, Callable):  # type: ignore
             return b()  # type: ignore
         else:
             return b  # type: ignore
+
+    def cata(self, f: Callable[[A], B], b: Union[B, Callable[[], B]]) -> B:
+        return f(self._get) if self.is_just else self._call_by_name(b)
 
     @property
     def flatten(self):
@@ -135,6 +136,22 @@ class Maybe(Generic[A], Implicits, implicits=True):
     def toList(self):
         from tryp.list import List
         return self.cata(lambda v: List(v), List())
+
+    @property
+    async def unsafe_await(self):
+        if self.is_just:
+            ret = await self._get()
+            return Maybe(ret)
+        else:
+            return self
+
+    async def unsafe_await_or(self, b: Union[B, Callable[[], B]]):
+        return (Maybe(await(self._get)) if self.is_just else
+                self._call_by_name(b))
+
+    @property
+    def contains_coro(self):
+        return self.exists(inspect.iscoroutine)
 
 
 class Just(Maybe):
