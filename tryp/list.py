@@ -103,7 +103,7 @@ class List(typing.List[A], Generic[A]):
 
     def debug(self, prefix=None):
         prefix = '' if prefix is None else prefix + ' '
-        log.verbose(prefix + str(self))
+        log.debug(prefix + str(self))
         return self
 
     def index_where(self, pred: Callable[[Any], bool]):

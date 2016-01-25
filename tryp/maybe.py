@@ -116,7 +116,7 @@ class Maybe(Generic[A], Implicits, implicits=True):
 
     def debug(self, prefix=None):
         prefix = '' if prefix is None else prefix + ' '
-        self.observe(lambda a: log.verbose(prefix + str(a)))
+        self.observe(lambda a: log.debug(prefix + str(a)))
 
     def __iter__(self):
         return iter(self.to_list)
