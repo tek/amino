@@ -87,12 +87,12 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
         return Map(filtered)
 
     @property
-    def toList(self):
+    def to_list(self):
         return List.wrap(self.items())
 
     @property
     def head(self):
-        return self.toList.head
+        return self.to_list.head
 
     @property
     def keys_view(self):

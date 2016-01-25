@@ -119,7 +119,7 @@ class Maybe(Generic[A], Implicits, implicits=True):
         self.observe(lambda a: log.verbose(prefix + str(a)))
 
     def __iter__(self):
-        return iter(self.toList)
+        return iter(self.to_list)
 
     @property
     def is_just(self):
@@ -133,7 +133,7 @@ class Maybe(Generic[A], Implicits, implicits=True):
         return self.is_just
 
     @property
-    def toList(self):
+    def to_list(self):
         from tryp.list import List
         return self.cata(lambda v: List(v), List())
 
