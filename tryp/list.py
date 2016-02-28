@@ -8,6 +8,9 @@ from fn import _  # type: ignore
 from tryp.maybe import Maybe, Just, Empty
 from tryp.func import curried
 from tryp.logging import log
+from tryp.tc.monad import Monad
+from tryp.tc.base import Implicits, ImplicitInstances
+from tryp.lazy import lazy
 
 A = TypeVar('A', covariant=True)
 B = TypeVar('B')
@@ -17,7 +20,15 @@ def flatten(l: Iterable[Iterable[A]]) -> Iterable[A]:
     return list(itertools.chain.from_iterable(l))  # type: ignore
 
 
-class List(typing.List[A], Generic[A]):
+class ListInstances(ImplicitInstances):
+
+    @lazy
+    def _instances(self):
+        from tryp import Map
+        return Map({Monad: ListMonad()})
+
+
+class List(typing.List[A], Generic[A], Implicits, implicits=True):
 
     def __init__(self, *elements):
         typing.List.__init__(self, elements)
@@ -34,9 +45,6 @@ class List(typing.List[A], Generic[A]):
 
     def smap(self, f: Callable[..., B]) -> 'List[B]':
         return List.wrap(list(itertools.starmap(f, self)))
-
-    def flat_map(self, f: Callable[[A], 'Iterable[B]']) -> 'List[B]':
-        return List.wrap(flatten(map(f, self)))
 
     def flat_smap(self, f: Callable[..., 'Iterable[B]']) -> 'List[B]':
         return List.wrap(flatten(list(itertools.starmap(f, self))))
@@ -114,5 +122,14 @@ class List(typing.List[A], Generic[A]):
     @property
     def reversed(self):
         return List.wrap(reversed(self))
+
+
+class ListMonad(Monad):
+
+    def pure(self, a: A):
+        return List(a)
+
+    def flat_map(self, fa: List[A], f: Callable[[A], List[B]]) -> List[B]:
+        return List.wrap(flatten(map(f, fa)))
 
 __all__ = ['List']
