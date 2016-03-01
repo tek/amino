@@ -1,3 +1,4 @@
+import os
 import logging
 import sys
 from pathlib import Path  # type: ignore
@@ -43,10 +44,14 @@ def tryp_logger(name: str):
 
 _stdout_logging_initialized = False
 
+_level_env_var = 'TRYP_LOG_LEVEL'
+
 
 def init_loglevel(logger: logging.Logger, level: int=None):
     if level is not None:
         logger.setLevel(level)
+    elif _level_env_var in os.environ:
+        logger.setLevel(os.environ[_level_env_var])
     elif tryp.development:
         logger.setLevel(VERBOSE)
 
