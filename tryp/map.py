@@ -82,6 +82,9 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
             .flatten
         return Map(filtered)
 
+    def bimap(self, fa: Callable[[A], C], fb: Callable[[B], D]) -> 'Map[C, D]':
+        return self.map(lambda item: (fa(item[0]), fb(item[1])))
+
     @property
     def to_list(self):
         return List.wrap(self.items())
