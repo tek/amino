@@ -12,7 +12,10 @@ from tryp.test.sure_ext import install_assertion_builder, AssBuilder
 from tryp.test import path
 
 
-def later(ass, timeout=1, intval=0.1):
+default_timeout = 20 if 'TRAVIS' in os.environ else 5
+
+
+def later(ass, timeout=default_timeout, intval=0.1):
     start = datetime.now()
     ok = False
     while not ok and (datetime.now() - start).total_seconds() < timeout:
@@ -41,7 +44,7 @@ class Spec(spec.Spec, Logging):
     def teardown(self, *a, **kw):
         warnings.simplefilter('ignore')
 
-    def _wait_for(self, pred, timeout=5, intval=0.1):
+    def _wait_for(self, pred, timeout=default_timeout, intval=0.1):
         start = datetime.now()
         while (not pred() and
                (datetime.now() - start).total_seconds() < timeout):
