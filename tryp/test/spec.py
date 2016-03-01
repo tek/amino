@@ -7,7 +7,7 @@ from datetime import datetime
 import spec  # type: ignore
 
 import tryp
-from tryp.logging import tryp_stdout_logging
+from tryp.logging import tryp_stdout_logging, Logging
 from tryp.test.sure_ext import install_assertion_builder, AssBuilder
 from tryp.test import path
 
@@ -24,7 +24,7 @@ def later(ass, timeout=1, intval=0.1):
     return ass()
 
 
-class Spec(spec.Spec):
+class Spec(spec.Spec, Logging):
 
     def __init__(self):
         self._warnings = True
