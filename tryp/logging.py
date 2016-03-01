@@ -1,7 +1,11 @@
 import os
+import re
 import logging
+from typing import Callable
 import sys
 from pathlib import Path  # type: ignore
+
+from fn import F, _  # type: ignore
 
 from tryp.lazy import lazy  # type: ignore
 
@@ -89,5 +93,42 @@ class Logging(object):
     @lazy
     def _log(self) -> Logger:
         return tryp_logger(self.__class__.__name__)
+
+
+def sub_loggers(loggers, root):
+    from tryp import Map
+    children = loggers.keyfilter(F(re.match, '{}\.[^.]+$'.format(root)))
+    sub = (children.keys / F(sub_loggers, loggers))\
+        .fold_left(Map())(_ ** _)
+    return Map({loggers[root]: sub})
+
+
+def logger_tree(root):
+    from tryp import __, Map
+    m = Map(logging.Logger.manager.loggerDict)
+    all = m.keyfilter(__.startswith(root))
+    return sub_loggers(all, 'tryp')
+
+
+def indent(strings, level, width=1):
+    ws = ' ' * level * width
+    return strings.map(ws.__add__)
+
+
+def format_logger_tree(tree, fmt_logger, level=0):
+    sub_f = F(format_logger_tree, fmt_logger=fmt_logger, level=level + 1)
+    formatted = tree.bimap(fmt_logger, sub_f)
+    return '\n'.join(indent(formatted.map2('{}\n{}'.format), level))
+
+
+def print_info(out: Callable[[str], None]):
+    lname = lambda l: logging.getLevelName(l.getEffectiveLevel())
+    hlname = lambda h: logging.getLevelName(h.level)
+    def handler(h):
+        return '{}({})'.format(h.__class__.__name__, hlname(h))
+    def logger(l):
+        handlers = ','.join(list(map(handler, l.handlers)))
+        return '{}: {} {}'.format(l.name, lname(l), handlers)
+    out(format_logger_tree(logger_tree('tryp'), logger))
 
 __all__ = ('tryp_root_logger', 'tryp_stdout_logging', 'tryp_file_logging')
