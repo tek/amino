@@ -20,4 +20,4 @@ class Optional(Generic[F], TypeClass):
 
     __or__ = get_or_else
 
-__all__ = ('Optional')
+__all__ = ('Optional',)

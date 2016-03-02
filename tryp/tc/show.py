@@ -8,4 +8,4 @@ class Show(Generic[A]):
     def show(self, obj):
         return str(obj)
 
-__all__ = ('Show')
+__all__ = ('Show',)

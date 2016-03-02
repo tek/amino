@@ -11,4 +11,4 @@ def try_convert_int(data):
     ):
         return int(data)
 
-__all__ = ('try_convert_int')
+__all__ = ('try_convert_int',)

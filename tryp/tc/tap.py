@@ -19,4 +19,4 @@ class Tap(Generic[F], TypeClass):
     def __mod__(self, fa, f):
         return self.tap(fa, f)
 
-__all__ = ('Tap')
+__all__ = ('Tap',)

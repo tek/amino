@@ -37,4 +37,4 @@ class Transformer(Generic[A], metaclass=abc.ABCMeta):
 
     __matmul__ = effect0
 
-__all__ = ('Transformer')
+__all__ = ('Transformer',)

@@ -23,4 +23,4 @@ class Apply(Functor, Monoidal):
             return f(tp[0], tp[1])
         return self.map(self.product(fa, fb), unpack)
 
-__all__ = ('Apply')
+__all__ = ('Apply',)

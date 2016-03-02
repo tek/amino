@@ -19,4 +19,4 @@ class Monad(FlatMap, Applicative):
     def ssmap(self, fa: F, f: Callable[..., B]) -> F:
         return self.map(fa, lambda v: f(**v))
 
-__all__ = ('Monad')
+__all__ = ('Monad',)

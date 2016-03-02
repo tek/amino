@@ -234,4 +234,4 @@ class MaybeOptional(Optional):
     def to_maybe(self, fa: Maybe):
         return fa
 
-__all__ = ['Maybe', 'Just', 'Empty', 'may']
+__all__ = ('Maybe', 'Just', 'Empty', 'may')

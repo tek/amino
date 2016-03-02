@@ -20,4 +20,4 @@ class Anon_(Spec):
         f = __.add(a, b)
         f(adder).should.equal(7)
 
-__all__ = ('Anon_')
+__all__ = ('Anon_',)

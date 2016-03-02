@@ -10,4 +10,4 @@ class Monoidal(TypeClass):
     def product(self, fa: F, fb: F) -> F:
         ...
 
-__all__ = ('Monoidal')
+__all__ = ('Monoidal',)

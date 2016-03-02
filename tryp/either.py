@@ -62,4 +62,4 @@ class EitherOptional(Optional):
     def to_maybe(self, fa: Either):
         return Just(fa.value) if fa.is_right else Empty()
 
-__all__ = ['Either', 'Left', 'Right']
+__all__ = ('Either', 'Left', 'Right')

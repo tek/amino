@@ -13,4 +13,4 @@ class Applicative(Apply):
     def pure(self, a: A) -> F:
         ...
 
-__all__ = ('Applicative')
+__all__ = ('Applicative',)

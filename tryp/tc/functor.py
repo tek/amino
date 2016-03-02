@@ -17,4 +17,4 @@ class Functor(Generic[F], TypeClass):
     def __truediv__(self, fa, f):
         return self.map(fa, f)
 
-__all__ = ('Functor')
+__all__ = ('Functor',)
