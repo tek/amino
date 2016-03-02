@@ -1,4 +1,4 @@
-from tryp.maybe import Empty, Maybe
+from tryp import maybe
 
 
 class Boolean(object):
@@ -11,10 +11,10 @@ class Boolean(object):
         return Boolean(value)
 
     def maybe(self, value):
-        return Maybe(value) if self else Empty()
+        return maybe.Maybe(value) if self else maybe.Empty()
 
-    def flat_maybe(self, value: Maybe):
-        return value if self else Empty()
+    def flat_maybe(self, value: 'maybe.Maybe'):
+        return value if self else maybe.Empty()
 
     def __nonzero__(self):
         return self.value
