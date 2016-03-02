@@ -2,7 +2,7 @@ from typing import TypeVar, Dict, Generic, Tuple, Callable
 
 from toolz import dicttoolz  # type: ignore
 
-from tryp.maybe import may, Maybe, Just  # type: ignore
+from tryp import Maybe, may, Just
 from tryp.list import List  # type: ignore
 from tryp.boolean import Boolean  # type: ignore
 

@@ -2,7 +2,7 @@ import abc
 from typing import TypeVar, Generic, Callable, Union
 
 from tryp.tc.base import TypeClass
-import tryp.maybe
+import tryp
 
 F = TypeVar('F')
 A = TypeVar('A')
@@ -17,6 +17,10 @@ class Optional(Generic[F], TypeClass):
 
     def get_or_else(self, fa: F, a: Union[A, Callable[[], A]]):
         return self.to_maybe(fa).get_or_else(a)
+
+    @abc.abstractmethod
+    def to_either(self, fb: F, left: A) -> 'tryp.either.Either[A, B]':
+        ...
 
     __or__ = get_or_else
 

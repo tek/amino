@@ -1,8 +1,7 @@
-from typing import TypeVar, Generic, Callable, Union  # type: ignore
+from typing import TypeVar, Generic, Callable, Union, Any  # type: ignore
 
-from tryp import Empty, Just, Map
-from tryp.tc.base import Implicits, tc_prop
-from tryp.tc.base import ImplicitInstances
+from tryp import maybe
+from tryp.tc.base import Implicits, tc_prop, ImplicitInstances
 from tryp.lazy import lazy
 from tryp.tc.optional import Optional
 from tryp.tc.monad import Monad
@@ -16,6 +15,7 @@ class EitherInstances(ImplicitInstances):
 
     @lazy
     def _instances(self):
+        from tryp.map import Map
         return Map({Monad: EitherMonad(), Optional: EitherOptional()})
 
 
@@ -70,6 +70,9 @@ class EitherOptional(Optional):
 
     @tc_prop
     def to_maybe(self, fa: Either):
-        return Just(fa.value) if fa.is_right else Empty()
+        return maybe.Just(fa.value) if fa.is_right else maybe.Empty()
+
+    def to_either(self, fa: Either, left):
+        return fa
 
 __all__ = ('Either', 'Left', 'Right')

@@ -234,4 +234,8 @@ class MaybeOptional(Optional):
     def to_maybe(self, fa: Maybe):
         return fa
 
+    def to_either(self, fa: Maybe, left):
+        from tryp.either import Left, Right
+        return fa.cata(Right, lambda: Left(left))
+
 __all__ = ('Maybe', 'Just', 'Empty', 'may')

@@ -5,7 +5,7 @@ from functools import reduce  # type: ignore
 
 from fn import _  # type: ignore
 
-from tryp.maybe import Maybe, Just, Empty
+from tryp import maybe
 from tryp.func import curried
 from tryp.logging import log
 from tryp.tc.monad import Monad
@@ -37,8 +37,8 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True):
     def wrap(l: Iterable[B]) -> 'List[B]':
         return List(*l)
 
-    def lift(self, index: int) -> Maybe[A]:
-        return Maybe.from_call(self.__getitem__, index, exc=IndexError)
+    def lift(self, index: int) -> 'maybe.Maybe[A]':
+        return maybe.Maybe.from_call(self.__getitem__, index, exc=IndexError)
 
     def map(self, f: Callable[[A], B]) -> 'List[B]':
         return List.wrap(list(map(f, self)))
@@ -58,7 +58,7 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True):
             f(el)
 
     def find(self, f: Callable[[A], bool]):
-        return Maybe(next(filter(f, self), None))
+        return maybe.Maybe(next(filter(f, self), None))
 
     def filter(self, f: Callable[[A], bool]):
         return List.wrap(filter(f, self))
@@ -113,8 +113,8 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True):
         return self
 
     def index_where(self, pred: Callable[[Any], bool]):
-        gen = (Just(i) for i, a in enumerate(self) if pred(a))
-        return next(gen, Empty())  # type: ignore
+        gen = (maybe.Just(i) for i, a in enumerate(self) if pred(a))
+        return next(gen, maybe.Empty())  # type: ignore
 
     def index_of(self, target: Any):
         return self.index_where(_ == target)
