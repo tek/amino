@@ -44,6 +44,9 @@ class Either(Generic[A, B], Implicits, implicits=True):
     def recover_with(self, f: Callable[[A], 'Either[B]']):
         return self.cata(f, Right)
 
+    def __str__(self):
+        return '{}({})'.format(self.__class__.__name__, str(self.value))
+
 
 class Right(Either):
     pass
