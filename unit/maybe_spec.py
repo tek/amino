@@ -1,15 +1,12 @@
-from fn import _, F  # type: ignore
+from fn import _  # type: ignore
 
 from tryp.test import Spec
 
-from tryp import Maybe, Empty, Just
+from tryp import Maybe, Empty, Just, F, Left, Right
 from tryp.tc.monad import Monad
 
 
 class Maybe_(Spec):
-
-    def setup(self, *a, **kw):
-        super(Maybe_, self).setup(*a, **kw)
 
     def none(self):
         Maybe(None).is_just.should_not.be.ok
@@ -27,7 +24,8 @@ class Maybe_(Spec):
         a = 'start'
         b = 'end'
         Maybe(a).flat_map(lambda v: Maybe(v + b)).should.contain(a + b)
-        (Maybe(a) // (F(_ + b) >> Monad[Maybe].pure)).should.contain(a + b)
+        f = F(Maybe) // (_ + b) >> Monad[Maybe].pure  # type: ignore
+        f(a).should.contain(a + b)
 
     def flatten(self):
         Just(Just(1)).flatten.should.equal(Just(1))
@@ -80,4 +78,12 @@ class Maybe_(Spec):
         ja.product(jb).smap(_ + _).should.contain(a + b)
         ja.map2(jb, _ + _).should.contain(a + b)
 
-__all__ = ['Maybe_']
+    def optional(self):
+        a = 'a'
+        b = 'b'
+        Maybe(a).to_maybe.should.just_contain(a)
+        Empty().to_maybe.should.be.a(Empty)
+        Maybe(a).to_either(b).should.equal(Right(a))
+        Empty().to_either(b).should.equal(Left(b))
+
+__all__ = ('Maybe_',)

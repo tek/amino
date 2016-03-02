@@ -18,7 +18,10 @@ class Either_(Spec):
 
     def optional(self):
         a = 'a'
+        b = 'b'
         Right(a).to_maybe.should.just_contain(a)
         Left(a).to_maybe.should.be.a(Empty)
+        Right(a).to_either(b).should.equal(Right(a))
+        Left(a).to_either(b).should.equal(Left(a))
 
 __all__ = ['Either_']
