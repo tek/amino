@@ -7,7 +7,7 @@ from tryp.list import List  # type: ignore
 from tryp.map import Map  # type: ignore
 from tryp.future import Future
 from tryp.boolean import Boolean  # type: ignore
-from tryp.func import curried
+from tryp.func import curried, F  # type: ignore
 from tryp.anon import __
 
 development = False
@@ -15,4 +15,4 @@ integration_test = 'TRYP_INTEGRATION' in os.environ
 
 
 __all__ = ('Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future',
-           'Boolean', 'development', 'flat_may', 'curried', '__')
+           'Boolean', 'development', 'flat_may', 'curried', '__', 'F')
