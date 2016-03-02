@@ -47,13 +47,20 @@ class Either(Generic[A, B], Implicits, implicits=True):
     def __str__(self):
         return '{}({})'.format(self.__class__.__name__, str(self.value))
 
+    def __repr__(self):
+        return str(self)
+
 
 class Right(Either):
-    pass
+
+    def __eq__(self, other):
+        return isinstance(other, Right) and self.value == other.value
 
 
 class Left(Either):
-    pass
+
+    def __eq__(self, other):
+        return isinstance(other, Left) and self.value == other.value
 
 
 class EitherMonad(Monad):
