@@ -3,7 +3,7 @@ from setuptools import setup, find_packages  # type: ignore
 setup(
     name='tryp',
     description='tryp tools',
-    version='5.4.0',
+    version='6.0.0',
     author='Torsten Schmits',
     author_email='torstenschmits@gmail.com',
     license='MIT',
