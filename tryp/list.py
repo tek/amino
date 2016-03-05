@@ -123,6 +123,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True):
     def reversed(self):
         return List.wrap(reversed(self))
 
+    def join(self, sep=''):
+        return sep.join(self / str)
+
 
 class ListMonad(Monad):
 
