@@ -33,6 +33,12 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True):
     def __init__(self, *elements):
         typing.List.__init__(self, elements)
 
+    def __getitem__(self, arg):
+        if isinstance(arg, slice):
+            return List.wrap(super().__getitem__(arg))
+        else:
+            return super().__getitem__(arg)
+
     @staticmethod
     def wrap(l: Iterable[B]) -> 'List[B]':
         return List(*l)
