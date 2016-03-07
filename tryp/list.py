@@ -3,6 +3,8 @@ import typing
 from typing import TypeVar, Callable, Generic, Iterable, Any
 from functools import reduce  # type: ignore
 
+from toolz.itertoolz import cons  # type: ignore
+
 from fn import _  # type: ignore
 
 from tryp import maybe
@@ -138,6 +140,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True):
     def join(self, sep=''):
         return sep.join(self / str)
 
+    def cons(self, item):
+        return List.wrap(cons(item, self))
+
 
 class ListMonad(Monad):
 
@@ -147,4 +152,4 @@ class ListMonad(Monad):
     def flat_map(self, fa: List[A], f: Callable[[A], List[B]]) -> List[B]:
         return List.wrap(flatten(map(f, fa)))
 
-__all__ = ['List']
+__all__ = ('List',)
