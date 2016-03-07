@@ -75,6 +75,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True):
     def contains(self, value):
         return value in self
 
+    def exists(self, f: Callable[[A], bool]):
+        return self.find(f).is_just
+
     @property
     def is_empty(self):
         return self.length == 0
