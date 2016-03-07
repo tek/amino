@@ -69,6 +69,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True):
     def filter(self, f: Callable[[A], bool]):
         return List.wrap(filter(f, self))
 
+    def filter_not(self, f: Callable[[A], bool]):
+        return self.filter(lambda a: not f(a))
+
     def contains(self, value):
         return value in self
 
