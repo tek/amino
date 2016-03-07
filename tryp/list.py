@@ -143,6 +143,10 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True):
     def cons(self, item):
         return List.wrap(cons(item, self))
 
+    @property
+    def with_index(self):
+        return List.wrap(enumerate(self))
+
 
 class ListMonad(Monad):
 
