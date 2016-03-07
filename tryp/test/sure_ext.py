@@ -35,11 +35,12 @@ class AssBuilder(sure.AssertionBuilder):
     def just(self):
         return self.be.a(Just)
 
+    @sure.assertionproperty
     def empty(self):
         if isinstance(self.obj, Maybe):
             return self.be.a(Empty)
         else:
-            return super().empty()
+            return super().empty
 
     @sure.assertionproperty
     def exist(self):
