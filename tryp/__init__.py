@@ -9,6 +9,7 @@ from tryp.boolean import Boolean  # type: ignore
 from tryp.func import curried, F  # type: ignore
 from tryp.anon import __
 from tryp.env_vars import env
+from tryp.task import Try
 
 development = False
 integration_test = 'TRYP_INTEGRATION' in env
@@ -16,4 +17,4 @@ integration_test = 'TRYP_INTEGRATION' in env
 
 __all__ = ('Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future',
            'Boolean', 'development', 'flat_may', 'curried', '__', 'F', 'Left',
-           'Right', 'Either', 'env')
+           'Right', 'Either', 'env', 'Try')
