@@ -47,4 +47,14 @@ class LazyList_(Spec):
         l.index_of(21).should.contain(21)
         l.index_of(49).should.be.empty
 
+    def find(self):
+        l = LazyList(List.wrap(range(30)), chunk_size=20)
+        l.find(21).should.contain(21)
+        l.find(49).should.be.empty
+
+    def deep(self):
+        n = int(1e4)
+        l = LazyList(List.wrap(range(n)))
+        l.index_of(n - 1).should.contain(n - 1)
+
 __all__ = ('LazyList_',)

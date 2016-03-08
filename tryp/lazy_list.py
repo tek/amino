@@ -73,25 +73,31 @@ class LazyList(Generic[A], Implicits, implicits=True):
         return self._strict.lift(index)
 
     def _drain_find(self, abort):
-        def go():
-            try:
-                el = next(self.source)
-                yield el
-                if not abort(el):
-                    yield from go()
-            except StopIteration:
-                pass
-        drained = List.wrap(go())
+        culprit = Empty()
+        def gen():
+            nonlocal culprit
+            while True:
+                try:
+                    el = next(self.source)
+                    yield el
+                    if abort(el):
+                        culprit = Just(el)
+                        break
+                except StopIteration:
+                    break
+        drained = List.wrap(gen())
         self._strict = self._strict + drained
-        return drained.last / abort
+        return culprit
 
     def index_of(self, item):
-        def drain():
-            if self._drain_find(_ == item).contains(True):
-                return Just(len(self._strict) - 1)
-            else:
-                return Empty()
-        return self._strict.index_of(item) | drain()
+        return self._strict.index_of(item) | (
+            self._drain_find(_ == item) / (lambda a: len(self._strict) - 1))
+
+    def find(self, item):
+        return self._strict.find(_ == item) | self._drain_find(_ == item)
+
+    def foreach(self, f):
+        self.drain.foreach(f)
 
 
 class LazyListFunctor(Functor):
