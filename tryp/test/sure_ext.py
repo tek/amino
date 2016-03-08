@@ -32,6 +32,7 @@ class AssBuilder(sure.AssertionBuilder):
             'expected {} \'{}\' {} {}'.format(agent, self.obj, no, action)
         return True
 
+    @sure.assertionproperty
     def just(self):
         return self.be.a(Just)
 
