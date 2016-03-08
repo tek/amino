@@ -1,7 +1,11 @@
 from functools import wraps
 from typing import Generic, TypeVar, Callable, Tuple
 
-from tryp import List, _, Just, Empty
+from tryp import _
+from tryp.list import List
+from tryp.func import F
+from tryp.anon import __
+from tryp.maybe import Just, Empty
 from tryp.tc.functor import Functor
 from tryp.tc.base import ImplicitInstances, Implicits, tc_prop
 from tryp.lazy import lazy
@@ -68,6 +72,10 @@ class LazyList(Generic[A], Implicits, implicits=True):
         self._fetch(float('inf'))
         return self._strict
 
+    def copy(self, wrap_source, trans_strict: Callable[[List[A]], List[A]]):
+        return LazyList(wrap_source(self.source), trans_strict(self._strict),
+                        self._chunk_size, self._post)
+
     @fetch
     def lift(self, index):
         return self._strict.lift(index)
@@ -112,7 +120,10 @@ class LazyListFunctor(Functor):
 class LazyListTraverse(Traverse):
 
     @tc_prop
-    def with_index(self, fa: List[A]) -> List[Tuple[int, A]]:
+    def with_index(self, fa: LazyList[A]) -> List[Tuple[int, A]]:
         return LazyList(enumerate(fa.source), fa._strict, fa._chunk_size)
+
+    def filter(self, fa: LazyList[A], f: Callable[[A], bool]):
+        return fa.copy(F(filter, f), __.filter(f))
 
 __all__ = ('LazyList',)
