@@ -107,6 +107,10 @@ class LazyList(Generic[A], Implicits, implicits=True):
     def foreach(self, f):
         self.drain.foreach(f)
 
+    @fetch
+    def min_length(self, index):
+        return self._strict.length >= index
+
 
 class LazyListFunctor(Functor):
 
