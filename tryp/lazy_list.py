@@ -80,6 +80,10 @@ class LazyList(Generic[A], Implicits, implicits=True):
     def lift(self, index):
         return self._strict.lift(index)
 
+    @property
+    def head(self):
+        return self.lift(0)
+
     def _drain_find(self, abort):
         culprit = Empty()
         def gen():
