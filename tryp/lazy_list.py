@@ -117,6 +117,14 @@ class LazyList(Generic[A], Implicits, implicits=True):
     def min_length(self, index):
         return self._strict.length >= index
 
+    @fetch
+    def max_length(self, index):
+        return self._strict.length <= index
+
+    @property
+    def empty(self):
+        return self.max_length(0)
+
 
 class LazyListFunctor(Functor):
 
