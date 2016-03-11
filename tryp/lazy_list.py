@@ -59,13 +59,15 @@ class LazyList(Generic[A], Implicits, implicits=True):
         def chunk():
             for i in range(self._chunk_size):
                 yield from self._one
-        def go():
-            if self._strict.length < count:
-                c = list(chunk())
-                self._strict = self._strict + c
-                if len(c) == self._chunk_size:
-                    go()
-        go()
+        def gen():
+            while True:
+                if self._strict.length < count:
+                    c = list(chunk())
+                    self._strict = self._strict + c
+                    if len(c) == self._chunk_size:
+                        continue
+                break
+        gen()
 
     @property
     def drain(self):
