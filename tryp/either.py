@@ -50,6 +50,10 @@ class Either(Generic[A, B], Implicits, implicits=True):
     def __repr__(self):
         return str(self)
 
+    @property
+    def to_list(self):
+        return self.to_maybe.to_list
+
 
 class Right(Either):
 
