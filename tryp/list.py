@@ -150,6 +150,11 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True):
     def with_index(self):
         return List.wrap(enumerate(self))
 
+    def zip(self, other: 'Iterable[B]'):
+        return List.wrap(zip(self, List.wrap(other)))
+
+    __and__ = zip
+
 
 class ListMonad(Monad):
 
