@@ -12,7 +12,7 @@ from tryp.anon import __
 from tryp.env_vars import env
 from tryp.task import Try
 
-development = False
+development = 'TRYP_DEVELOPMENT' in env
 integration_test = 'TRYP_INTEGRATION' in env
 
 
