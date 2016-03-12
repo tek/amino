@@ -54,6 +54,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True):
     def smap(self, f: Callable[..., B]) -> 'List[B]':
         return List.wrap(list(itertools.starmap(f, self)))
 
+    def map2(self, f: Callable[..., B]) -> 'List[B]':
+        return self.map(lambda a: f(a[0], a[1]))
+
     def flat_smap(self, f: Callable[..., 'Iterable[B]']) -> 'List[B]':
         return List.wrap(flatten(list(itertools.starmap(f, self))))
 
