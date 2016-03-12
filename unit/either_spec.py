@@ -1,7 +1,7 @@
 from fn import _  # type: ignore
 
 from tryp.either import Left, Right  # type: ignore
-from tryp import Empty  # type: ignore
+from tryp import Empty, Just  # type: ignore
 from tryp.test import Spec  # type: ignore
 
 
@@ -23,5 +23,10 @@ class Either_(Spec):
         Left(a).to_maybe.should.be.a(Empty)
         Right(a).to_either(b).should.equal(Right(a))
         Left(a).to_either(b).should.equal(Left(a))
+
+    def map2(self):
+        a = 'a'
+        b = 'b'
+        Right(a).map2(Right(b), _ + _).should.equal(Right(a + b))
 
 __all__ = ['Either_']
