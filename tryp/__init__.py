@@ -1,3 +1,4 @@
+import pathlib
 from fn import _  # type: ignore
 
 from tryp.maybe import Maybe, Just, Empty, may, flat_may  # type: ignore
@@ -15,6 +16,7 @@ from tryp.task import Try
 development = 'TRYP_DEVELOPMENT' in env
 integration_test = 'TRYP_INTEGRATION' in env
 
+Path = pathlib.Path
 
 __all__ = ('Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future',
            'Boolean', 'development', 'flat_may', 'curried', '__', 'F', 'Left',
