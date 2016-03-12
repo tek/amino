@@ -144,4 +144,15 @@ class LazyListTraverse(Traverse):
     def filter(self, fa: LazyList[A], f: Callable[[A], bool]):
         return fa.copy(F(filter, f), __.filter(f))
 
-__all__ = ('LazyList',)
+
+def lazy_list(f):
+    @wraps(f)
+    def w(*a, **kw):
+        return LazyList(f(*a, **kw))
+    return w
+
+
+def lazy_list_prop(f):
+    return property(lazy_list(f))
+
+__all__ = ('LazyList', 'lazy_list')
