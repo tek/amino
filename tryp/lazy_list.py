@@ -107,8 +107,8 @@ class LazyList(Generic[A], Implicits, implicits=True):
         return self._strict.index_of(item) | (
             self._drain_find(_ == item) / (lambda a: len(self._strict) - 1))
 
-    def find(self, item):
-        return self._strict.find(_ == item) | self._drain_find(_ == item)
+    def find(self, f: Callable[[A], bool]):
+        return self._strict.find(f) | self._drain_find(f)
 
     def foreach(self, f):
         self.drain.foreach(f)
