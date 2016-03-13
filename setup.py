@@ -1,9 +1,11 @@
-from setuptools import setup, find_packages  # type: ignore
+from setuptools import setup, find_packages
+
+from version import version
 
 setup(
     name='tryp',
     description='tryp tools',
-    version='6.6.0',
+    version=version,
     author='Torsten Schmits',
     author_email='torstenschmits@gmail.com',
     license='MIT',
