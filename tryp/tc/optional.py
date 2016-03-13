@@ -2,7 +2,7 @@ import abc
 from typing import TypeVar, Generic, Callable, Union
 
 from tryp.tc.base import TypeClass
-from tryp import maybe  # type: ignore  # NOQA
+from tryp import maybe  # NOQA
 
 F = TypeVar('F')
 A = TypeVar('A')

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import sure  # type: ignore
+import sure
 
 from tryp import Maybe, Empty, Just
 

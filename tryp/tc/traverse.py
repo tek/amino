@@ -3,7 +3,7 @@ from typing import TypeVar, Generic, Callable
 
 from fn import _
 
-from tryp.tc.base import TypeClass  # type: ignore
+from tryp.tc.base import TypeClass
 from tryp.tc.functor import Functor
 from tryp.func import curried
 

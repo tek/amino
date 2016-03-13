@@ -1,12 +1,12 @@
 from typing import TypeVar, Generic, Callable, Union, Any
 from typing import Tuple  # NOQA
-from functools import wraps, partial  # type: ignore
-from operator import eq, is_not  # type: ignore
+from functools import wraps, partial
+from operator import eq, is_not
 import inspect
 import traceback
 
-from fn import _  # type: ignore
-from fn.op import identity  # type: ignore
+from fn import _
+from fn.op import identity
 
 from tryp.logging import log
 from tryp.tc.base import Implicits, ImplicitInstances, tc_prop

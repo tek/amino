@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Callable, Union, Any  # type: ignore
+from typing import TypeVar, Generic, Callable, Union, Any
 
 from tryp import maybe
 from tryp.tc.base import Implicits, tc_prop, ImplicitInstances

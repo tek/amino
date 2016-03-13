@@ -1,6 +1,6 @@
 from typing import Callable, TypeVar, Generic
 
-from tryp import Either, Right, Left  # type: ignore
+from tryp import Either, Right, Left
 
 A = TypeVar('A')
 

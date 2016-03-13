@@ -1,8 +1,8 @@
-from fn import _  # type: ignore
+from fn import _
 
-from tryp.either import Left, Right  # type: ignore
-from tryp import Empty, Just  # type: ignore
-from tryp.test import Spec  # type: ignore
+from tryp.either import Left, Right
+from tryp import Empty, Just
+from tryp.test import Spec
 
 
 class Either_(Spec):

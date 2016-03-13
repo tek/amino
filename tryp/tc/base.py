@@ -1,6 +1,6 @@
 import importlib
 import abc
-from typing import GenericMeta, Dict  # type: ignore
+from typing import GenericMeta, Dict
 from functools import partial
 
 from fn import _, F
@@ -144,7 +144,7 @@ class GlobalTypeClasses(TypeClasses):
     @property
     def instances(self):
         from tryp.map import Map
-        from tryp.tc.tap import Tap  # type: ignore
+        from tryp.tc.tap import Tap
         return Map({Show: Show(), Tap: Tap()})
 
 

@@ -1,7 +1,7 @@
 import abc
 from typing import TypeVar, Generic, Callable
 
-from tryp.tc.base import TypeClass  # type: ignore
+from tryp.tc.base import TypeClass
 
 F = TypeVar('F')
 A = TypeVar('A')

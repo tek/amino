@@ -1,5 +1,5 @@
 import re
-from functools import singledispatch  # type: ignore
+from functools import singledispatch
 
 
 def snake_case(name):

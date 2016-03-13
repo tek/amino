@@ -1,7 +1,7 @@
-from functools import wraps, partial  # type: ignore
-from inspect import getfullargspec  # type: ignore
+from functools import wraps, partial
+from inspect import getfullargspec
 
-import fn  # type: ignore
+import fn
 
 
 class F(fn.F):

@@ -4,7 +4,7 @@ import shutil
 import warnings
 from datetime import datetime
 
-import spec  # type: ignore
+import spec
 
 import tryp
 from tryp.logging import tryp_stdout_logging, Logging

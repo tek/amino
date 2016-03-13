@@ -1,11 +1,11 @@
 import itertools
 import typing
 from typing import TypeVar, Callable, Generic, Iterable, Any, Tuple
-from functools import reduce  # type: ignore
+from functools import reduce
 
-from toolz.itertoolz import cons  # type: ignore
+from toolz.itertoolz import cons
 
-from fn import _  # type: ignore
+from fn import _
 
 from tryp import maybe
 from tryp.logging import log

@@ -1,7 +1,7 @@
 import abc
 from typing import Generic, Callable, Any, TypeVar
 
-from fn import F  # type: ignore
+from fn import F
 
 A = TypeVar('A')
 

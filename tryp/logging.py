@@ -3,11 +3,11 @@ import re
 import logging
 from typing import Callable
 import sys
-from pathlib import Path  # type: ignore
+from pathlib import Path
 
-from fn import F, _  # type: ignore
+from fn import F, _
 
-from tryp.lazy import lazy  # type: ignore
+from tryp.lazy import lazy
 
 import tryp
 

@@ -1,5 +1,5 @@
 from tryp import __
-from tryp.test import Spec  # type: ignore
+from tryp.test import Spec
 
 
 class _Inner:

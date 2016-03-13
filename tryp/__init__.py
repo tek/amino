@@ -1,14 +1,14 @@
 import pathlib
-from fn import _  # type: ignore
+from fn import _
 
-from tryp.maybe import Maybe, Just, Empty, may, flat_may  # type: ignore
-from tryp.list import List  # type: ignore
-from tryp.lazy_list import LazyList  # type: ignore
-from tryp.map import Map  # type: ignore
-from tryp.either import Left, Right, Either  # type: ignore
+from tryp.maybe import Maybe, Just, Empty, may, flat_may
+from tryp.list import List
+from tryp.lazy_list import LazyList
+from tryp.map import Map
+from tryp.either import Left, Right, Either
 from tryp.future import Future
-from tryp.boolean import Boolean  # type: ignore
-from tryp.func import curried, F  # type: ignore
+from tryp.boolean import Boolean
+from tryp.func import curried, F
 from tryp.anon import __
 from tryp.env_vars import env
 from tryp.task import Try

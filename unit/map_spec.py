@@ -1,4 +1,4 @@
-from fn import _  # type: ignore
+from fn import _
 
 from tryp.test import Spec
 

@@ -1,10 +1,10 @@
 from typing import TypeVar, Dict, Generic, Tuple, Callable
 
-from toolz import dicttoolz  # type: ignore
+from toolz import dicttoolz
 
 from tryp import Maybe, may, Just
-from tryp.list import List  # type: ignore
-from tryp.boolean import Boolean  # type: ignore
+from tryp.list import List
+from tryp.boolean import Boolean
 
 A = TypeVar('A')
 B = TypeVar('B')

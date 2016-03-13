@@ -1,6 +1,6 @@
 import os
 
-from tryp.map import Map  # type: ignore
+from tryp.map import Map
 
 
 class EnvVars(object):
