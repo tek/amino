@@ -1,4 +1,8 @@
+from sys import path
+
 from setuptools import setup, find_packages
+
+path.insert(0, '.')
 
 from version import version
 
