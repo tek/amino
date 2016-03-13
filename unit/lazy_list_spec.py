@@ -48,8 +48,8 @@ class LazyList_(Spec):
 
     def find(self):
         l = LazyList(range(30), chunk_size=20)
-        l.find(21).should.contain(21)
-        l.find(49).should.be.empty
+        l.find(_ == 21).should.contain(21)
+        l.find(_ == 49).should.be.empty
 
     def deep(self):
         n = int(1e4)
@@ -65,5 +65,12 @@ class LazyList_(Spec):
         l4 = l3.filter(_ % 2 == 0)
         l4._strict.should.have.length_of(15)
         l4.drain.should.equal(List.wrap(range(0, 30, 2)))
+
+    def fold_left(self):
+        LazyList((1, 2, 3)).fold_left('')(lambda a, b: str(b) + a)\
+            .should.equal('321')
+
+    def fold_map(self):
+        LazyList((1, 2, 3)).fold_map(5, _ * 2).should.equal(17)
 
 __all__ = ('LazyList_',)

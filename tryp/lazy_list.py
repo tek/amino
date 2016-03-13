@@ -3,7 +3,7 @@ from typing import Generic, TypeVar, Callable, Tuple
 
 from tryp import _
 from tryp.list import List
-from tryp.func import F
+from tryp.func import F, curried
 from tryp.anon import __
 from tryp.maybe import Just, Empty
 from tryp.tc.functor import Functor
@@ -143,6 +143,10 @@ class LazyListTraverse(Traverse):
 
     def filter(self, fa: LazyList[A], f: Callable[[A], bool]):
         return fa.copy(F(filter, f), __.filter(f))
+
+    @curried
+    def fold_left(self, fa: LazyList[A], z: B, f: Callable[[B, A], B]) -> B:
+        return Traverse[List].fold_left(fa.drain, z, f)
 
 
 def lazy_list(f):

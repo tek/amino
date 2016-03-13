@@ -1,6 +1,6 @@
 import itertools
 import typing
-from typing import TypeVar, Callable, Generic, Iterable, Any
+from typing import TypeVar, Callable, Generic, Iterable, Any, Tuple
 from functools import reduce  # type: ignore
 
 from toolz.itertoolz import cons  # type: ignore
@@ -8,11 +8,12 @@ from toolz.itertoolz import cons  # type: ignore
 from fn import _  # type: ignore
 
 from tryp import maybe
-from tryp.func import curried
 from tryp.logging import log
 from tryp.tc.monad import Monad
-from tryp.tc.base import Implicits, ImplicitInstances
+from tryp.tc.base import Implicits, ImplicitInstances, tc_prop
 from tryp.lazy import lazy
+from tryp.tc.traverse import Traverse
+from tryp.func import curried
 
 A = TypeVar('A', covariant=True)
 B = TypeVar('B')
@@ -27,7 +28,7 @@ class ListInstances(ImplicitInstances):
     @lazy
     def _instances(self):
         from tryp import Map
-        return Map({Monad: ListMonad()})
+        return Map({Monad: ListMonad(), Traverse: ListTraverse()})
 
 
 class List(typing.List[A], Generic[A], Implicits, implicits=True):
@@ -70,12 +71,6 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True):
 
     def find(self, f: Callable[[A], bool]):
         return maybe.Maybe(next(filter(f, self), None))
-
-    def filter(self, f: Callable[[A], bool]):
-        return List.wrap(filter(f, self))
-
-    def filter_not(self, f: Callable[[A], bool]):
-        return self.filter(lambda a: not f(a))
 
     def contains(self, value):
         return value in self
@@ -120,10 +115,6 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True):
     def split_type(self, tpe: type):
         return self.split(lambda a: isinstance(a, tpe))
 
-    @curried
-    def fold_left(self, z: B, f: Callable[[B, A], B]) -> B:
-        return reduce(f, self, z)
-
     def debug(self, prefix=None):
         prefix = '' if prefix is None else prefix + ' '
         log.debug(prefix + str(self))
@@ -163,5 +154,19 @@ class ListMonad(Monad):
 
     def flat_map(self, fa: List[A], f: Callable[[A], List[B]]) -> List[B]:
         return List.wrap(flatten(map(f, fa)))
+
+
+class ListTraverse(Traverse):
+
+    @tc_prop
+    def with_index(self, fa: List[A]) -> List[Tuple[int, A]]:
+        return List.wrap(enumerate(fa))
+
+    def filter(self, fa: List[A], f: Callable[[A], bool]):
+        return List.wrap(filter(f, fa))
+
+    @curried
+    def fold_left(self, fa: List[A], z: B, f: Callable[[B, A], B]) -> B:
+        return reduce(f, fa, z)
 
 __all__ = ('List',)

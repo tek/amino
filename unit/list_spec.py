@@ -74,4 +74,7 @@ class List_(Spec):
         List(1, 2, 3).fold_left('')(lambda a, b: str(b) + a)\
             .should.equal('321')
 
+    def fold_map(self):
+        List(1, 2, 3).fold_map(5, _ * 2).should.equal(17)
+
 __all__ = ['List_']
