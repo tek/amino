@@ -3,6 +3,8 @@ import abc
 from typing import GenericMeta, Dict  # type: ignore
 from functools import partial
 
+from fn import _, F
+
 from tryp.util.string import snake_case
 from tryp.lazy import lazy
 from tryp.tc.show import Show
@@ -164,18 +166,27 @@ class AllInstances(object):
     def add(self, name, inst: ImplicitInstances):
         self._instances[name] = inst
 
-    def lookup(self, f, a):
-        for t in a.__mro__:
-            inst = self._lookup_type(f, t)
-            if inst is not None:
-                return inst
-        raise ImplicitNotFound(f, a)
+    def lookup(self, TC, G):
+        ''' Find an instance of the type class `TC` for type `G`.
+        Iterates `G`'s parent classes, looking up instances for each,
+        checking whether the instance is a subclass of the target type
+        class @`C`.
+        '''
+        from tryp.lazy_list import LazyList
+        match = F(self._lookup_type, TC)
+        result = LazyList(map(match, G.__mro__))\
+            .find(_.is_just)\
+            .flatten\
+            .get_or_raise(ImplicitNotFound(TC, G))
+        return result[1]
 
-    def _lookup_type(self, f, a):
-        if a.__name__ in self._instances:
-            inst = self._instances[a.__name__].instances.get(f) | None
-            if inst is not None:
-                return inst
+    def _lookup_type(self, TC, G):
+        from tryp.maybe import Empty
+        if G.__name__ in self._instances:
+            match = lambda I: isinstance(I, TC)
+            return self._instances[G.__name__].instances.find(match)
+        else:
+            return Empty()
 
 Instances = AllInstances()  # type: AllInstances
 
