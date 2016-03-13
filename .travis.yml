@@ -1,0 +1,13 @@
+sudo: required
+dist: trusty
+language: python
+env:
+  - TRAVIS=true
+python:
+  - "3.5.1"
+script:
+  - spec unit
+notifications:
+  email:
+    on_success: change
+    on_failure: change
