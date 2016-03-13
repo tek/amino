@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-from tryp.version import version
+from version import version
 
 setup(
     name='tryp',
