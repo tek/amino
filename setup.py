@@ -1,15 +1,13 @@
-from sys import path
+from pathlib import Path
 
 from setuptools import setup, find_packages
 
-path.insert(0, '.')
-
-from version import version
+exec(Path('version.py').read())
 
 setup(
     name='tryp',
     description='tryp tools',
-    version=version,
+    version=version,  # NOQA
     author='Torsten Schmits',
     author_email='torstenschmits@gmail.com',
     license='MIT',
