@@ -1,23 +1,27 @@
-from pathlib import Path
-
 from setuptools import setup, find_packages
 
-print(Path.cwd())
-print(list(Path.cwd().iterdir()))
-
-exec(Path('version.py').read_text())
+version_parts = (7, 1, 0)
+version = '.'.join(map(str, version_parts))
 
 setup(
     name='tryp',
     description='tryp tools',
-    version=version,  # NOQA
+    version=version,
     author='Torsten Schmits',
     author_email='torstenschmits@gmail.com',
     license='MIT',
     url='https://github.com/tek/tryp',
     packages=find_packages(exclude=['unit', 'unit.*']),
+    data_files=[
+        ('meta', ['version.py'])
+    ],
     install_requires=[
         'fn',
         'toolz',
-    ]
+    ],
+    tests_require=[
+        'spec',
+        'flexmock',
+        'sure',
+    ],
 )
