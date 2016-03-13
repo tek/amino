@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 
-from version import version
+version_parts = (7, 1, 0)
+version = '.'.join(map(str, version_parts))
 
 setup(
     name='tryp',
@@ -14,5 +15,10 @@ setup(
     install_requires=[
         'fn',
         'toolz',
-    ]
+    ],
+    tests_require=[
+        'spec',
+        'flexmock',
+        'sure',
+    ],
 )
