@@ -99,7 +99,7 @@ class LazyList(Generic[A], Implicits, implicits=True):
                         break
                 except StopIteration:
                     break
-        drained = List.wrap(gen())
+        drained = List.wrap(list(gen()))
         self._strict = self._strict + drained
         return culprit
 
