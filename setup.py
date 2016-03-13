@@ -2,7 +2,10 @@ from pathlib import Path
 
 from setuptools import setup, find_packages
 
-exec(Path('version.py').read())
+print(Path.cwd())
+print(list(Path.cwd().iterdir()))
+
+exec(Path('version.py').read_text())
 
 setup(
     name='tryp',
