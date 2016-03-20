@@ -7,6 +7,10 @@ A = TypeVar('A')
 
 class Task(Generic[A]):
 
+    @staticmethod
+    def call(f: Callable[..., A], *a, **kw):
+        return Task(lambda: f(*a, **kw))
+
     def __init__(self, f: Callable[[], A]) -> None:
         self.run = f
 
@@ -18,6 +22,6 @@ class Task(Generic[A]):
 
 
 def Try(f: Callable[..., A], *a, **kw) -> Either[Exception, A]:
-    return Task(lambda: f(*a, **kw)).unsafe_perform_sync()
+    return Task.call(f, *a, **kw).unsafe_perform_sync()
 
 __all__ = ('Task', 'Try')
