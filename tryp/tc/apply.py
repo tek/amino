@@ -18,7 +18,7 @@ class Apply(Functor, Monoidal):
         '''
         ...
 
-    def map2(self, fa: F, fb: F, f: Callable[[A, B], Z]) -> F:
+    def ap2(self, fa: F, fb: F, f: Callable[[A, B], Z]) -> F:
         def unpack(tp: Tuple[A, B]):
             return f(tp[0], tp[1])
         return self.map(self.product(fa, fb), unpack)

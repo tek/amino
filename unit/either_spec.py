@@ -24,9 +24,9 @@ class Either_(Spec):
         Right(a).to_either(b).should.equal(Right(a))
         Left(a).to_either(b).should.equal(Left(a))
 
-    def map2(self):
+    def ap2(self):
         a = 'a'
         b = 'b'
-        Right(a).map2(Right(b), _ + _).should.equal(Right(a + b))
+        Right(a).ap2(Right(b), _ + _).should.equal(Right(a + b))
 
 __all__ = ['Either_']

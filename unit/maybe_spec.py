@@ -70,13 +70,13 @@ class Maybe_(Spec):
         (Just(b) % setter).should.contain(b)
         a.should.equal(b + 1)
 
-    def map2(self):
+    def ap2(self):
         a = 17
         b = 13
         ja = Just(a)
         jb = Just(b)
         ja.product(jb).smap(_ + _).should.contain(a + b)
-        ja.map2(jb, _ + _).should.contain(a + b)
+        ja.ap2(jb, _ + _).should.contain(a + b)
 
     def optional(self):
         a = 'a'
@@ -85,5 +85,15 @@ class Maybe_(Spec):
         Empty().to_maybe.should.be.a(Empty)
         Maybe(a).to_either(b).should.equal(Right(a))
         Empty().to_either(b).should.equal(Left(b))
+
+    def map_n(self):
+        m = Just((1, 2, 3, 4))
+        m.map4(lambda a, b, c, d: b + d).should.contain(6)
+        m.map5.when.called_with(lambda a: a).should.throw(TypeError)
+
+    def flat_map_n(self):
+        m = Just((1, 2, 3, 4))
+        m.flat_map4(lambda a, b, c, d: Just(b + d)).should.contain(6)
+        m.flat_map5.when.called_with(lambda a: a).should.throw(TypeError)
 
 __all__ = ('Maybe_',)

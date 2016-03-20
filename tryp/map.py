@@ -122,4 +122,4 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
     def has_key(self, name):
         return Boolean(name in self)
 
-__all__ = ['Map']
+__all__ = ('Map',)

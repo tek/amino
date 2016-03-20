@@ -1,11 +1,14 @@
 import abc
+import re
 from typing import Callable, Tuple
 
+import tryp.func
 from tryp.tc.apply import Apply
 from tryp.tc.functor import F, A, B
 
 
 class FlatMap(Apply):
+    _flat_map_re = re.compile('^flat_map(\d+)$')
 
     def ap(self, fa: F, ff: F):
         return self.flat_map(ff, lambda f: self.map(fa, f))
@@ -27,5 +30,21 @@ class FlatMap(Apply):
 
     def product(self, fa: F, fb: F) -> F:
         return self.flat_map(fa, lambda a: self.map(fb, lambda b: (a, b)))
+
+    def __getattr__(self, name):
+        match = self._flat_map_re.match(name)
+        if match is None:
+            return super().__getattr__(name)
+        else:
+            return tryp.func.F(self.flat_map_n, int(match.group(1)))
+
+    def flat_map_n(self, num, fa: F, f: Callable[..., F]) -> F:
+        def wrapper(args):
+            if len(args) != num:
+                msg = 'passed {} args to {}.flat_map{}'
+                name = self.__class__.__name__
+                raise TypeError(msg.format(len(args), name, num))
+            return f(*args)
+        return self.flat_map(fa, wrapper)
 
 __all__ = ('FlatMap',)

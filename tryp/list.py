@@ -49,14 +49,8 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True):
     def lift(self, index: int) -> 'maybe.Maybe[A]':
         return maybe.Maybe.from_call(self.__getitem__, index, exc=IndexError)
 
-    def map(self, f: Callable[[A], B]) -> 'List[B]':
-        return List.wrap(list(map(f, self)))
-
     def smap(self, f: Callable[..., B]) -> 'List[B]':
         return List.wrap(list(itertools.starmap(f, self)))
-
-    def map2(self, f: Callable[..., B]) -> 'List[B]':
-        return self.map(lambda a: f(a[0], a[1]))
 
     def flat_smap(self, f: Callable[..., 'Iterable[B]']) -> 'List[B]':
         return List.wrap(flatten(list(itertools.starmap(f, self))))

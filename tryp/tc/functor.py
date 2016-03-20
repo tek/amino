@@ -1,6 +1,8 @@
 import abc
+import re
 from typing import TypeVar, Generic, Callable
 
+import tryp.func
 from tryp.tc.base import TypeClass
 
 F = TypeVar('F')
@@ -9,6 +11,7 @@ B = TypeVar('B')
 
 
 class Functor(Generic[F], TypeClass):
+    _map_re = re.compile('^map(\d+)$')
 
     @abc.abstractmethod
     def map(self, fa: F, f: Callable[[A], B]) -> F:
@@ -22,5 +25,21 @@ class Functor(Generic[F], TypeClass):
 
     def ssmap(self, fa: F, f: Callable[..., B]) -> F:
         return self.map(fa, lambda v: f(**v))
+
+    def __getattr__(self, name):
+        match = self._map_re.match(name)
+        if match is None:
+            return super().__getattr__(name)
+        else:
+            return tryp.func.F(self.map_n, int(match.group(1)))
+
+    def map_n(self, num, fa: F, f: Callable[..., B]) -> F:
+        def wrapper(args):
+            if len(args) != num:
+                msg = 'passed {} args to {}.map{}'
+                name = self.__class__.__name__
+                raise TypeError(msg.format(len(args), name, num))
+            return f(*args)
+        return self.map(fa, wrapper)
 
 __all__ = ('Functor',)
