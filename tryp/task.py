@@ -10,7 +10,7 @@ class Task(Generic[A]):
     def __init__(self, f: Callable[[], A]) -> None:
         self.run = f
 
-    def unsafePerformSync(self) -> Either[Exception, A]:
+    def unsafe_perform_sync(self) -> Either[Exception, A]:
         try:
             return Right(self.run())
         except Exception as e:
@@ -18,6 +18,6 @@ class Task(Generic[A]):
 
 
 def Try(f: Callable[..., A], *a, **kw) -> Either[Exception, A]:
-    return Task(lambda: f(*a, **kw)).unsafePerformSync()
+    return Task(lambda: f(*a, **kw)).unsafe_perform_sync()
 
 __all__ = ('Task', 'Try')
