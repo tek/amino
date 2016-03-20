@@ -1,5 +1,7 @@
 from typing import TypeVar, Generic, Callable, Union, Any
 
+from fn.op import identity
+
 from tryp import maybe
 from tryp.tc.base import Implicits, tc_prop, ImplicitInstances
 from tryp.lazy import lazy
@@ -43,6 +45,9 @@ class Either(Generic[A, B], Implicits, implicits=True):
 
     def recover_with(self, f: Callable[[A], 'Either[B]']):
         return self.cata(f, Right)
+
+    def get_or_map(self, f: Callable[[B], Any]):
+        return self.cata(identity, f)
 
     def __str__(self):
         return '{}({})'.format(self.__class__.__name__, str(self.value))
