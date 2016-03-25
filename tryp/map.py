@@ -44,8 +44,10 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
     def __add__(self, item: Tuple[A, B]):
         return Map(dicttoolz.assoc(self, *item))
 
-    def __pow__(self, other: 'Map[A, B]'):
+    def merge(self, other: 'Map[A, B]'):
         return Map(dicttoolz.merge(self, other))
+
+    __pow__ = merge
 
     def __sub__(self, key: A):
         return Map(dicttoolz.dissoc(self, key))
