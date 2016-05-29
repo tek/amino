@@ -10,7 +10,7 @@ from fn import _
 from tryp import maybe
 from tryp.logging import log
 from tryp.tc.monad import Monad
-from tryp.tc.base import Implicits, ImplicitInstances, tc_prop
+from tryp.tc.base import Implicits, ImplicitInstances, tc_prop, ImplicitsMeta
 from tryp.lazy import lazy
 from tryp.tc.traverse import Traverse
 from tryp.func import curried
@@ -31,16 +31,29 @@ class ListInstances(ImplicitInstances):
         return Map({Monad: ListMonad(), Traverse: ListTraverse()})
 
 
-class List(typing.List[A], Generic[A], Implicits, implicits=True):
+class ListMeta(ImplicitsMeta):
+
+    def __instancecheck__(self, instance):
+        if type(instance) is list:
+            return False
+        else:
+            return super().__instancecheck__(instance)
+
+    def __subclasscheck__(self, subclass):
+        if subclass is list:
+            return False
+        return super().__subclasscheck__(subclass)
+
+
+class List(typing.List[A], Generic[A], Implicits, implicits=True,
+           metaclass=ListMeta):
 
     def __init__(self, *elements):
         typing.List.__init__(self, elements)
 
     def __getitem__(self, arg):
-        if isinstance(arg, slice):
-            return List.wrap(super().__getitem__(arg))
-        else:
-            return super().__getitem__(arg)
+        s = super().__getitem__(arg)
+        return List.wrap(s) if isinstance(arg, slice) else s
 
     @staticmethod
     def wrap(l: Iterable[B]) -> 'List[B]':
