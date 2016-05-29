@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version_parts = (7, 4, 0)
+version_parts = (7, 5, 0)
 version = '.'.join(map(str, version_parts))
 
 setup(
@@ -20,5 +20,6 @@ setup(
         'spec',
         'flexmock',
         'sure',
+        'git+git://github.com/ingolemo/python-lenses.git',
     ],
 )
