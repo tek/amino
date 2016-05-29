@@ -1,7 +1,10 @@
 from setuptools import setup, find_packages
 
-version_parts = (7, 5, 2)
+version_parts = (7, 5, 3)
 version = '.'.join(map(str, version_parts))
+
+gh_lenses =\
+    'git+https://github.com/ingolemo/python-lenses.git#egg=project-version'
 
 setup(
     name='tryp',
@@ -23,6 +26,6 @@ setup(
         'sure',
     ],
     dependency_links=[
-        'git+https://github.com/ingolemo/python-lenses.git',
+        gh_lenses,
     ]
 )
