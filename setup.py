@@ -15,11 +15,14 @@ setup(
     install_requires=[
         'fn',
         'toolz',
+        'lenses',
     ],
     tests_require=[
         'spec',
         'flexmock',
         'sure',
-        'git+git://github.com/ingolemo/python-lenses.git',
     ],
+    dependency_links=[
+        'git+https://github.com/ingolemo/python-lenses.git',
+    ]
 )

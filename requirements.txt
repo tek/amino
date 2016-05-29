@@ -3,3 +3,4 @@ toolz
 spec
 sure
 flexmock
+git+https://github.com/ingolemo/python-lenses
