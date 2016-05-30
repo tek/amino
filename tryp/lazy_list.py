@@ -1,7 +1,9 @@
 from functools import wraps
 from typing import Generic, TypeVar, Callable, Tuple
 
-from tryp import _
+from toolz import concatv
+
+from tryp import _, Maybe
 from tryp.list import List
 from tryp.func import F, curried
 from tryp.anon import __
@@ -36,13 +38,13 @@ class LazyList(Generic[A], Implicits, implicits=True):
     def __init__(self, source, init=List(), chunk_size=None,
                  post=lambda a: a) -> None:
         self.source = iter(source)
-        self._strict = init
+        self.strict = init
         self._chunk_size = chunk_size or self._default_chunk_size
         self._post = post
 
     @fetch
     def __getitem__(self, index):
-        return self._strict.__getitem__(index)
+        return self.strict.__getitem__(index)
 
     def __len__(self):
         return self.drain.length
@@ -61,9 +63,9 @@ class LazyList(Generic[A], Implicits, implicits=True):
                 yield from self._one
         def gen():
             while True:
-                if self._strict.length < count:
+                if self.strict.length < count:
                     c = list(chunk())
-                    self._strict = self._strict + c
+                    self.strict = self.strict + c
                     if len(c) == self._chunk_size:
                         continue
                 break
@@ -72,15 +74,15 @@ class LazyList(Generic[A], Implicits, implicits=True):
     @property
     def drain(self):
         self._fetch(float('inf'))
-        return self._strict
+        return self.strict
 
-    def copy(self, wrap_source, trans_strict: Callable[[List[A]], List[A]]):
-        return LazyList(wrap_source(self.source), trans_strict(self._strict),
+    def copy(self, wrap_source, transstrict: Callable[[List[A]], List[A]]):
+        return LazyList(wrap_source(self.source), transstrict(self.strict),
                         self._chunk_size, self._post)
 
     @fetch
     def lift(self, index):
-        return self._strict.lift(index)
+        return self.strict.lift(index)
 
     @property
     def head(self):
@@ -100,26 +102,22 @@ class LazyList(Generic[A], Implicits, implicits=True):
                 except StopIteration:
                     break
         drained = List.wrap(list(gen()))
-        self._strict = self._strict + drained
+        self.strict = self.strict + drained
         return culprit
 
-    def index_of(self, item):
-        return self._strict.index_of(item) | (
-            self._drain_find(_ == item) / (lambda a: len(self._strict) - 1))
-
     def find(self, f: Callable[[A], bool]):
-        return self._strict.find(f) | self._drain_find(f)
+        return self.strict.find(f) | self._drain_find(f)
 
     def foreach(self, f):
         self.drain.foreach(f)
 
     @fetch
     def min_length(self, index):
-        return self._strict.length >= index
+        return self.strict.length >= index
 
     @fetch
     def max_length(self, index):
-        return self._strict.length <= index
+        return self.strict.length <= index
 
     @property
     def empty(self):
@@ -132,14 +130,14 @@ class LazyListFunctor(Functor):
         return LazyList([], List(a))
 
     def map(self, fa: LazyList[A], f: Callable[[A], B]) -> LazyList[B]:
-        return LazyList(map(f, fa.source), fa._strict, fa._chunk_size)
+        return LazyList(map(f, fa.source), fa.strict, fa._chunk_size)
 
 
 class LazyListTraverse(Traverse):
 
     @tc_prop
     def with_index(self, fa: LazyList[A]) -> List[Tuple[int, A]]:
-        return LazyList(enumerate(fa.source), fa._strict, fa._chunk_size)
+        return LazyList(enumerate(fa.source), fa.strict, fa._chunk_size)
 
     def filter(self, fa: LazyList[A], f: Callable[[A], bool]):
         return fa.copy(F(filter, f), __.filter(f))
@@ -147,6 +145,15 @@ class LazyListTraverse(Traverse):
     @curried
     def fold_left(self, fa: LazyList[A], z: B, f: Callable[[B, A], B]) -> B:
         return Traverse[List].fold_left(fa.drain, z, f)
+
+    def find_map(self, fa: LazyList[A], f: Callable[[A], Maybe[B]]
+                 ) -> Maybe[B]:
+        return fa.map(f).find(_.is_just)
+
+    def index_where(self, fa: LazyList[A], f: Callable[[A], bool]
+                    ) -> Maybe[int]:
+        return fa.strict.index_where(f) | (
+            fa._drain_find(f) / (lambda a: len(fa.strict) - 1))
 
 
 def lazy_list(f):
