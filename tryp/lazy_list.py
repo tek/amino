@@ -123,6 +123,12 @@ class LazyList(Generic[A], Implicits, implicits=True):
     def empty(self):
         return self.max_length(0)
 
+    def append(self, other: 'LazyList[A]'):
+        return self.copy(lambda s: concatv(s, other.source), lambda s: s +
+                         other.strict)
+
+    __add__ = append
+
 
 class LazyListFunctor(Functor):
 
