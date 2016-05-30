@@ -127,10 +127,6 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         log.debug(prefix + str(self))
         return self
 
-    def index_where(self, pred: Callable[[Any], bool]):
-        gen = (maybe.Just(i) for i, a in enumerate(self) if pred(a))
-        return next(gen, maybe.Empty())  # type: ignore
-
     def index_of(self, target: Any):
         return self.index_where(_ == target)
 
@@ -143,10 +139,6 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
 
     def cons(self, item):
         return List.wrap(cons(item, self))
-
-    @property
-    def with_index(self):
-        return List.wrap(enumerate(self))
 
     def zip(self, other: 'Iterable[B]'):
         return List.wrap(zip(self, List.wrap(other)))
@@ -175,5 +167,17 @@ class ListTraverse(Traverse):
     @curried
     def fold_left(self, fa: List[A], z: B, f: Callable[[B, A], B]) -> B:
         return reduce(f, fa, z)
+
+    def find_map(self, fa: List[A], f: Callable[[A], maybe.Maybe[B]]
+                 ) -> maybe.Maybe[B]:
+        for el in fa:
+            found = f(el)
+            if found.is_just:
+                return found
+        return maybe.Empty()
+
+    def index_where(self, fa: List[A], f: Callable[[A], bool]):
+        gen = (maybe.Just(i) for i, a in enumerate(fa) if f(a))
+        return next(gen, maybe.Empty())  # type: ignore
 
 __all__ = ('List',)

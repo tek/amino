@@ -6,6 +6,7 @@ from fn import _
 from tryp.tc.base import TypeClass
 from tryp.tc.functor import Functor
 from tryp.func import curried
+from tryp import Maybe
 
 F = TypeVar('F')
 A = TypeVar('A')
@@ -39,5 +40,16 @@ class Traverse(Generic[F], TypeClass):
         '''
         mapped = Functor[type(fa)].map(fa, f)
         return self.fold_left(mapped)(z)(g)
+
+    @abc.abstractmethod
+    def find_map(self, fa: F, f: Callable[[A], Maybe[B]]) -> Maybe[B]:
+        ...
+
+    @abc.abstractmethod
+    def index_where(self, fa: F, f: Callable[[A], bool]) -> Maybe[int]:
+        ...
+
+    def index_of(self, fa: F, a: A) -> Maybe[int]:
+        return self.index_where(fa, _ == a)
 
 __all__ = ('Traverse',)
