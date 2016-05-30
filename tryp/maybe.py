@@ -142,6 +142,9 @@ class Maybe(Generic[A], Implicits, implicits=True):
         from tryp.list import List
         return self.cata(lambda v: List(v), List())
 
+    def replace(self, b: B):
+        return self.map(lambda a: b)
+
     @property
     async def unsafe_await(self):
         if self.is_just:
