@@ -31,9 +31,9 @@ class LazyError(Exception):
 
 class lazy(Generic[A]):
 
-    def __init__(self, func: Callable[..., A]) -> None:
+    def __init__(self, func: Callable[..., A], name=None) -> None:
         self.func = func
-        self._attr_name = _attr_fmt.format(self.func.__name__)
+        self._attr_name = _attr_fmt.format(name or self.func.__name__)
         functools.wraps(self.func)(self)  # type: ignore
 
     def __get__(self, inst, inst_cls) -> Union[A, 'lazy[A]']:
