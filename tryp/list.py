@@ -7,7 +7,7 @@ from toolz.itertoolz import cons
 
 from fn import _
 
-from tryp import maybe
+from tryp import maybe, boolean
 from tryp.logging import log
 from tryp.tc.monad import Monad
 from tryp.tc.base import Implicits, ImplicitInstances, tc_prop, ImplicitsMeta
@@ -75,6 +75,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def foreach(self, f: Callable[[A], B]) -> None:
         for el in self:
             f(el)
+
+    def forall(self, f: Callable[[A], bool]) -> boolean.Boolean:
+        return boolean.Boolean(all(f(el) for el in self))
 
     def find(self, f: Callable[[A], bool]):
         return maybe.Maybe(next(filter(f, self), None))
