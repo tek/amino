@@ -85,7 +85,7 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def contains(self, value):
         return value in self
 
-    def exists(self, f: Callable[[A], bool]):
+    def exists(self, f: Callable[[A], bool]) -> bool:
         return self.find(f).is_just
 
     @property
@@ -144,15 +144,15 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         return List.wrap(cons(item, self))
 
     def zip(self, other: 'Iterable[B]'):
-        return List.wrap(zip(self, List.wrap(other)))
+        return List.wrap(zip(self, other))
 
     __and__ = zip
 
 
 class ListMonad(Monad):
 
-    def pure(self, a: A):
-        return List(a)
+    def pure(self, b: B) -> List[B]:
+        return List(b)
 
     def flat_map(self, fa: List[A], f: Callable[[A], List[B]]) -> List[B]:
         return List.wrap(flatten(map(f, fa)))
