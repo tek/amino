@@ -121,6 +121,9 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
     def at(self, *keys):
         return self.keyfilter(lambda a: a in keys)
 
+    def values_at(self, *keys):
+        return List.wrap(keys) // self.get
+
     def has_key(self, name):
         return Boolean(name in self)
 
