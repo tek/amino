@@ -31,6 +31,13 @@ class AnonFunc(AnonGetter):
     def __getattr__(self, name):
         return MethodRef(self, name)
 
+    def __repr__(self):
+        from tryp import Map
+        kw = Map(self.kw).map2('{}={!r}'.format)
+        a = list(map(repr, self.a)) + list(kw)
+        args = ', '.join(a)
+        return '{!r}.{}({})'.format(self.pre, self.name, args)
+
 
 class MethodRef:
 
@@ -45,11 +52,17 @@ class MethodRef:
         pre = AnonGetter(self.pre, self.name)
         return MethodRef(pre, name)
 
+    def __repr__(self):
+        return '__.{}'.format(self.name)
+
 
 class IdAnonFunc:
 
     def __call__(self, obj):
         return obj
+
+    def __repr__(self):
+        return '__'
 
 
 class MethodLambda:
