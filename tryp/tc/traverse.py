@@ -27,6 +27,9 @@ class Traverse(Generic[F], TypeClass):
     def filter_not(self, fa: F, f: Callable[[A], bool]):
         return self.filter(fa, lambda a: not f(a))
 
+    def filter_type(self, fa: F, tpe: type):
+        return self.filter(fa, lambda a: isinstance(a, tpe))
+
     @abc.abstractmethod
     @curried
     def fold_left(self, fa: F, z: Z, f: Callable[[Z, A], Z]) -> Z:
