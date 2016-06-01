@@ -8,7 +8,7 @@ gh_lenses =\
 
 setup(
     name='tryp',
-    description='tryp tools',
+    description='fp data structures',
     version=version,
     author='Torsten Schmits',
     author_email='torstenschmits@gmail.com',
