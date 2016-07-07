@@ -29,4 +29,7 @@ def curried(func):
             return curried(partial(func, *args, **kwargs))
     return _curried
 
-__all__ = ('curried', 'F')
+
+I = lambda a: a
+
+__all__ = ('curried', 'F', 'I')
