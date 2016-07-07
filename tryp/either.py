@@ -1,8 +1,7 @@
 from typing import TypeVar, Generic, Callable, Union, Any
 
-from fn.op import identity
-
 from tryp import maybe
+from tryp.func import I
 from tryp.tc.base import Implicits, tc_prop, ImplicitInstances
 from tryp.lazy import lazy
 from tryp.tc.optional import Optional
@@ -23,7 +22,7 @@ class EitherInstances(ImplicitInstances):
 
 class Either(Generic[A, B], Implicits, implicits=True):
 
-    def __init__(self, value: Union[A, B]):
+    def __init__(self, value: Union[A, B]) -> None:
         self.value = value
 
     @property
@@ -41,13 +40,16 @@ class Either(Generic[A, B], Implicits, implicits=True):
 
     def cata(self, fl: Callable[[A], Any], fr: Callable[[B], Any]):
         f = fl if self.is_left else fr
-        return f(self.value)
+        return f(self.value)  # type: ignore
 
-    def recover_with(self, f: Callable[[A], 'Either[B]']):
+    def recover_with(self, f: Callable[[A], 'Either[A, B]']):
         return self.cata(f, Right)
 
-    def get_or_map(self, f: Callable[[B], Any]):
-        return self.cata(identity, f)
+    def right_or_map(self, f: Callable[[A], Any]):
+        return self.cata(f, I)
+
+    def left_or_map(self, f: Callable[[B], Any]):
+        return self.cata(I, f)
 
     def __str__(self):
         return '{}({})'.format(self.__class__.__name__, str(self.value))
@@ -58,6 +60,17 @@ class Either(Generic[A, B], Implicits, implicits=True):
     @property
     def to_list(self):
         return self.to_maybe.to_list
+
+    def lmap(self, f: Callable[[A], Any]):
+        return Left(f(self.value)) if self.is_left else self  # type: ignore
+
+    def zip(self, other: 'Either[Any, C]') -> 'Either[A, Tuple[B, C]]':
+        if self.is_right and other.is_right:
+            return Right((self.value, other.value))
+        elif self.is_left:
+            return self
+        else:
+            return other
 
 
 class Right(Either):
