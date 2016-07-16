@@ -17,6 +17,19 @@ class TaskInstances(ImplicitInstances):
         return Map({Monad: TaskMonad()})
 
 
+class TaskException(Exception):
+
+    def __init__(self, stack, cause) -> None:
+        self.stack = stack
+        self.cause = cause
+
+    def __str__(self):
+        from traceback import format_tb
+        msg = 'Task exception at:\n{}\nCause:\n{}\n{}'
+        ex = ''.join(format_tb(self.cause.__traceback__))
+        return msg.format(self.stack, ex, self.cause)
+
+
 class Task(Generic[A], Implicits, implicits=True):
 
     @staticmethod
@@ -48,7 +61,11 @@ class Task(Generic[A], Implicits, implicits=True):
         try:
             return Right(self.run())
         except Exception as e:
-            return Left(e)
+            import traceback
+            import inspect
+            frame = inspect.currentframe().f_back
+            stack = ''.join(traceback.format_stack(f=frame))
+            return Left(TaskException(stack, e))
 
 
 def Try(f: Callable[..., A], *a, **kw) -> Either[Exception, A]:
