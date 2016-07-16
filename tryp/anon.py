@@ -11,7 +11,7 @@ class AnonGetter:
         pre = self.pre(obj)
         if not hasattr(pre, self.name):
             raise AttributeError(
-                '{!r} has no method \'{}\''.format(obj, self.name))
+                '{!r} has no method \'{}\' => {}'.format(obj, self.name, self))
         return self._dispatch(getattr(pre, self.name))
 
     def _dispatch(self, obj):
