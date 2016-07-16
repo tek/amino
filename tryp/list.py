@@ -159,6 +159,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def cons(self, item):
         return List.wrap(cons(item, self))
 
+    def cat(self, item):
+        return self + List(item)
+
     def zip(self, other: 'Iterable[B]'):
         return List.wrap(zip(self, other))
 
