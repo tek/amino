@@ -63,4 +63,10 @@ class TaskMonad(Monad):
     def flat_map(self, fa: Task[A], f: Callable[[A], Task[B]]) -> Task[B]:
         return Task(lambda: f(fa.run()).run())
 
+
+def task(fun):
+    def dec(*a, **kw):
+        return Task.call(fun, *a, **kw)
+    return dec
+
 __all__ = ('Task', 'Try')
