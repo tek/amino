@@ -105,6 +105,22 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         return self.lift(-1)
 
     @property
+    def init(self):
+        return maybe.Empty() if self.empty else maybe.Just(self[:-1])
+
+    @property
+    def tail(self):
+        return maybe.Empty() if self.empty else maybe.Just(self[1:])
+
+    @property
+    def detach_head(self):
+        return self.head.product(self.tail)
+
+    @property
+    def detach_last(self):
+        return self.last.product(self.init)
+
+    @property
     def distinct(self):
         seen = set()
         return List.wrap(x for x in self if x not in seen and not seen.add(x))
