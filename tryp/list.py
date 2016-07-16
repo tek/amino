@@ -92,6 +92,8 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def is_empty(self):
         return self.length == 0
 
+    empty = is_empty
+
     @property
     def length(self):
         return len(self)
