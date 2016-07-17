@@ -1,5 +1,6 @@
-from tryp import __
+from tryp import __, Just, _
 from tryp.test import Spec
+from tryp.anon import L
 
 
 class _Inner:
@@ -30,5 +31,12 @@ class AnonSpec(Spec):
         o = _Outer()
         f = __.inner(z).wrap.add(a, b)
         f(o).should.equal(2 * z + a + b)
+
+    def complex(self):
+        v1 = 13
+        v2 = 29
+        def f(a, b, c, d):
+            return b * d
+        Just((v1, v2)).map2(L(f)(2, _, 4, _)).should.contain(v1 * v2)
 
 __all__ = ('AnonSpec',)

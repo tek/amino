@@ -1,3 +1,7 @@
+from fn import _
+
+from tryp import List
+
 class AnonGetter:
 
     def __init__(self, pre: 'AnonFunc', name: str) -> None:
@@ -72,4 +76,36 @@ class MethodLambda:
 
 __ = MethodLambda()
 
-__all__ = ('__', )
+
+class ComplexLambda:
+
+    def __init__(self, func, *a, **kw) -> None:
+        self.func = func
+        self.args = List.wrap(a)
+        self.kwargs = kw
+
+    def __call__(self, *a, **kw):
+        sub_a = self._substitute(List.wrap(a))
+        return self.func(*sub_a, **kw)
+
+    def _substitute(self, args):
+        def errmsg():
+            return 'too few arguments for lambda "{}": {}'.format(self, args)
+        def go(z, arg):
+            r, a = z
+            new, rest = (a.detach_head.get_or_raise(errmsg()) if arg is _ else
+                         (arg, a))
+            return r.cat(new), rest
+        return self.args.fold_left((List(), args))(go)[0]
+
+
+class L:
+
+    def __init__(self, func) -> None:
+        self.func = func
+
+    def __call__(self, *a, **kw):
+        return ComplexLambda(self.func, *a, **kw)
+
+
+__all__ = ('__', 'L')
