@@ -96,4 +96,10 @@ class Maybe_(Spec):
         m.flat_map4(lambda a, b, c, d: Just(b + d)).should.contain(6)
         m.flat_map5.when.called_with(lambda a: a).should.throw(TypeError)
 
+    def product_n(self):
+        m = Just(1).product3(Just(2), Just(3), Just(4))
+        m.flat_map4(lambda a, b, c, d: Just(b + d)).should.contain(6)
+        e = Just(1).product3(Just(2), Empty(), Just(4))
+        e.should.be.empty
+
 __all__ = ('Maybe_',)
