@@ -9,7 +9,7 @@ from tryp.either import Left, Right, Either
 from tryp.future import Future
 from tryp.boolean import Boolean
 from tryp.func import curried, F, I
-from tryp.anon import __
+from tryp.anon import __, L
 from tryp.env_vars import env
 from tryp.task import Try
 from tryp.logging import Logger, log
@@ -21,4 +21,5 @@ Path = pathlib.Path
 
 __all__ = ('Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future',
            'Boolean', 'development', 'flat_may', 'curried', '__', 'F', 'Left',
-           'Right', 'Either', 'env', 'Try', 'LazyList', 'Logger', 'log', 'I')
+           'Right', 'Either', 'env', 'Try', 'LazyList', 'Logger', 'log', 'I',
+           'L')
