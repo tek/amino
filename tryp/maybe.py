@@ -18,6 +18,10 @@ A = TypeVar('A')
 B = TypeVar('B')
 
 
+def call_by_name(b: Union[B, Callable[[], B]]):
+    return b() if isinstance(b, Callable) else b
+
+
 class MaybeInstances(ImplicitInstances):
 
     @lazy
@@ -61,14 +65,8 @@ class Maybe(Generic[A], Implicits, implicits=True):
     def _get(self) -> Union[A, None]:
         pass
 
-    def _call_by_name(self, b: Union[B, Callable[[], B]]):
-        if isinstance(b, Callable):  # type: ignore
-            return b()  # type: ignore
-        else:
-            return b  # type: ignore
-
     def cata(self, f: Callable[[A], B], b: Union[B, Callable[[], B]]) -> B:
-        return f(self._get) if self.is_just else self._call_by_name(b)
+        return f(self._get) if self.is_just else call_by_name(b)
 
     @property
     def flatten(self):
@@ -155,7 +153,7 @@ class Maybe(Generic[A], Implicits, implicits=True):
 
     async def unsafe_await_or(self, b: Union[B, Callable[[], B]]):
         return (Maybe(await(self._get)) if self.is_just else
-                self._call_by_name(b))
+                call_by_name(b))
 
     @property
     def contains_coro(self):
@@ -246,8 +244,8 @@ class MaybeOptional(Optional):
         from tryp.either import Left, Right
         return fa.cata(Right, lambda: Left(left))
 
-__all__ = ('Maybe', 'Just', 'Empty', 'may')
     @tc_prop
     def present(self, fa: Maybe):
         return fa.is_just
 
+__all__ = ('Maybe', 'Just', 'Empty', 'may', 'call_by_name')
