@@ -7,8 +7,10 @@ from tryp.tc.base import TypeClass
 from tryp.tc.functor import Functor
 from tryp.func import curried
 from tryp import Maybe
+from tryp.tc.monad import Monad
 
 F = TypeVar('F')
+G = TypeVar('G')
 A = TypeVar('A')
 B = TypeVar('B')
 Z = TypeVar('Z')
@@ -54,5 +56,14 @@ class Traverse(Generic[F], TypeClass):
 
     def index_of(self, fa: F, a: A) -> Maybe[int]:
         return self.index_where(fa, _ == a)
+
+    def sequence(self, fa: F, tpe: G) -> G:
+        from tryp import List
+        monad = Monad[tpe]
+        def folder(z, a):
+            def f(b):
+                return monad.map(a, b.cat)
+            return monad.flat_map(z, f)
+        return self.fold_left(fa)(monad.pure(List()))(folder)
 
 __all__ = ('Traverse',)
