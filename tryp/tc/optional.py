@@ -32,4 +32,7 @@ class Optional(Generic[F], TypeClass):
     def present(self, fa: F) -> Boolean:
         ...
 
+    def or_else(self, fa: F, a: Union[F, Callable[[], F]]):
+        return fa if self.present(fa) else maybe.call_by_name(a)
+
 __all__ = ('Optional',)
