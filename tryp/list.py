@@ -169,6 +169,10 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
 
     __and__ = zip
 
+    @property
+    def transpose(self):
+        return List.wrap(map(List.wrap, zip(*self)))
+
 
 class ListMonad(Monad):
 
