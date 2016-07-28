@@ -247,3 +247,7 @@ class MaybeOptional(Optional):
         return fa.cata(Right, lambda: Left(left))
 
 __all__ = ('Maybe', 'Just', 'Empty', 'may')
+    @tc_prop
+    def present(self, fa: Maybe):
+        return fa.is_just
+

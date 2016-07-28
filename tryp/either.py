@@ -104,4 +104,8 @@ class EitherOptional(Optional):
     def to_either(self, fa: Either, left):
         return fa
 
+    @tc_prop
+    def present(self, fa: Either):
+        return fa.is_right
+
 __all__ = ('Either', 'Left', 'Right')

@@ -3,6 +3,7 @@ from typing import TypeVar, Generic, Callable, Union
 
 from tryp.tc.base import TypeClass
 from tryp import maybe  # NOQA
+from tryp.boolean import Boolean
 
 F = TypeVar('F')
 A = TypeVar('A')
@@ -26,5 +27,9 @@ class Optional(Generic[F], TypeClass):
 
     def contains(self, fa: F, item):
         return self.to_maybe(fa).contains(item)
+
+    @abc.abstractmethod
+    def present(self, fa: F) -> Boolean:
+        ...
 
 __all__ = ('Optional',)
