@@ -2,7 +2,7 @@ import traceback
 import inspect
 from typing import Callable, TypeVar, Generic, Any
 
-from tryp import Either, Right, Left, Maybe, List, _, Empty, Just
+from tryp import Either, Right, Left, Maybe, List, _, Empty, Just, __
 from tryp.tc.monad import Monad
 from tryp.tc.base import ImplicitInstances, Implicits
 from tryp.lazy import lazy
@@ -28,7 +28,14 @@ class TaskException(Exception):
 
     @property
     def format_stack(self):
-        data = self.stack.reversed / (lambda a: a[1:-2] + tuple(a[-2]))
+        rev = self.stack.reversed
+        def remove_recursion(i):
+            pre = rev[:i + 1]
+            post = rev[i:].drop_while(__.filename.endswith('/tryp/task.py'))
+            return pre + post
+        start = rev.index_where(lambda a: a.function == 'unsafe_perform_sync')
+        stack = start / remove_recursion | rev
+        data = stack / (lambda a: a[1:-2] + tuple(a[-2]))
         return ''.join(traceback.format_list(data))
 
     def __str__(self):
@@ -105,4 +112,4 @@ def task(fun):
         return Task.call(fun, *a, **kw)
     return dec
 
-__all__ = ('Task', 'Try')
+__all__ = ('Task', 'Try', 'task')
