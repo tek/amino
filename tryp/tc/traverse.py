@@ -3,10 +3,13 @@ from typing import TypeVar, Generic, Callable
 
 from fn import _
 
+from lenses import lens, Lens
+
 from tryp.tc.base import TypeClass
 from tryp.tc.functor import Functor
 from tryp.func import curried
 from tryp import Maybe
+from tryp.boolean import Boolean
 from tryp.tc.monad import Monad
 
 F = TypeVar('F')
@@ -56,6 +59,19 @@ class Traverse(Generic[F], TypeClass):
 
     def index_of(self, fa: F, a: A) -> Maybe[int]:
         return self.index_where(fa, _ == a)
+
+    def lens(self, fa: F, f: Callable[[A], bool]) -> Maybe[Lens]:
+        return self.index_where(fa, f) / (lambda i: lens()[i])
+
+    def find_lens(self, fa: F, f: Callable[[A], Maybe[Lens]]) -> Maybe[Lens]:
+        check = lambda a: f(a[1]) / (lambda b: (a[0], b))
+        index = lambda i, l: lens()[i].add_lens(l)
+        wi = self.with_index(fa)
+        return self.find_map(wi, check).map2(index)
+
+    def find_lens_pred(self, fa: F, f: Callable[[A], bool]) -> Maybe[Lens]:
+        g = lambda a: Boolean(f(a)).maybe(lens())
+        return self.find_lens(fa, g)
 
     def sequence(self, fa: F, tpe: G) -> G:
         from tryp import List
