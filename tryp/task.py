@@ -1,6 +1,8 @@
+import traceback
+import inspect
 from typing import Callable, TypeVar, Generic, Any
 
-from tryp import Either, Right, Left, Maybe
+from tryp import Either, Right, Left, Maybe, List, _, Empty, Just
 from tryp.tc.monad import Monad
 from tryp.tc.base import ImplicitInstances, Implicits
 from tryp.lazy import lazy
@@ -19,15 +21,21 @@ class TaskInstances(ImplicitInstances):
 
 class TaskException(Exception):
 
-    def __init__(self, stack, cause) -> None:
-        self.stack = stack
+    def __init__(self, f, stack, cause) -> None:
+        self.f = f
+        self.stack = List.wrap(stack)
         self.cause = cause
+
+    @property
+    def format_stack(self):
+        data = self.stack.reversed / (lambda a: a[1:-2] + tuple(a[-2]))
+        return ''.join(traceback.format_list(data))
 
     def __str__(self):
         from traceback import format_tb
-        msg = 'Task exception at:\n{}\nCause:\n{}\n{}'
+        msg = 'Task exception at:\n{}\nCause:\n{}\n{}\n\nCallback:\n{}'
         ex = ''.join(format_tb(self.cause.__traceback__))
-        return msg.format(self.stack, ex, self.cause)
+        return msg.format(self.format_stack, ex, self.cause, self.f)
 
 
 class Task(Generic[A], Implicits, implicits=True):
@@ -54,18 +62,26 @@ class Task(Generic[A], Implicits, implicits=True):
     def from_maybe(a: Maybe[A], error: str) -> 'Task[A]':
         return a / Task.now | Task.failed(error)
 
-    def __init__(self, f: Callable[[], A]) -> None:
-        self.run = f
+    def __init__(self, f: Callable[[], A], remove: int=1, as_string=Empty()
+                 ) -> None:
+        self._run = f
+        self.stack = inspect.stack()[remove:]
+        # if `f` is not wrapped in lambda, get_or_else will call it
+        self.as_string = str(as_string | (lambda: f))
+
+    def run(self):
+        try:
+            return self._run()
+        except TaskException as e:
+            raise e
+        except Exception as e:
+            raise TaskException(self.as_string, self.stack, e)
 
     def unsafe_perform_sync(self) -> Either[Exception, A]:
         try:
             return Right(self.run())
-        except Exception as e:
-            import traceback
-            import inspect
-            frame = inspect.currentframe().f_back
-            stack = ''.join(traceback.format_stack(f=frame))
-            return Left(TaskException(stack, e))
+        except TaskException as e:
+            return Left(e)
 
 
 def Try(f: Callable[..., A], *a, **kw) -> Either[Exception, A]:
@@ -75,10 +91,13 @@ def Try(f: Callable[..., A], *a, **kw) -> Either[Exception, A]:
 class TaskMonad(Monad):
 
     def pure(self, a: A):
-        return Task(lambda: a)
+        return Task(lambda: a, as_string=Just(a))
 
     def flat_map(self, fa: Task[A], f: Callable[[A], Task[B]]) -> Task[B]:
-        return Task(lambda: f(fa.run()).run())
+        return Task(lambda: f(fa.run()).run(), 5, Just(f))
+
+    def map(self, fa: Task[A], f: Callable[[A], B]) -> Task[B]:
+        return Task(lambda: f(fa.run()), 5, Just(f))
 
 
 def task(fun):
