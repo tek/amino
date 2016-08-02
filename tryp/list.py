@@ -80,7 +80,7 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         return boolean.Boolean(all(f(el) for el in self))
 
     def find(self, f: Callable[[A], bool]):
-        return maybe.Maybe(next(filter(f, self), None))
+        return maybe.Maybe(next(filter(f, self), None))  # type: ignore
 
     def contains(self, value):
         return value in self
@@ -164,8 +164,8 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def cat(self, item):
         return self + List(item)
 
-    def zip(self, other: 'Iterable[B]'):
-        return List.wrap(zip(self, other))
+    def zip(self, other: 'Iterable[B]', *others):
+        return List.wrap(zip(self, other, *others))
 
     __and__ = zip
 
