@@ -27,6 +27,8 @@ class FlatMap(Apply):
     def product(self, fa: F, fb: F) -> F:
         return self.flat_map(fa, lambda a: self.map(fb, lambda b: (a, b)))
 
+    __and__ = product
+
     def __getattr__(self, name):
         flat_map = self._flat_map_re.match(name)
         product = self._product_re.match(name)

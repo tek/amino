@@ -152,8 +152,8 @@ class Maybe(Generic[A], Implicits, implicits=True):
             return self
 
     async def unsafe_await_or(self, b: Union[B, Callable[[], B]]):
-        return (Maybe(await(self._get)) if self.is_just else
-                call_by_name(b))
+        return (Maybe(await(self._get)) if self.is_just  # type: ignore
+                else call_by_name(b))
 
     @property
     def contains_coro(self):

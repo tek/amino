@@ -47,6 +47,7 @@ operators = (
     '__truediv__',
     '__mod__',
     '__or__',
+    '__and__',
 )
 
 
