@@ -85,6 +85,7 @@ class Maybe_(Spec):
         Empty().to_maybe.should.be.a(Empty)
         Maybe(a).to_either(b).should.equal(Right(a))
         Empty().to_either(b).should.equal(Left(b))
+        Empty().to_either(lambda: b).should.equal(Left(b))
 
     def map_n(self):
         m = Just((1, 2, 3, 4))

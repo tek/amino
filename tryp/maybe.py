@@ -143,9 +143,6 @@ class Maybe(Generic[A], Implicits, implicits=True):
         from tryp.list import List
         return self.cata(lambda v: List(v), List())
 
-    def replace(self, b: B):
-        return self.map(lambda a: b)
-
     @property
     async def unsafe_await(self):
         if self.is_just:
@@ -240,12 +237,13 @@ class MaybeMonad(Monad):
 class MaybeOptional(Optional):
 
     @tc_prop
-    def to_maybe(self, fa: Maybe):
+    def to_maybe(self, fa: Maybe[A]):
         return fa
 
-    def to_either(self, fa: Maybe, left):
+    def to_either(self, fa: Maybe[A], left: Union[B, Callable[[], B]]
+                  ) -> either.Either[A, B]:
         from tryp.either import Left, Right
-        return fa.cata(Right, lambda: Left(left))
+        return fa.cata(Right, lambda: Left(call_by_name(left)))
 
     @tc_prop
     def present(self, fa: Maybe):
