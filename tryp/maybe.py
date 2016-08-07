@@ -18,9 +18,11 @@ from tryp import either, boolean
 A = TypeVar('A')
 B = TypeVar('B')
 
+CallByName = Union[Any, Callable[[], Any]]
 
-def call_by_name(b: Union[B, Callable[[], B]]):
-    return b() if isinstance(b, Callable) else b
+
+def call_by_name(b: CallByName):
+    return b() if isinstance(b, Callable) else b  # type: ignore
 
 
 class MaybeInstances(ImplicitInstances):
