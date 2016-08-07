@@ -13,8 +13,12 @@ class Boolean(object):
     def maybe(self, value):
         return maybe.Maybe(value) if self else maybe.Empty()
 
-    def flat_maybe(self, value: 'maybe.Maybe'):
+    def flat_maybe(self, value: 'Maybe'):  # type: ignore
         return value if self else maybe.Empty()
+
+    def either(self, l, r) -> 'Either':  # type: ignore
+        from tryp import Right, Left
+        return Right(r) if self else Left(l)
 
     def __nonzero__(self):
         return self.value
