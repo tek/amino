@@ -98,7 +98,7 @@ def tc_prop(f):
 class Implicits(object, metaclass=ImplicitsMeta):
 
     def _lookup_implicit_attr(self, name):
-        for inst in self.implicits.instances.values:
+        for inst in self.implicits.instances.v:
             if hasattr(inst, name):
                 f = getattr(inst, name)
                 if hasattr(f, '_tc_prop'):

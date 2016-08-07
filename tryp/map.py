@@ -107,16 +107,16 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
         return Dict.values(self)
 
     @property
-    def keys(self):
+    def k(self):
         return List(*Dict.keys(self))
 
     @property
-    def values(self):
+    def v(self):
         return List(*Dict.values(self))
 
     @property
     def is_empty(self):
-        return self.keys.is_empty
+        return self.k.is_empty
 
     def at(self, *keys):
         return self.keyfilter(lambda a: a in keys)

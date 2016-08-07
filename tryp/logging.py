@@ -98,7 +98,7 @@ class Logging(object):
 def sub_loggers(loggers, root):
     from tryp import Map
     children = loggers.keyfilter(F(re.match, '{}\.[^.]+$'.format(root)))
-    sub = (children.keys / F(sub_loggers, loggers))\
+    sub = (children.k / F(sub_loggers, loggers))\
         .fold_left(Map())(_ ** _)
     return Map({loggers[root]: sub})
 
