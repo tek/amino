@@ -12,6 +12,22 @@ class F(fn.F):
     def __floordiv__(self, f):
         return self >> (lambda a: a // f)
 
+    @property
+    def name(self):
+        f = self.f.func if self._is_partial else self.f
+        return f.__name__
+
+    @property
+    def _is_partial(self):
+        return isinstance(self.f, partial)
+
+    def __repr__(self):
+        from tryp.anon import format_funcall
+        rep = (format_funcall(self.name, self.f.args, self.f.keywords)
+               if self._is_partial
+               else '{}()'.format(self.name))
+        return 'F({})'.format(rep)
+
 
 def curried(func):
     @wraps(func)
