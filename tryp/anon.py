@@ -2,6 +2,15 @@ from fn import _
 
 from tryp import List
 
+
+def format_funcall(fun, args, kwargs):
+    from tryp import Map
+    kw = Map(kwargs).map2('{}={!r}'.format)
+    a = list(map(repr, args)) + list(kw)
+    args_fmt = ', '.join(a)
+    return '{}({})'.format(fun, args_fmt)
+
+
 class AnonGetter:
 
     def __init__(self, pre: 'AnonFunc', name: str) -> None:
@@ -36,11 +45,8 @@ class AnonFunc(AnonGetter):
         return MethodRef(self, name)
 
     def __repr__(self):
-        from tryp import Map
-        kw = Map(self.kw).map2('{}={!r}'.format)
-        a = list(map(repr, self.a)) + list(kw)
-        args = ', '.join(a)
-        return '{!r}.{}({})'.format(self.pre, self.name, args)
+        return '{!r}.{}'.format(self.pre,
+                                format_funcall(self.name, self.a, self.kw))
 
 
 class MethodRef:
