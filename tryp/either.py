@@ -1,4 +1,5 @@
 from typing import TypeVar, Generic, Callable, Union, Any
+from typing import Tuple  # NOQA
 
 from tryp import maybe, boolean
 from tryp.func import I
@@ -71,6 +72,12 @@ class Either(Generic[A, B], Implicits, implicits=True):
             return self
         else:
             return other
+
+    @property
+    def get_or_raise(self):
+        def fail(err):
+            raise err if isinstance(err, Exception) else Exception(err)
+        return self.cata(fail, I)
 
 
 class Right(Either):
