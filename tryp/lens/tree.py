@@ -20,6 +20,15 @@ def path_lens(a: A, sub: Callable[[A], List[A]],
     return _path_lens(a, sub, f).smap(lens(a).tuple_)
 
 
+def path_lens_unbound_pre(a: A, sub: Callable[[A], List[A]],
+                          f: Callable[[A], Maybe[Lens]], pre: Callable):
+    return (
+        _path_lens(pre(a), sub, f) /
+        (_ / pre(lens()).add_lens) /
+        __.cons(lens())
+    ).smap(lens().tuple_)
+
+
 def path_lens_unbound(a: A, sub: Callable[[A], List[A]],
                       f: Callable[[A], Maybe[Lens]]) -> Maybe[Lens]:
     return _path_lens(a, sub, f).smap(lens().tuple_)
