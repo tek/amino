@@ -45,7 +45,8 @@ class Functor(Generic[F], TypeClass):
     def pair(self, fa: F, f: Callable[[A], B]) -> F:
         return self.map(fa, lambda a: (a, f(a)))
 
-    def flat_pair(self, fa: F, f: Callable[[A], 'tryp.maybe.Maybe[B]']) -> F:
-        return self.flat_map(fa, lambda a: f(a).map(lambda b: (a, b)))
+    def replace(self, fa: F, b: B) -> F:
+        cb = lambda a: b
+        return self.map(fa, cb)
 
 __all__ = ('Functor',)

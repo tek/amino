@@ -1,10 +1,13 @@
 import abc
 import re
-from typing import Callable, Iterable
+from typing import Callable, Iterable, TypeVar
 
 import tryp.func
 from tryp.tc.apply import Apply
-from tryp.tc.functor import F, A
+
+F = TypeVar('F')
+A = TypeVar('A')
+B = TypeVar('B')
 
 
 class FlatMap(Apply):
@@ -58,5 +61,13 @@ class FlatMap(Apply):
             return self.flat_map(a, lambda a: self.map(b, lambda b: a + (b,)))
         init = self.map(fa, lambda a: (a,))
         return List.wrap(fs).fold_left(init)(add)
+
+    def flat_pair(self, fa: F, f: Callable[[A], 'tryp.maybe.Maybe[B]']) -> F:
+        cb = lambda a: f(a).map(lambda b: (a, b))
+        return self.flat_map(fa, cb)
+
+    def flat_replace(self, fa: F, fb: F) -> F:
+        cb = lambda a: fb
+        return self.flat_map(fa, cb)
 
 __all__ = ('FlatMap',)
