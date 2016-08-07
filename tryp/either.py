@@ -1,6 +1,6 @@
 from typing import TypeVar, Generic, Callable, Union, Any
 
-from tryp import maybe
+from tryp import maybe, boolean
 from tryp.func import I
 from tryp.tc.base import Implicits, tc_prop, ImplicitInstances
 from tryp.lazy import lazy
@@ -27,11 +27,11 @@ class Either(Generic[A, B], Implicits, implicits=True):
 
     @property
     def is_right(self):
-        return isinstance(self, Right)
+        return boolean.Boolean(isinstance(self, Right))
 
     @property
     def is_left(self):
-        return isinstance(self, Left)
+        return boolean.Boolean(isinstance(self, Left))
 
     def leffect(self, f):
         if self.is_left:

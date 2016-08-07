@@ -13,6 +13,7 @@ from tryp.tc.base import Implicits, ImplicitInstances, tc_prop
 from tryp.lazy import lazy
 from tryp.tc.monad import Monad
 from tryp.tc.optional import Optional
+from tryp import either, boolean
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -126,7 +127,7 @@ class Maybe(Generic[A], Implicits, implicits=True):
 
     @property
     def is_just(self):
-        return (isinstance(self, Just))
+        return boolean.Boolean(isinstance(self, Just))
 
     @property
     def is_empty(self):
