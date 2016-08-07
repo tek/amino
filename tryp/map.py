@@ -22,12 +22,18 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
     def get(self, key):
         return Dict.get(self, key)
 
+    def get_item(self, key):
+        return self.get(key) / (lambda a: (key, a))
+
     def get_all(self, *keys):
         def append(zm, k):
-            return zm.flat_map(
-                lambda z: self.get(k).map(lambda a: z + List(a))
-            )
-        return List(*keys).fold_left(Just(List()))(append)
+            return zm // (lambda z: self.get(k) / z.cat)
+        return List.wrap(keys).fold_left(Just(List()))(append)
+
+    def get_all_map(self, *keys):
+        def append(zm, k):
+            return zm // (lambda z: self.get_item(k) / z.cat)
+        return List.wrap(keys).fold_left(Just(Map()))(append)
 
     def get_or_else(self, key, default: Callable[[], C]):
         return self.get(key).get_or_else(default)
@@ -41,8 +47,10 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
     def __str__(self):
         return str(dict(self))
 
-    def __add__(self, item: Tuple[A, B]):
+    def cat(self, item: Tuple[A, B]):
         return Map(dicttoolz.assoc(self, *item))
+
+    __add__ = cat
 
     def merge(self, other: 'Map[A, B]'):
         return Map(dicttoolz.merge(self, other))
