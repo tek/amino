@@ -51,7 +51,8 @@ class Maybe(Generic[A], Implicits, implicits=True):
             return Maybe.inst(f(*args, **kwargs))
         except exc:
             if exc == Exception:
-                stack = traceback.format_stack(inspect.currentframe().f_back)
+                frame = inspect.currentframe().f_back  # type: ignore
+                stack = traceback.format_stack(frame)
                 log.exception('Maybe.from_call:')
                 log.error(''.join(stack))
             return Empty()
@@ -69,7 +70,11 @@ class Maybe(Generic[A], Implicits, implicits=True):
         pass
 
     def cata(self, f: Callable[[A], B], b: Union[B, Callable[[], B]]) -> B:
-        return f(self._get) if self.is_just else call_by_name(b)
+        return (
+            f(self._get)  # type: ignore
+            if self.is_just
+            else call_by_name(b)
+        )
 
     @property
     def flatten(self):
