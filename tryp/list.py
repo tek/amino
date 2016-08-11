@@ -177,6 +177,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         index = self.index_where(lambda a: not pred(a))
         return index / (lambda a: self[a:]) | self
 
+    def remove_all(self, els: 'List[A]') -> 'List[A]':
+        return self.filter_not(els.contains)
+
 
 class ListMonad(Monad):
 
