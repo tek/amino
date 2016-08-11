@@ -98,10 +98,10 @@ class Maybe(Generic[A], Implicits, implicits=True):
         return self.cata(identity, raise_e)
 
     def exists(self, f: Callable[[A], bool]):
-        return self.cata(f, False)
+        return boolean.Boolean(self.cata(f, False))
 
     def contains(self, v):
-        return self.exists(_ == v)
+        return boolean.Boolean(self.exists(_ == v))
 
     def __contains__(self, v):
         return self.contains(v)
