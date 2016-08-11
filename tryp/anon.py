@@ -104,6 +104,9 @@ class ComplexLambda:
             return r.cat(new), rest
         return self.args.fold_left((List(), args))(go)[0]
 
+    def __getattr__(self, name):
+        return MethodRef(self, name)
+
 
 class L:
 
