@@ -37,4 +37,8 @@ class Boolean(object):
 
     __repr__ = __str__
 
-__all__ = ['Boolean']
+    @property
+    def no(self):
+        return Boolean(not self.value)
+
+__all__ = ('Boolean',)
