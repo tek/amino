@@ -5,10 +5,7 @@ from tryp import Empty, Just, Maybe
 from tryp.test import Spec
 
 
-class Either_(Spec):
-
-    def setup(self, *a, **kw):
-        super(Either_, self).setup(*a, **kw)
+class EitherSpec(Spec):
 
     def map(self):
         a = 'a'
@@ -34,4 +31,4 @@ class Either_(Spec):
         Right(Just(a)).sequence(Maybe).should.equal(Just(Right(a)))
         Left(Just(a)).sequence(Maybe).should.equal(Just(Left(Just(a))))
 
-__all__ = ['Either_']
+__all__ = ('EitherSpec',)

@@ -5,10 +5,7 @@ from tryp.test import Spec
 from tryp import Map, Empty, Just
 
 
-class Map_(Spec):
-
-    def setup(self, *a, **kw):
-        super(Map_, self).setup(*a, **kw)
+class MapSpec(Spec):
 
     def get(self):
         key = 'key'
@@ -78,4 +75,4 @@ class Map_(Spec):
         res.should.have.key(k1).being.equal(v1)
         res.should_not.have.key(k2)
 
-__all__ = ['Map_']
+__all__ = ('MapSpec')

@@ -24,7 +24,7 @@ class B(object):
         return B.i
 
 
-class Lazy_(Spec):
+class LazySpec(Spec):
 
     def _impl(self, tpe):
         t = tpe()
@@ -43,4 +43,4 @@ class Lazy_(Spec):
     def dict(self):
         self._impl(B)
 
-__all__ = ['Lazy_']
+__all__ = ('LazySpec',)

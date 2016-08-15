@@ -25,4 +25,4 @@ class Future(Generic[A], asyncio.Future):
         self.add_done_callback(setter)
 
 
-__all__ = ['Future']
+__all__ = ('Future',)

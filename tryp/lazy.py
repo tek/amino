@@ -59,4 +59,4 @@ class lazy(Generic[A]):
 class Lazy(metaclass=LazyMeta):
     pass
 
-__all__ = ['lazy']
+__all__ = ('lazy',)
