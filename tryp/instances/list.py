@@ -41,7 +41,6 @@ class ListMonad(Monad):
 class ListTraverse(Traverse):
 
     def traverse(self, fa: List[A], f: Callable, tpe: type):
-        from tryp import List
         monad = Applicative[tpe]
         def folder(z, a):
             return monad.map2(z.product(f(a)), lambda l, b: l.cat(b))
@@ -73,4 +72,4 @@ class ListFoldable(Foldable):
         gen = (maybe.Just(i) for i, a in enumerate(fa) if f(a))
         return next(gen, maybe.Empty())  # type: ignore
 
-__all__ = ()
+__all__ = ('ListInstances',)

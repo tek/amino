@@ -1,10 +1,10 @@
 import itertools
 
 from tryp.test import Spec
-from tryp import LazyList, List, _
+from tryp import LazyList, List, _, Just, Maybe
 
 
-class LazyList_(Spec):
+class LazyListSpec(Spec):
 
     def slice_infinite(self):
         l = LazyList(itertools.count(), chunk_size=20)
@@ -73,4 +73,10 @@ class LazyList_(Spec):
     def fold_map(self):
         LazyList((1, 2, 3)).fold_map(5, _ * 2).should.equal(17)
 
-__all__ = ('LazyList_',)
+    def traverse(self):
+        n = 3
+        l = LazyList(map(Just, range(n)))
+        target = LazyList(List.wrap(range(n)))
+        (l.sequence(Maybe) / _.drain).should.contain(target.drain)
+
+__all__ = ('LazyListSpec',)

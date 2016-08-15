@@ -5,10 +5,10 @@ from fn import _
 
 from tryp.test import Spec
 
-from tryp import List, Empty, Just
+from tryp import List, Empty, Just, Maybe
 
 
-class List_(Spec):
+class ListSpec(Spec):
 
     def map(self):
         List(1, 2, 3) \
@@ -22,7 +22,7 @@ class List_(Spec):
 
     def flatten_maybes(self):
         List(Just(4), Empty(), Just(5), Empty())\
-            .flatten\
+            .join\
             .should.equal(List(4, 5))
 
     def flat_map_maybe(self):
@@ -77,4 +77,9 @@ class List_(Spec):
     def fold_map(self):
         List(1, 2, 3).fold_map(5, _ * 2).should.equal(17)
 
-__all__ = ['List_']
+    def traverse(self):
+        n = 3
+        target = Just(List.wrap(range(n)))
+        List.wrap(map(Just, range(n))).sequence(Maybe).should.equal(target)
+
+__all__ = ('ListSpec',)
