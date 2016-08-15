@@ -4,6 +4,8 @@ from typing import Callable, Iterable, TypeVar
 
 import tryp.func
 from tryp.tc.apply import Apply
+from tryp import I
+from tryp.tc.base import tc_prop
 
 F = TypeVar('F')
 A = TypeVar('A')
@@ -69,5 +71,9 @@ class FlatMap(Apply):
     def flat_replace(self, fa: F, fb: F) -> F:
         cb = lambda a: fb
         return self.flat_map(fa, cb)
+
+    @tc_prop
+    def join(self, fa: F) -> F:
+        return self.flat_map(fa, I)
 
 __all__ = ('FlatMap',)
