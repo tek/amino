@@ -13,6 +13,7 @@ from tryp.anon import __, L
 from tryp.env_vars import env
 from tryp.task import Try
 from tryp.logging import Logger, log
+from tryp.eff import Eff
 
 development = 'TRYP_DEVELOPMENT' in env
 integration_test = 'TRYP_INTEGRATION' in env
@@ -22,4 +23,4 @@ Path = pathlib.Path
 __all__ = ('Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future',
            'Boolean', 'development', 'flat_may', 'curried', '__', 'F', 'Left',
            'Right', 'Either', 'env', 'Try', 'LazyList', 'Logger', 'log', 'I',
-           'L')
+           'L', 'Eff')
