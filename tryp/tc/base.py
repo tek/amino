@@ -1,6 +1,6 @@
 import importlib
 import abc
-from typing import GenericMeta, Dict
+from typing import GenericMeta, Dict, Callable  # type: ignore
 from functools import partial
 
 from fn import _, F
@@ -72,22 +72,37 @@ class ImplicitsMeta(GenericMeta):
         if not implicits:
             return inst
         else:
-            err = ImplicitInstancesNotFound(imp_mod, imp_cls, name)
             if imp_mod is None or imp_cls is None:
                 imp_mod, imp_cls = ImplicitsMeta._infer_implicits(name)
-            try:
-                mod = importlib.import_module(imp_mod)
-            except ImportError:
-                raise err
+            inst.imp_mod = imp_mod
+            inst.imp_cls = imp_cls
+            inst.name = name
+            inst._implicits_instance = None
+            ImplicitsMeta._attach_operators(inst)
+            Instances.add(name, inst)
+            return inst
+
+    @property
+    def _implicits(self):
+        m = self.imp_mod
+        c = self.imp_cls
+        err = ImplicitInstancesNotFound(m, c, self.name)
+        try:
+            mod = importlib.import_module(m)
+        except ImportError:
+            raise err
+        else:
+            if hasattr(mod, c):
+                instances = getattr(mod, c)()
+                return instances
             else:
-                if hasattr(mod, imp_cls):
-                    instances = getattr(mod, imp_cls)()
-                    inst.implicits = instances
-                    Instances.add(name, instances)
-                    ImplicitsMeta._attach_operators(inst)
-                    return inst
-                else:
-                    raise err
+                raise err
+
+    @property
+    def implicits(self):
+        if self._implicits_instance is None:
+            self._implicits_instance = self._implicits.instances
+        return self._implicits_instance
 
 
 def tc_prop(f):
@@ -98,7 +113,7 @@ def tc_prop(f):
 class Implicits(object, metaclass=ImplicitsMeta):
 
     def _lookup_implicit_attr(self, name):
-        for inst in self.implicits.instances.v:
+        for inst in type(self).implicits.v:
             if hasattr(inst, name):
                 f = getattr(inst, name)
                 if hasattr(f, '_tc_prop'):
@@ -164,7 +179,7 @@ class AllInstances(object):
     def __init__(self):
         self._instances = dict()
 
-    def add(self, name, inst: ImplicitInstances):
+    def add(self, name, inst: Callable[[], ImplicitInstances]):
         self._instances[name] = inst
 
     def lookup(self, TC, G):
@@ -185,7 +200,7 @@ class AllInstances(object):
         from tryp.maybe import Empty
         if G.__name__ in self._instances:
             match = lambda I: isinstance(I, TC)
-            return self._instances[G.__name__].instances.find(match)
+            return self._instances[G.__name__].implicits.find(match)
         else:
             return Empty()
 
