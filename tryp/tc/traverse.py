@@ -1,16 +1,8 @@
 import abc
 from typing import TypeVar, Generic, Callable
 
-from fn import _
-
-from lenses import lens, Lens
-
 from tryp.tc.base import TypeClass
-from tryp.tc.functor import Functor
-from tryp.func import curried
-from tryp import Maybe
-from tryp.boolean import Boolean
-from tryp.tc.monad import Monad
+from tryp.func import I
 
 F = TypeVar('F')
 G = TypeVar('G')
@@ -20,66 +12,14 @@ Z = TypeVar('Z')
 
 
 class Traverse(Generic[F], TypeClass):
+    # FIXME lens functions return index lenses, which is not a property of
+    # Traverse
 
     @abc.abstractmethod
-    def with_index(self, fa: F) -> F:
+    def traverse(self, fa: F, f: Callable, tpe: type):
         ...
 
-    @abc.abstractmethod
-    def filter(self, fa: F, f: Callable[[A], bool]):
-        ...
-
-    def filter_not(self, fa: F, f: Callable[[A], bool]):
-        return self.filter(fa, lambda a: not f(a))
-
-    def filter_type(self, fa: F, tpe: type):
-        return self.filter(fa, lambda a: isinstance(a, tpe))
-
-    @abc.abstractmethod
-    @curried
-    def fold_left(self, fa: F, z: Z, f: Callable[[Z, A], Z]) -> Z:
-        ...
-
-    def fold_map(self, fa: F, z: B, f: Callable[[A], B],
-                 g: Callable[[Z, B], Z]=_ + _) -> Z:
-        ''' map `f` over the traversable, then fold over the result
-        using the supplied initial element `z` and operation `g`,
-        defaulting to addition for the latter.
-        '''
-        mapped = Functor[type(fa)].map(fa, f)
-        return self.fold_left(mapped)(z)(g)
-
-    @abc.abstractmethod
-    def find_map(self, fa: F, f: Callable[[A], Maybe[B]]) -> Maybe[B]:
-        ...
-
-    @abc.abstractmethod
-    def index_where(self, fa: F, f: Callable[[A], bool]) -> Maybe[int]:
-        ...
-
-    def index_of(self, fa: F, a: A) -> Maybe[int]:
-        return self.index_where(fa, _ == a)
-
-    def lens(self, fa: F, f: Callable[[A], bool]) -> Maybe[Lens]:
-        return self.index_where(fa, f) / (lambda i: lens()[i])
-
-    def find_lens(self, fa: F, f: Callable[[A], Maybe[Lens]]) -> Maybe[Lens]:
-        check = lambda a: f(a[1]) / (lambda b: (a[0], b))
-        index = lambda i, l: lens()[i].add_lens(l)
-        wi = self.with_index(fa)
-        return self.find_map(wi, check).map2(index)
-
-    def find_lens_pred(self, fa: F, f: Callable[[A], bool]) -> Maybe[Lens]:
-        g = lambda a: Boolean(f(a)).maybe(lens())
-        return self.find_lens(fa, g)
-
-    def sequence(self, fa: F, tpe: G) -> G:
-        from tryp import List
-        monad = Monad[tpe]
-        def folder(z, a):
-            def f(b):
-                return monad.map(a, b.cat)
-            return monad.flat_map(z, f)
-        return self.fold_left(fa)(monad.pure(List()))(folder)
+    def sequence(self, fa: F, tpe: type):
+        return self.traverse(fa, I, tpe)
 
 __all__ = ('Traverse',)
