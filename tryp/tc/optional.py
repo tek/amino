@@ -36,4 +36,8 @@ class Optional(Generic[F], TypeClass):
     def or_else(self, fa: F, a: Union[F, Callable[[], F]]):
         return fa if self.present(fa) else maybe.call_by_name(a)
 
+    def task(self, fa: F, err: str=''):
+        from tryp.task import Task
+        return Task.from_either(self.to_either(fa, err))
+
 __all__ = ('Optional',)
