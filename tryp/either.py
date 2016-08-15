@@ -42,10 +42,10 @@ class Either(Generic[A, B], Implicits, implicits=True):
         return self.cata(I, f)
 
     def __str__(self):
-        return '{}({})'.format(self.__class__.__name__, str(self.value))
+        return '{}({})'.format(self.__class__.__name__, self.value)
 
     def __repr__(self):
-        return str(self)
+        return '{}({!r})'.format(self.__class__.__name__, self.value)
 
     @property
     def to_list(self):
