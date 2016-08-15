@@ -107,6 +107,9 @@ class ComplexLambda:
     def __getattr__(self, name):
         return MethodRef(self, name)
 
+    def __repr__(self):
+        return format_funcall(self.func.__name__, self.args, self.kwargs)
+
 
 class L:
 
