@@ -55,7 +55,7 @@ class ImplicitsMeta(GenericMeta):
 
     def _infer_implicits(name):
         snake = snake_case(name)
-        return 'tryp.{}'.format(snake), '{}Instances'.format(name)
+        return 'tryp.instances.{}'.format(snake), '{}Instances'.format(name)
 
     def _mk_operator(name):
         def dispatch(self, other):

@@ -1,24 +1,13 @@
 from typing import TypeVar, Generic, Callable, Union, Any
 from typing import Tuple  # NOQA
 
-from tryp import maybe, boolean
+from tryp import boolean
 from tryp.func import I
-from tryp.tc.base import Implicits, tc_prop, ImplicitInstances
-from tryp.lazy import lazy
-from tryp.tc.optional import Optional
-from tryp.tc.monad import Monad
+from tryp.tc.base import Implicits
 
 A = TypeVar('A')
 B = TypeVar('B')
 C = TypeVar('C')
-
-
-class EitherInstances(ImplicitInstances):
-
-    @lazy
-    def _instances(self):
-        from tryp.map import Map
-        return Map({Monad: EitherMonad(), Optional: EitherOptional()})
 
 
 class Either(Generic[A, B], Implicits, implicits=True):
@@ -90,29 +79,5 @@ class Left(Either):
 
     def __eq__(self, other):
         return isinstance(other, Left) and self.value == other.value
-
-
-class EitherMonad(Monad):
-
-    def pure(self, a: A):
-        return Right(a)
-
-    def flat_map(self, fa: Either[A, B], f: Callable[[B], Either[A, C]]
-                 ) -> Either[A, C]:
-        return f(fa.value) if isinstance(fa, Right) else fa
-
-
-class EitherOptional(Optional):
-
-    @tc_prop
-    def to_maybe(self, fa: Either):
-        return maybe.Just(fa.value) if fa.is_right else maybe.Empty()
-
-    def to_either(self, fa: Either, left):
-        return fa
-
-    @tc_prop
-    def present(self, fa: Either):
-        return fa.is_right
 
 __all__ = ('Either', 'Left', 'Right')

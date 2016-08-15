@@ -9,11 +9,8 @@ from fn import _
 from fn.op import identity
 
 from tryp.logging import log
-from tryp.tc.base import Implicits, ImplicitInstances, tc_prop
-from tryp.lazy import lazy
-from tryp.tc.monad import Monad
-from tryp.tc.optional import Optional
-from tryp import either, boolean
+from tryp import boolean
+from tryp.tc.base import Implicits
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -23,14 +20,6 @@ CallByName = Union[Any, Callable[[], Any]]
 
 def call_by_name(b: CallByName):
     return b() if isinstance(b, Callable) else b  # type: ignore
-
-
-class MaybeInstances(ImplicitInstances):
-
-    @lazy
-    def _instances(self):
-        from tryp import Map
-        return Map({Monad: MaybeMonad(), Optional: MaybeOptional()})
 
 
 class Maybe(Generic[A], Implicits, implicits=True):
@@ -228,30 +217,5 @@ def flat_may(f):
         res = f(*args, **kwargs)
         return res if isinstance(res, Maybe) else Maybe(res)
     return wrapper
-
-
-class MaybeMonad(Monad):
-
-    def pure(self, a: A):
-        return Just(a)
-
-    def flat_map(self, fa: Maybe[A], f: Callable[[A], Maybe[B]]) -> Maybe[B]:
-        return fa.cata(lambda v: f(v), Empty())
-
-
-class MaybeOptional(Optional):
-
-    @tc_prop
-    def to_maybe(self, fa: Maybe[A]):
-        return fa
-
-    def to_either(self, fa: Maybe[A], left: Union[B, Callable[[], B]]
-                  ) -> either.Either[A, B]:
-        from tryp.either import Left, Right
-        return fa.cata(Right, lambda: Left(call_by_name(left)))
-
-    @tc_prop
-    def present(self, fa: Maybe):
-        return fa.is_just
 
 __all__ = ('Maybe', 'Just', 'Empty', 'may', 'call_by_name')

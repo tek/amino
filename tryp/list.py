@@ -1,6 +1,6 @@
 import itertools
 import typing
-from typing import TypeVar, Callable, Generic, Iterable, Any, Tuple
+from typing import TypeVar, Callable, Generic, Iterable, Any
 from functools import reduce
 
 from toolz.itertoolz import cons
@@ -9,11 +9,8 @@ from fn import _
 
 from tryp import maybe, boolean
 from tryp.logging import log
-from tryp.tc.monad import Monad
-from tryp.tc.base import Implicits, ImplicitInstances, tc_prop, ImplicitsMeta
-from tryp.lazy import lazy
-from tryp.tc.traverse import Traverse
-from tryp.func import curried
+from tryp.tc.base import ImplicitsMeta, Implicits
+from tryp.func import I
 
 A = TypeVar('A', covariant=True)
 B = TypeVar('B')
@@ -21,14 +18,6 @@ B = TypeVar('B')
 
 def flatten(l: Iterable[Iterable[A]]) -> Iterable[A]:
     return list(itertools.chain.from_iterable(l))  # type: ignore
-
-
-class ListInstances(ImplicitInstances):
-
-    @lazy
-    def _instances(self):
-        from tryp import Map
-        return Map({Monad: ListMonad(), Traverse: ListTraverse()})
 
 
 class ListMeta(ImplicitsMeta):
@@ -184,39 +173,7 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def remove_all(self, els: 'List[A]') -> 'List[A]':
         return self.filter_not(els.contains)
 
-
-class ListMonad(Monad):
-
-    def pure(self, b: B) -> List[B]:
-        return List(b)
-
-    def flat_map(self, fa: List[A], f: Callable[[A], List[B]]) -> List[B]:
-        return List.wrap(flatten(map(f, fa)))
-
-
-class ListTraverse(Traverse):
-
-    @tc_prop
-    def with_index(self, fa: List[A]) -> List[Tuple[int, A]]:
-        return List.wrap(enumerate(fa))
-
-    def filter(self, fa: List[A], f: Callable[[A], bool]):
-        return List.wrap(filter(f, fa))
-
-    @curried
-    def fold_left(self, fa: List[A], z: B, f: Callable[[B, A], B]) -> B:
-        return reduce(f, fa, z)
-
-    def find_map(self, fa: List[A], f: Callable[[A], maybe.Maybe[B]]
-                 ) -> maybe.Maybe[B]:
-        for el in fa:
-            found = f(el)
-            if found.is_just:
-                return found
-        return maybe.Empty()
-
-    def index_where(self, fa: List[A], f: Callable[[A], bool]):
-        gen = (maybe.Just(i) for i, a in enumerate(fa) if f(a))
-        return next(gen, maybe.Empty())  # type: ignore
+    def __repr__(self):
+        return 'List({})'.format(', '.join(map(str, self)))
 
 __all__ = ('List',)
