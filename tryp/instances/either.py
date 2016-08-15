@@ -6,7 +6,7 @@ from tryp.tc.monad import Monad
 from tryp.tc.traverse import Traverse
 from tryp.lazy import lazy
 from tryp.maybe import Just, Empty
-from tryp.either import Right, Either
+from tryp.either import Right, Either, Left
 from tryp.tc.applicative import Applicative
 
 A = TypeVar('A')
@@ -57,6 +57,6 @@ class EitherTraverse(Traverse):
     def traverse(self, fa: Either[A, B], f: Callable, tpe: type):
         monad = Applicative[tpe]
         r = lambda a: monad.map(f(a), Right)
-        return fa.cata(monad.pure, r)
+        return fa.cata(lambda a: monad.pure(Left(a)), r)
 
 __all__ = ('EitherInstances',)

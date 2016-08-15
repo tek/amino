@@ -1,7 +1,7 @@
 from fn import _
 
 from tryp.either import Left, Right
-from tryp import Empty, Just
+from tryp import Empty, Just, Maybe
 from tryp.test import Spec
 
 
@@ -28,5 +28,10 @@ class Either_(Spec):
         a = 'a'
         b = 'b'
         Right(a).ap2(Right(b), _ + _).should.equal(Right(a + b))
+
+    def traverse(self):
+        a = 'a'
+        Right(Just(a)).sequence(Maybe).should.equal(Just(Right(a)))
+        Left(Just(a)).sequence(Maybe).should.equal(Just(Left(Just(a))))
 
 __all__ = ['Either_']
