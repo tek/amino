@@ -89,7 +89,7 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
             f: Callable[[A, B], Maybe[Tuple[C, D]]]
     ) -> 'Map[C, D]':
         filtered = List.wrap([f(a, b) for a, b in self.items()])\
-            .flatten
+            .join
         return Map(filtered)
 
     def bimap(self, fa: Callable[[A], C], fb: Callable[[B], D]) -> 'Map[C, D]':
