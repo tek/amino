@@ -1,6 +1,7 @@
 from typing import Callable
 
 from tryp import List, I, __, L, _
+from tryp.lazy import lazy
 
 
 class Eff:
@@ -11,15 +12,25 @@ class Eff:
     def __init__(self, value, effects: List[type]=List(), depth: int=1
                  ) -> None:
         self.value = value
-        self.effects = effects.cons(type(value))
+        self.effects = effects
         self.depth = depth
+
+    def __repr__(self):
+        return 'Eff[{}]({!r})'.format(self.effects.mk_string(','), self.value)
+
+    def copy(self, value):
+        return Eff(value, self.effects, self.depth)
+
+    @lazy
+    def all_effects(self):
+        return self.effects.cons(type(self.value))
 
     def _map(self, f: Callable):
         g = List.wrap(range(self.depth)).fold_left(f)(lambda z, i: __.map(z))
         return g(self.value)
 
     def map(self, f: Callable):
-        return Eff(self._map(__.map(f)), self.effects, self.depth)
+        return self.copy(self._map(__.map(f)))
 
     __truediv__ = map
 
@@ -45,7 +56,7 @@ class Eff:
             return z // lifter
         def sequence_type(z, data):
             return L(sequence_level)(_, *data).map(z)
-        h = self.effects.reversed.with_index.fold_left(I)(sequence_type)
+        h = self.all_effects.reversed.with_index.fold_left(I)(sequence_type)
         return h(nested)
 
     def flat_map(self, f: Callable):
@@ -53,11 +64,11 @@ class Eff:
         the result, which is assumed to be a complete stack, one by one
         through the old stack.
         '''
-        return Eff(self._flat_map(f), self.effects)
+        return self.copy(self._flat_map(f))
 
     __floordiv__ = flat_map
 
     def flat_map_inner(self, f: Callable):
-        return Eff(self.value.map(__.flat_map(f)), self.effects, self.depth)
+        return self.copy(self.value.map(__.flat_map(f)))
 
 __all__ = ('Eff',)

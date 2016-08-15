@@ -16,7 +16,8 @@ class EffSpec(Spec):
 
     @property
     def _r(self):
-        return random.randint(0, 10), random.randint(0, 10)
+        a, b = random.randint(0, 10), random.randint(0, 10)
+        return a, b if a != b else self._r
 
     def eff_map(self):
         a, b = self._r
@@ -35,10 +36,10 @@ class EffSpec(Spec):
 
     def eff_flat(self):
         a, b = self._r
-        t = List(Right(Just(Just(a))))
-        target = List(Right(Just(Just(a + b))))
-        res = (t.effs(3, Either, Maybe, Maybe)
-               .flat_map(lambda x: List(Right(Just(Just(x + b))))))
+        t = List(Just(Right(Just(a))))
+        target = List(Just(Right(Just(a + b))))
+        res = (t.effs(3, Maybe, Either, Maybe)
+               .flat_map(lambda x: List(Just(Right(Just(x + b))))))
         res.value.should.equal(target)
 
     def eff_flat_empty(self):
@@ -61,6 +62,13 @@ class EffSpec(Spec):
         target = List(Right(Empty()))
         res = (t.effs(4, List, Either, Maybe, Either)
                .flat_map(lambda x: Task.now(List(Right(Just(Right(1)))))))
+        res.value.run().should.equal(target)
+
+    def eff_flat_task_left(self):
+        a, b = self._r
+        t = Task.now(Left(Just(a)))
+        target = Left(Just(a))
+        res = t.effs(1, Either, Maybe) // (lambda x: Task.now(Right(Just(b))))
         res.value.run().should.equal(target)
 
 __all__ = ('EffSpec',)
