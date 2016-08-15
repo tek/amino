@@ -46,6 +46,14 @@ def curried(func):
     return _curried
 
 
-I = lambda a: a
+class Identity:
+
+    def __call__(self, a):
+        return a
+
+    def __repr__(self):
+        return 'a => a'
+
+I = Identity()
 
 __all__ = ('curried', 'F', 'I')
