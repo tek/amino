@@ -99,7 +99,7 @@ class ComplexLambda:
             return 'too few arguments for lambda "{}": {}'.format(self, args)
         def go(z, arg):
             r, a = z
-            new, rest = (a.detach_head.get_or_raise(errmsg()) if arg is _ else
+            new, rest = (a.detach_head.get_or_fail(errmsg()) if arg is _ else
                          (arg, a))
             return r.cat(new), rest
         return self.args.fold_left((List(), args))(go)[0]

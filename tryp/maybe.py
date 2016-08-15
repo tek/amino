@@ -86,6 +86,9 @@ class Maybe(Generic[A], Implicits, implicits=True):
             raise e
         return self.cata(identity, raise_e)
 
+    def get_or_fail(self, err: str):
+        return self.get_or_raise(Exception(err))
+
     def exists(self, f: Callable[[A], bool]):
         return boolean.Boolean(self.cata(f, False))
 
