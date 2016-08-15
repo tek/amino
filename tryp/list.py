@@ -73,8 +73,8 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         return List.wrap(flatten(list(itertools.starmap(f, self))))
 
     @property
-    def flatten(self):
-        return self.flat_map(lambda a: a)
+    def join(self):
+        return self.flat_map(I)
 
     def foreach(self, f: Callable[[A], B]) -> None:
         for el in self:
@@ -159,7 +159,7 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def reversed(self):
         return List.wrap(reversed(self))
 
-    def join(self, sep=''):
+    def mk_string(self, sep=''):
         return sep.join(self / str)
 
     def cons(self, item):
