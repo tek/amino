@@ -59,6 +59,10 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def wrap(l: Iterable[B]) -> 'List[B]':
         return List(*list(l))
 
+    @staticmethod
+    def range(*a):
+        return List.wrap(range(*a))
+
     def lift(self, index: int) -> 'maybe.Maybe[A]':
         return maybe.Maybe.from_call(self.__getitem__, index, exc=IndexError)
 
