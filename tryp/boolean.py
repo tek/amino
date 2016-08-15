@@ -22,9 +22,12 @@ class Boolean(object):
     def flat_maybe_call(self, f):
         return f() if self else maybe.Empty()
 
-    def either(self, l, r) -> 'Either':  # type: ignore
+    def either(self, l, r):
+        return self.either_call(l, lambda: r)
+
+    def either_call(self, l, r):
         from tryp import Right, Left
-        return Right(r) if self else Left(l)
+        return Right(r()) if self else Left(l)
 
     def __nonzero__(self):
         return self.value
