@@ -43,7 +43,7 @@ class Task(Generic[A], Implicits, implicits=True):
 
     @staticmethod
     def now(a: A) -> 'Task[A]':
-        return Task(lambda: a, as_string=Just(str(a)))
+        return Task(lambda: a, as_string=Just(repr(a)))
 
     @staticmethod
     def failed(err: str) -> 'Task[A]':
