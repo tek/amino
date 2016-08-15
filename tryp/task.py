@@ -84,6 +84,9 @@ class Task(Generic[A], Implicits, implicits=True):
         except Exception as e:
             raise TaskException(self.as_string, self.stack, e)
 
+    def __repr__(self):
+        return 'Task({})'.format(self.as_string)
+
     def unsafe_perform_sync(self) -> Either[Exception, A]:
         try:
             return Right(self.run())
