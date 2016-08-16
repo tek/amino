@@ -1,4 +1,5 @@
 from typing import Callable, TypeVar
+from types import FunctionType, MethodType
 
 from tryp import Just
 from tryp.tc.monad import Monad
@@ -8,6 +9,15 @@ from tryp.task import Task
 
 A = TypeVar('A')
 B = TypeVar('B')
+
+
+def lambda_str(f):
+    if isinstance(f, MethodType):
+        return '{}.{}'.format(f.__self__.__class__.__name__, f.__name__)
+    elif isinstance(f, FunctionType):
+        return f.__name__
+    else:
+        return repr(f)
 
 
 class TaskInstances(ImplicitInstances):
@@ -24,11 +34,11 @@ class TaskMonad(Monad):
         return Task(lambda: a, as_string=Just(a))
 
     def flat_map(self, fa: Task[A], f: Callable[[A], Task[B]]) -> Task[B]:
-        s = '{}.flat_map({!r})'.format(fa.as_string, f)
+        s = '{}.flat_map({})'.format(fa.as_string, lambda_str(f))
         return Task(lambda: f(fa.run()).run(), 5, Just(s))
 
     def map(self, fa: Task[A], f: Callable[[A], B]) -> Task[B]:
-        s = '{}.map({!r})'.format(fa.as_string, f)
+        s = '{}.map({})'.format(fa.as_string, lambda_str(f))
         return Task(lambda: f(fa.run()), 5, Just(s))
 
 
