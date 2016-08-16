@@ -1,5 +1,4 @@
 import pathlib
-from fn import _
 
 from tryp.maybe import Maybe, Just, Empty, may, flat_may
 from tryp.list import List
@@ -9,7 +8,7 @@ from tryp.either import Left, Right, Either
 from tryp.future import Future
 from tryp.boolean import Boolean
 from tryp.func import curried, F, I
-from tryp.anon import __, L
+from tryp.anon import __, L, _
 from tryp.env_vars import env
 from tryp.task import Try
 from tryp.logging import Logger, log
