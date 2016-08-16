@@ -1,5 +1,5 @@
 import re
-from functools import singledispatch
+from functools import singledispatch  # type: ignore
 
 
 def snake_case(name):
@@ -38,5 +38,10 @@ def decode_exc(value):
 
 def camelcaseify(name, sep=''):
     return sep.join([n.capitalize() for n in name.split('_')])
+
+
+def safe_string(value):
+    from tryp import Try, L
+    return Try(str, value).or_else(L(Try)(repr, value)) | 'invalid'
 
 __all__ = ('snake_case', 'decode', 'camelcaseify')

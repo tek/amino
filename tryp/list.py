@@ -1,5 +1,7 @@
 import itertools
 import typing
+import random
+import string
 from typing import TypeVar, Callable, Generic, Iterable, Any
 from functools import reduce
 
@@ -11,6 +13,7 @@ from tryp import maybe, boolean
 from tryp.logging import log
 from tryp.tc.base import ImplicitsMeta, Implicits
 from tryp.func import I
+from tryp.util.string import safe_string
 
 A = TypeVar('A', covariant=True)
 B = TypeVar('B')
@@ -51,6 +54,11 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     @staticmethod
     def range(*a):
         return List.wrap(range(*a))
+
+    @staticmethod
+    def random_string(num: int=10):
+        chars = string.ascii_letters + string.digits
+        return ''.join(random.choice(chars) for _ in range(num))
 
     def lift(self, index: int) -> 'maybe.Maybe[A]':
         return maybe.Maybe.from_call(self.__getitem__, index, exc=IndexError)
@@ -174,6 +182,6 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         return self.filter_not(els.contains)
 
     def __repr__(self):
-        return 'List({})'.format(', '.join(map(str, self)))
+        return 'List({})'.format(', '.join(map(safe_string, self)))
 
 __all__ = ('List',)

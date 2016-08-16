@@ -7,6 +7,7 @@ from tryp.list import List
 from tryp.maybe import Just, Empty
 from tryp.tc.base import Implicits
 from tryp.func import I
+from tryp.util.string import safe_string
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -114,6 +115,11 @@ class LazyList(Generic[A], Implicits, implicits=True):
                          other.strict)
 
     __add__ = append
+
+    def __repr__(self):
+        strict = (self.strict / safe_string).mk_string(', ')
+        return '{}({} {!r})'.format(self.__class__.__name__, strict,
+                                    self.source)
 
 
 def lazy_list(f):
