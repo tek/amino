@@ -1,4 +1,5 @@
 from tryp import maybe
+from tryp.either import Right, Left
 
 
 class Boolean(object):
@@ -26,8 +27,10 @@ class Boolean(object):
         return self.either_call(l, lambda: r)
 
     def either_call(self, l, r):
-        from tryp import Right, Left
         return Right(r()) if self else Left(l)
+
+    def flat_either_call(self, l, r):
+        return r() if self else Left(l)
 
     def __nonzero__(self):
         return self.value
