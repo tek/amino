@@ -19,7 +19,7 @@ CallByName = Union[Any, Callable[[], Any]]
 
 
 def call_by_name(b: CallByName):
-    return b() if isinstance(b, Callable) else b  # type: ignore
+    return b() if callable(b) else b  # type: ignore
 
 
 class Maybe(Generic[A], Implicits, implicits=True):
@@ -27,17 +27,17 @@ class Maybe(Generic[A], Implicits, implicits=True):
     __slots__ = ()
 
     def __new__(tp, value: A, checker=partial(is_not, None)):
-        return Maybe.inst(value, checker)
+        return Maybe.check(value, checker)
 
     @staticmethod
-    def inst(value: A, checker=partial(is_not, None)):
+    def check(value: A, checker=partial(is_not, None)):
         return Just(value) if checker(value) else Empty()
 
     @staticmethod
     def from_call(f: Callable[..., A], *args, **kwargs):
         exc = kwargs.pop('exc', Exception)
         try:
-            return Maybe.inst(f(*args, **kwargs))
+            return Maybe.check(f(*args, **kwargs))
         except exc:
             if exc == Exception:
                 frame = inspect.currentframe().f_back  # type: ignore
@@ -48,7 +48,7 @@ class Maybe(Generic[A], Implicits, implicits=True):
 
     @staticmethod
     def typed(value: A, tpe: type):
-        return Maybe.inst(value, lambda a: isinstance(a, tpe))
+        return Maybe.check(value, lambda a: isinstance(a, tpe))
 
     @staticmethod
     def wrap(mb: Union['Maybe[A]', None]):
@@ -162,7 +162,7 @@ class Just(Maybe):
         return self.x
 
     def __str__(self):
-        return 'Just({})'.format(self.x)
+        return 'Just({!s})'.format(self.x)
 
     def __repr__(self):
         return 'Just({!r})'.format(self.x)
@@ -200,7 +200,7 @@ class Empty(Maybe):
 def may(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        return Maybe.inst(f(*args, **kwargs))
+        return Maybe.check(f(*args, **kwargs))
     return wrapper
 
 
