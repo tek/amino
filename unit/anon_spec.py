@@ -74,6 +74,10 @@ class AnonSpec(Spec):
         l(a).should.equal(a)
         l2 = _ + 6
         l2(3).should.equal(9)
-        print((_.foo.bar + 5).moo.zoo)
+        (6 - _ + 3)(2).should.equal(7)
+
+    def attr_lambda_2(self):
+        (_ % 3 == 2)(5).should.equal(True)
+        (9 / _)(3).should.equal(3.0)
 
 __all__ = ('AnonSpec',)

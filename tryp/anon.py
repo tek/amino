@@ -133,7 +133,13 @@ class L:
 
 def lambda_op(op, s):
     def oper(self, a):
-        return OperatorLambda(self._anon_func, op, a, s)
+        return OperatorLambda(self._anon_func, op, a, s, False)
+    return oper
+
+
+def lambda_rop(op, s):
+    def oper(self, a):
+        return OperatorLambda(self._anon_func, op, a, s, True)
     return oper
 
 
@@ -163,20 +169,20 @@ class Opers:
     # __neg__ = unary_lambda_op(operator.neg, "-self")
     # __pos__ = unary_lambda_op(operator.pos, "+self")
     # __invert__ = unary_lambda_op(operator.invert, "~self")
-    # __radd__ = lambda_op(flip(operator.add), "other + self")
-    # __rmul__ = lambda_op(flip(operator.mul), "other * self")
-    # __rsub__ = lambda_op(flip(operator.sub), "other - self")
-    # __rmod__ = lambda_op(flip(operator.mod), "other %% self")
-    # __rpow__ = lambda_op(flip(operator.pow), "other ** self")
-    # __rdiv__ = lambda_op(flip(div), "other / self")
-    # __rdivmod__ = lambda_op(flip(divmod), "other / self")
-    # __rtruediv__ = lambda_op(flip(operator.truediv), "other / self")
-    # __rfloordiv__ = lambda_op(flip(operator.floordiv), "other / self")
-    # __rlshift__ = lambda_op(flip(operator.lshift), "other << self")
-    # __rrshift__ = lambda_op(flip(operator.rshift), "other >> self")
-    # __rand__ = lambda_op(flip(operator.and_), "other & self")
-    # __ror__ = lambda_op(flip(operator.or_), "other | self")
-    # __rxor__ = lambda_op(flip(operator.xor), "other ^ self")
+    __radd__ = lambda_rop(operator.add, "+")
+    __rmul__ = lambda_rop(operator.mul, "*")
+    __rsub__ = lambda_rop(operator.sub, "-")
+    __rmod__ = lambda_rop(operator.mod, "%%")
+    __rpow__ = lambda_rop(operator.pow, "**")
+    __rdiv__ = lambda_rop(operator.truediv, "/")
+    __rdivmod__ = lambda_rop(divmod, "/")
+    __rtruediv__ = lambda_rop(operator.truediv, "/")
+    __rfloordiv__ = lambda_rop(operator.floordiv, "/")
+    __rlshift__ = lambda_rop(operator.lshift, "<<")
+    __rrshift__ = lambda_rop(operator.rshift, ">>")
+    __rand__ = lambda_rop(operator.and_, "&")
+    __ror__ = lambda_rop(operator.or_, "|")
+    __rxor__ = lambda_rop(operator.xor, "^")
 
 
 class IdAttrLambda(IdAnonFunc):
@@ -216,16 +222,24 @@ class AttrLambda(Opers, AnonGetter, AnonCallable):
 
 class OperatorLambda(AttrLambda):
 
-    def __init__(self, pre: 'AttrLambda', op, other, name) -> None:
+    def __init__(self, pre: 'AttrLambda', op, strict, name, right) -> None:
         super().__init__(pre, name)
         self.op = op
-        self.other = other
+        self.strict = strict
+        self.right = right
 
     def __call__(self, obj):
-        return self.op(self.pre(obj), self.other)
+        pre = self.pre(obj)
+        a, b = (self.strict, pre) if self.right else (pre, self.strict)
+        return self.op(a, b)
 
     def __repr__(self):
-        return '({!r} {} {!r})'.format(self.pre, self.name, self.other)
+        a, b = (
+            (self.strict, self.pre)
+            if self.right
+            else (self.pre, self.strict)
+        )
+        return '({!r} {} {!r})'.format(a, self.name, b)
 
 _ = RootAttrLambda()
 
