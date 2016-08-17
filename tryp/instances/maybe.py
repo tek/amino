@@ -4,11 +4,12 @@ from typing import Tuple  # NOQA
 from tryp.tc.base import tc_prop, ImplicitInstances
 from tryp.tc.monad import Monad
 from tryp.tc.optional import Optional
-from tryp import either, Just, Empty, Maybe
+from tryp import either, Just, Empty, Maybe, curried
 from tryp.lazy import lazy
 from tryp.maybe import call_by_name
 from tryp.tc.applicative import Applicative
 from tryp.tc.traverse import Traverse
+from tryp.tc.foldable import Foldable
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -24,6 +25,7 @@ class MaybeInstances(ImplicitInstances):
                 Monad: MaybeMonad(),
                 Optional: MaybeOptional(),
                 Traverse: MaybeTraverse(),
+                Foldable: MaybeFoldable(),
             }
         )
 
@@ -59,5 +61,28 @@ class MaybeTraverse(Traverse):
         monad = Applicative[tpe]
         r = lambda a: monad.map(f(a), Just)
         return fa.cata(r, monad.pure(Empty()))
+
+
+class MaybeFoldable(Foldable):
+
+    @tc_prop
+    def with_index(self, fa: Maybe[A]) -> Maybe[Tuple[int, A]]:
+        return Just(0) & fa
+
+    def filter(self, fa: Maybe[A], f: Callable[[A], bool]):
+        return fa // (lambda a: Just(a) if f(a) else Empty())
+
+    @curried
+    def fold_left(self, fa: Maybe[A], z: B, f: Callable[[B, A], B]) -> B:
+        return fa / (lambda a: f(z, a)) | z
+
+    def find(self, fa: Maybe[A], f: Callable[[A], bool]):
+        return self.filter(fa, f)
+
+    def find_map(self, fa: Maybe[A], f: Callable[[A], Maybe[B]]) -> Maybe[B]:
+        return fa // f
+
+    def index_where(self, fa: Maybe[A], f: Callable[[A], bool]):
+        return fa / f // (lambda a: Just(0) if a else Empty())
 
 __all__ = ('MaybeInstances',)
