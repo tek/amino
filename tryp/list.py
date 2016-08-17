@@ -163,6 +163,10 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def mk_string(self, sep=''):
         return sep.join(self / str)
 
+    @property
+    def join_lines(self):
+        return self.mk_string('\n')
+
     def cons(self, item):
         return List.wrap(cons(item, self))
 
