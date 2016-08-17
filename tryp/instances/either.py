@@ -1,4 +1,4 @@
-from typing import TypeVar, Callable
+from typing import TypeVar, Callable, Tuple
 
 from tryp.tc.base import tc_prop, ImplicitInstances
 from tryp.tc.optional import Optional
@@ -8,6 +8,8 @@ from tryp.lazy import lazy
 from tryp.maybe import Just, Empty
 from tryp.either import Right, Either, Left
 from tryp.tc.applicative import Applicative
+from tryp.tc.foldable import Foldable
+from tryp import curried
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -24,6 +26,7 @@ class EitherInstances(ImplicitInstances):
                 Monad: EitherMonad(),
                 Optional: EitherOptional(),
                 Traverse: EitherTraverse(),
+                Foldable: EitherFoldable(),
             }
         )
 
@@ -58,5 +61,29 @@ class EitherTraverse(Traverse):
         monad = Applicative[tpe]
         r = lambda a: monad.map(f(a), Right)
         return fa.cata(lambda a: monad.pure(Left(a)), r)
+
+
+class EitherFoldable(Foldable):
+
+    @tc_prop
+    def with_index(self, fa: Either[A, B]) -> Either[A, Tuple[int, B]]:
+        return Right(0) & fa
+
+    def filter(self, fa: Either[A, B], f: Callable[[B], bool]):
+        return fa // (lambda a: Right(a) if f(a) else Left('filtered'))
+
+    @curried
+    def fold_left(self, fa: Either[A, B], z: C, f: Callable[[C, B], C]) -> C:
+        return fa / (lambda a: f(z, a)) | z
+
+    def find(self, fa: Either[A, B], f: Callable[[B], bool]):
+        return fa.to_maybe.find(f)
+
+    def find_map(self, fa: Either[A, B], f: Callable[[B], Either[A, C]]
+                 ) -> Either[A, C]:
+        return fa // f
+
+    def index_where(self, fa: Either[A, B], f: Callable[[B], bool]):
+        return fa.to_maybe.index_where(f)
 
 __all__ = ('EitherInstances',)
