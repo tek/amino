@@ -1,3 +1,4 @@
+import importlib
 from typing import TypeVar, Generic, Callable, Union, Any
 from typing import Tuple  # NOQA
 
@@ -14,6 +15,18 @@ class Either(Generic[A, B], Implicits, implicits=True):
 
     def __init__(self, value: Union[A, B]) -> None:
         self.value = value
+
+    @staticmethod
+    def import_name(modname, name):
+        try:
+            mod = importlib.import_module(modname)
+        except ImportError as e:
+            return Left(e)
+        else:
+            if hasattr(mod, name):
+                return Right(getattr(mod, name))
+            else:
+                return Left('{} has no attribute {}'.format(mod, name))
 
     @property
     def is_right(self):
