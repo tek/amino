@@ -92,6 +92,7 @@ __ = MethodLambda()
 class ComplexLambda:
 
     def __init__(self, func, *a, **kw) -> None:
+        assert callable(func), 'ComplexLambda: {} is not callable'.format(func)
         self.func = func
         self.args = List.wrap(a)
         self.kwargs = kw
