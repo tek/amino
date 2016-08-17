@@ -67,6 +67,12 @@ class Foldable(Generic[F], TypeClass):
     def index_of(self, fa: F, a: A) -> Maybe[int]:
         return self.index_where(fa, _ == a)
 
+    def exists(self, fa: F, f: Callable[[A], bool]) -> Boolean:
+        return Boolean(self.find(fa, f).is_just)
+
+    def contains(self, fa, v):
+        return self.exists(fa, _ == v)
+
     def lens(self, fa: F, f: Callable[[A], bool]) -> Maybe[Lens]:
         return self.index_where(fa, f) / (lambda i: lens()[i])
 
