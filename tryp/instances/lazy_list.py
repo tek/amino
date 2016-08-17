@@ -1,6 +1,6 @@
 from typing import TypeVar, Callable, Tuple
 
-from tryp import _, Maybe, LazyList
+from tryp import _, Maybe, LazyList, I
 from tryp.list import List
 from tryp.func import F, curried
 from tryp.anon import __
@@ -55,6 +55,9 @@ class LazyListFoldable(Foldable):
     @curried
     def fold_left(self, fa: LazyList[A], z: B, f: Callable[[B, A], B]) -> B:
         return Foldable[List].fold_left(fa.drain, z, f)
+
+    def find(self, fa: List[A], f: Callable[[A], bool]):
+        return fa.strict.find(f) | fa._drain_find(f)
 
     def find_map(self, fa: LazyList[A], f: Callable[[A], Maybe[B]]
                  ) -> Maybe[B]:

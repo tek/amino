@@ -1,7 +1,7 @@
 from typing import TypeVar, Callable, Tuple
 from functools import reduce
 
-from tryp import maybe, List
+from tryp import maybe, List, Maybe
 from tryp.func import curried
 from tryp.lazy import lazy
 from tryp.tc.monad import Monad
@@ -60,8 +60,10 @@ class ListFoldable(Foldable):
     def fold_left(self, fa: List[A], z: B, f: Callable[[B, A], B]) -> B:
         return reduce(f, fa, z)
 
-    def find_map(self, fa: List[A], f: Callable[[A], maybe.Maybe[B]]
-                 ) -> maybe.Maybe[B]:
+    def find(self, fa: List[A], f: Callable[[A], bool]):
+        return Maybe(next(filter(f, fa), None))  # type: ignore
+
+    def find_map(self, fa: List[A], f: Callable[[A], Maybe[B]]) -> Maybe[B]:
         for el in fa:
             found = f(el)
             if found.is_just:

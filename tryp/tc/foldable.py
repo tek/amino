@@ -27,16 +27,20 @@ class Foldable(Generic[F], TypeClass):
         ...
 
     @abc.abstractmethod
-    def filter(self, fa: F, f: Callable[[A], bool]):
+    def filter(self, fa: F, f: Callable[[A], bool]) -> F:
         ...
 
-    def filter_not(self, fa: F, f: Callable[[A], bool]):
+    def filter_not(self, fa: F, f: Callable[[A], bool]) -> F:
         pred = lambda a: not f(a)
         return self.filter(fa, pred)
 
-    def filter_type(self, fa: F, tpe: type):
+    def filter_type(self, fa: F, tpe: type) -> F:
         pred = lambda a: isinstance(a, tpe)
         return self.filter(fa, pred)
+
+    @abc.abstractmethod
+    def find(self, fa: F, f: Callable[[A], bool]) -> Maybe[A]:
+        ...
 
     @abc.abstractmethod
     @curried
