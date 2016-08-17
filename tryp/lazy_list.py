@@ -92,9 +92,6 @@ class LazyList(Generic[A], Implicits, implicits=True):
         self.strict = self.strict + drained
         return culprit
 
-    def find(self, f: Callable[[A], bool]):
-        return self.strict.find(f) | self._drain_find(f)
-
     def foreach(self, f):
         self.drain.foreach(f)
 
