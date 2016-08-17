@@ -26,9 +26,6 @@ class Optional(Generic[F], TypeClass):
 
     __or__ = get_or_else
 
-    def contains(self, fa: F, item):
-        return self.to_maybe(fa).contains(item)
-
     @abc.abstractmethod
     def present(self, fa: F) -> Boolean:
         ...

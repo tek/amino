@@ -65,10 +65,6 @@ class Maybe(Generic[A], Implicits, implicits=True):
             else call_by_name(b)
         )
 
-    @property
-    def flatten(self):
-        return self.flat_map(_)
-
     def filter(self, f: Callable[[A], B]):
         l = lambda a: self if f(a) else Empty()
         return self.flat_map(l)
@@ -88,12 +84,6 @@ class Maybe(Generic[A], Implicits, implicits=True):
 
     def get_or_fail(self, err: str):
         return self.get_or_raise(Exception(err))
-
-    def exists(self, f: Callable[[A], bool]):
-        return boolean.Boolean(self.cata(f, False))
-
-    def contains(self, v):
-        return boolean.Boolean(self.exists(_ == v))
 
     def __contains__(self, v):
         return self.contains(v)

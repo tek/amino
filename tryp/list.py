@@ -80,9 +80,6 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def forall(self, f: Callable[[A], bool]) -> boolean.Boolean:
         return boolean.Boolean(all(f(el) for el in self))
 
-    def find(self, f: Callable[[A], bool]):
-        return maybe.Maybe(next(filter(f, self), None))  # type: ignore
-
     def contains(self, value):
         return value in self
 

@@ -20,7 +20,7 @@ class ListSpec(Spec):
             .flat_map(lambda v: [v, v + 1]) \
             .should.equal(List(1, 2, 2, 3, 3, 4))
 
-    def flatten_maybes(self):
+    def join_maybes(self):
         List(Just(4), Empty(), Just(5), Empty())\
             .join\
             .should.equal(List(4, 5))

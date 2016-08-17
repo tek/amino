@@ -192,7 +192,7 @@ class AllInstances(object):
         match = F(self._lookup_type, TC)
         result = LazyList(map(match, G.__mro__))\
             .find(_.is_just)\
-            .flatten\
+            .join\
             .get_or_raise(ImplicitNotFound(TC, G))
         return result[1]
 

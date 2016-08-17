@@ -27,8 +27,8 @@ class Maybe_(Spec):
         f = F(Maybe) // (_ + b) >> Monad[Maybe].pure  # type: ignore
         f(a).should.contain(a + b)
 
-    def flatten(self):
-        Just(Just(1)).flatten.should.equal(Just(1))
+    def join(self):
+        Just(Just(1)).join.should.equal(Just(1))
 
     def contains(self):
         a = 'start'
