@@ -63,6 +63,13 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def lift(self, index: int) -> 'maybe.Maybe[A]':
         return maybe.Maybe.from_call(self.__getitem__, index, exc=IndexError)
 
+    def lift_all(self, index, *indexes):
+        def folder(z, n):
+            return n.ap(z / _.cat)
+        els = List.wrap(indexes) / self.lift
+        init = self.lift(index) / List
+        return els.fold_left(init)(folder)
+
     def smap(self, f: Callable[..., B]) -> 'List[B]':
         return List.wrap(list(itertools.starmap(f, self)))
 
