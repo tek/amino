@@ -83,6 +83,11 @@ class Task(Generic[A], Implicits, implicits=True):
         except TaskException as e:
             return Left(e)
 
+    def and_then(self, nxt: 'Task[B]'):
+        return self.flat_map(lambda a: nxt)
+
+    __add__ = and_then
+
 
 def Try(f: Callable[..., A], *a, **kw) -> Either[Exception, A]:
     return Task.call(f, *a, **kw).unsafe_perform_sync()
