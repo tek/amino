@@ -20,20 +20,20 @@ class AnonCallable:
 class AnonGetter(AnonCallable):
 
     def __init__(self, pre, name: str) -> None:
-        self.pre = pre
-        self.name = name
+        self.__pre = pre
+        self.__name = name
 
     def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, self.name)
+        return '{}({})'.format(self.__class__.__name__, self.__name)
 
     def __call__(self, obj):
-        pre = self.pre(obj)
-        if not hasattr(pre, self.name):
-            raise AttributeError(
-                '{!r} has no method \'{}\' -> {}'.format(obj, self.name, self))
-        return self._dispatch(getattr(pre, self.name))
+        pre = self.__pre(obj)
+        if not hasattr(pre, self.__name):
+            raise AttributeError('{!r} has no method \'{}\' -> {}'.format(
+                obj, self.__name, self))
+        return self.__dispatch__(getattr(pre, self.__name))
 
-    def _dispatch(self, obj):
+    def __dispatch__(self, obj):
         return obj
 
 
@@ -41,35 +41,37 @@ class AnonFunc(AnonGetter):
 
     def __init__(self, pre: 'AnonFunc', name: str, a, kw) -> None:
         super().__init__(pre, name)
-        self.a = a
-        self.kw = kw
+        self.__a = a
+        self.__kw = kw
 
-    def _dispatch(self, obj):
-        return obj(*self.a, **self.kw)
+    def __dispatch__(self, obj):
+        return obj(*self.__a, **self.__kw)
 
     def __getattr__(self, name):
         return MethodRef(self, name)
 
     def __repr__(self):
-        return '{!r}.{}'.format(self.pre,
-                                format_funcall(self.name, self.a, self.kw))
+        return '{!r}.{}'.format(
+            self._AnonGetter__pre,
+            format_funcall(self.__name, self.__a, self.__kw)
+        )
 
 
 class MethodRef:
 
     def __init__(self, pre: AnonFunc, name: str) -> None:
-        self.pre = pre
-        self.name = name
+        self.__pre = pre
+        self.__name = name
 
     def __call__(self, *a, **kw):
-        return AnonFunc(self.pre, self.name, a, kw)
+        return AnonFunc(self.__pre, self.__name, a, kw)
 
     def __getattr__(self, name):
-        pre = AnonGetter(self.pre, self.name)
+        pre = AnonGetter(self.__pre, self.__name)
         return MethodRef(pre, name)
 
     def __repr__(self):
-        return '__.{}'.format(self.name)
+        return '__.{}'.format(self.__name)
 
 
 class IdAnonFunc:
@@ -93,15 +95,15 @@ class ComplexLambda:
 
     def __init__(self, func, *a, **kw) -> None:
         assert callable(func), 'ComplexLambda: {} is not callable'.format(func)
-        self.func = func
-        self.args = List.wrap(a)
-        self.kwargs = kw
+        self.__func = func
+        self.__args = List.wrap(a)
+        self.__kwargs = kw
 
     def __call__(self, *a, **kw):
-        sub_a = self._substitute(List.wrap(a))
-        return self.func(*sub_a, **kw)
+        sub_a = self.__substitute(List.wrap(a))
+        return self.__func(*sub_a, **kw)
 
-    def _substitute(self, args):
+    def __substitute(self, args):
         def errmsg():
             return 'too few arguments for lambda "{}": {}'.format(self, args)
         def is_lambda(arg):
@@ -113,33 +115,37 @@ class ComplexLambda:
             new, rest = (a.detach_head.get_or_fail(errmsg()) if is_lambda(arg)
                          else (arg, a))
             return r.cat(transform(new)), rest
-        return self.args.fold_left((List(), args))(go)[0]
+        return self.__args.fold_left((List(), args))(go)[0]
 
     def __getattr__(self, name):
         return MethodRef(self, name)
 
+    @property
+    def __name(self):
+        return getattr(self.__func, '__name__', str(self.__func))
+
     def __repr__(self):
-        return format_funcall(self.func.__name__, self.args, self.kwargs)
+        return format_funcall(self.__name, self.__args, self.__kwargs)
 
 
 class L:
 
     def __init__(self, func) -> None:
-        self.func = func
+        self.__func = func
 
     def __call__(self, *a, **kw):
-        return ComplexLambda(self.func, *a, **kw)
+        return ComplexLambda(self.__func, *a, **kw)
 
 
 def lambda_op(op, s):
     def oper(self, a):
-        return OperatorLambda(self._anon_func, op, a, s, False)
+        return OperatorLambda(self.__anon_func__, op, a, s, False)
     return oper
 
 
 def lambda_rop(op, s):
     def oper(self, a):
-        return OperatorLambda(self._anon_func, op, a, s, True)
+        return OperatorLambda(self.__anon_func__, op, a, s, True)
     return oper
 
 
@@ -194,10 +200,10 @@ class IdAttrLambda(IdAnonFunc):
 class RootAttrLambda(Opers):
 
     def __getattr__(self, name):
-        return AttrLambda(self._anon_func, name)
+        return AttrLambda(self.__anon_func__, name)
 
     @property
-    def _anon_func(self):
+    def __anon_func__(self):
         return IdAttrLambda()
 
     def __repr__(self):
@@ -213,33 +219,33 @@ class AttrLambda(Opers, AnonGetter, AnonCallable):
         return AttrLambda(self, name)
 
     @property
-    def _anon_func(self):
+    def __anon_func__(self):
         return self
 
     def __repr__(self):
-        return '{}.{}'.format(self.pre, self.name)
+        return '{}.{}'.format(self._AnonGetter__pre, self._AnonGetter__name)
 
 
 class OperatorLambda(AttrLambda):
 
     def __init__(self, pre: 'AttrLambda', op, strict, name, right) -> None:
         super().__init__(pre, name)
-        self.op = op
-        self.strict = strict
-        self.right = right
+        self.__op = op
+        self.__strict = strict
+        self.__right = right
 
     def __call__(self, obj):
-        pre = self.pre(obj)
-        a, b = (self.strict, pre) if self.right else (pre, self.strict)
-        return self.op(a, b)
+        pre = self._AnonGetter__pre(obj)
+        a, b = (self.__strict, pre) if self.__right else (pre, self.__strict)
+        return self.__op(a, b)
 
     def __repr__(self):
         a, b = (
-            (self.strict, self.pre)
-            if self.right
-            else (self.pre, self.strict)
+            (self.__strict, self._AnonGetter__pre)
+            if self.__right
+            else (self._AnonGetter__pre, self.__strict)
         )
-        return '({!r} {} {!r})'.format(a, self.name, b)
+        return '({!r} {} {!r})'.format(a, self._AnonGetter__name, b)
 
 _ = RootAttrLambda()
 
