@@ -1,6 +1,6 @@
 from typing import TypeVar, Callable, Tuple
 
-from tryp import _, Maybe, LazyList, I
+from tryp import _, Maybe, LazyList
 from tryp.list import List
 from tryp.func import F, curried
 from tryp.anon import __

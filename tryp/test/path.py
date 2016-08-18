@@ -55,5 +55,9 @@ def load_fixture(*components):
     with fixture_path(*components).open() as f:
         return f.read()
 
+
+def base_dir():
+    return __base_dir__
+
 __all__ = ('create_temp_file', 'temp_file', 'temp_path', 'temp_dir',
-           'fixture_path', 'load_fixture')
+           'fixture_path', 'load_fixture', 'base_dir')
