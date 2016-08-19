@@ -1,19 +1,19 @@
 from setuptools import setup, find_packages
 
-version_parts = (7, 10, 0)
+version_parts = (1, 0, 0)
 version = '.'.join(map(str, version_parts))
 
 gh_lenses =\
     'git+https://github.com/ingolemo/python-lenses.git#egg=lenses'
 
 setup(
-    name='tryp',
-    description='fp data structures',
+    name='amino',
+    description='functional data structures and type classes',
     version=version,
     author='Torsten Schmits',
     author_email='torstenschmits@gmail.com',
     license='MIT',
-    url='https://github.com/tek/tryp',
+    url='https://github.com/tek/amino',
     packages=find_packages(exclude=['unit', 'unit.*']),
     install_requires=[
         'fn',

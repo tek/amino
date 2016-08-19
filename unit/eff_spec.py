@@ -1,9 +1,9 @@
 import random
 
-from tryp import List, Right, _, Just, Empty, Maybe, Either, Left
+from amino import List, Right, _, Just, Empty, Maybe, Either, Left
 
-from tryp.test import Spec
-from tryp.task import Task
+from amino.test import Spec
+from amino.task import Task
 
 
 class EffSpec(Spec):

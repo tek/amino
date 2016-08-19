@@ -1,6 +1,6 @@
-from tryp import __, Just
-from tryp.test import Spec
-from tryp.anon import L, _
+from amino import __, Just
+from amino.test import Spec
+from amino.anon import L, _
 
 
 class _Inner:

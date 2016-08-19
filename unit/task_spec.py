@@ -1,6 +1,6 @@
-from tryp.task import Task
-from tryp.test import Spec
-from tryp import List, Right
+from amino.task import Task
+from amino.test import Spec
+from amino import List, Right
 
 
 class TaskSpec(Spec):

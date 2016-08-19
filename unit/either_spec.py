@@ -1,8 +1,8 @@
 from fn import _
 
-from tryp.either import Left, Right
-from tryp import Empty, Just, Maybe
-from tryp.test import Spec
+from amino.either import Left, Right
+from amino import Empty, Just, Maybe
+from amino.test import Spec
 
 
 class EitherSpec(Spec):

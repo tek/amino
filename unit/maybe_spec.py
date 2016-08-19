@@ -1,9 +1,9 @@
 from fn import _
 
-from tryp.test import Spec
+from amino.test import Spec
 
-from tryp import Maybe, Empty, Just, F, Left, Right
-from tryp.tc.monad import Monad
+from amino import Maybe, Empty, Just, F, Left, Right
+from amino.tc.monad import Monad
 
 
 class Maybe_(Spec):

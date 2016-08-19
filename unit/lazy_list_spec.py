@@ -1,7 +1,7 @@
 import itertools
 
-from tryp.test import Spec
-from tryp import LazyList, List, _, Just, Maybe
+from amino.test import Spec
+from amino import LazyList, List, _, Just, Maybe
 
 
 class LazyListSpec(Spec):

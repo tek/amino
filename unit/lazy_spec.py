@@ -1,8 +1,8 @@
 import sure  # NOQA
 from flexmock import flexmock  # NOQA
 
-from tryp.lazy import lazy, Lazy
-from tryp.test import Spec
+from amino.lazy import lazy, Lazy
+from amino.test import Spec
 
 
 class A(Lazy):

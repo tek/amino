@@ -3,9 +3,9 @@ from flexmock import flexmock  # NOQA
 
 from fn import _
 
-from tryp.test import Spec
+from amino.test import Spec
 
-from tryp import List, Empty, Just, Maybe
+from amino import List, Empty, Just, Maybe
 
 
 class ListSpec(Spec):

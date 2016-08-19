@@ -1,8 +1,8 @@
 from fn import _
 
-from tryp.test import Spec
+from amino.test import Spec
 
-from tryp import Map, Empty, Just
+from amino import Map, Empty, Just
 
 
 class MapSpec(Spec):

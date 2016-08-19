@@ -1,8 +1,8 @@
 from lenses import lens
 
-from tryp import List, _
-from tryp.test import Spec
-from tryp.lens.tree import path_lens_pred
+from amino import List, _
+from amino.test import Spec
+from amino.lens.tree import path_lens_pred
 
 
 class B:
