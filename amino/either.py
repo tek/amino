@@ -28,6 +28,16 @@ class Either(Generic[A, B], Implicits, implicits=True):
             else:
                 return Left('{} has no attribute {}'.format(mod, name))
 
+    @staticmethod
+    def import_path(path):
+        from amino.list import List
+        return (
+            List.wrap(path.rsplit('.', 1))
+            .lift_all(0, 1)
+            .to_either('invalid module path: {}'.format(path))
+            .flat_map2(Either.import_name)
+        )
+
     @property
     def is_right(self):
         return boolean.Boolean(isinstance(self, Right))
