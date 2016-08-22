@@ -99,7 +99,7 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
 
     @property
     def is_empty(self):
-        return self.length == 0
+        return boolean.Boolean(self.length == 0)
 
     empty = is_empty
 
