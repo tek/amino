@@ -60,6 +60,10 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         chars = string.ascii_letters + string.digits
         return ''.join(random.choice(chars) for _ in range(num))
 
+    @staticmethod
+    def gen(num: int, f: Callable[[], A]):
+        return List.range(num) // (lambda a: f())
+
     def lift(self, index: int) -> 'maybe.Maybe[A]':
         return maybe.Maybe.from_call(self.__getitem__, index, exc=IndexError)
 
