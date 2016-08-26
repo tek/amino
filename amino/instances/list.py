@@ -66,7 +66,7 @@ class ListFoldable(Foldable):
     def find_map(self, fa: List[A], f: Callable[[A], Maybe[B]]) -> Maybe[B]:
         for el in fa:
             found = f(el)
-            if found.is_just:
+            if found.present:
                 return found
         return maybe.Empty()
 
