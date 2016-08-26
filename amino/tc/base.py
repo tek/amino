@@ -9,6 +9,8 @@ from amino.util.string import snake_case
 from amino.lazy import lazy
 from amino.tc.show import Show
 
+from amino.logging import Logging
+
 
 class TypeClassMeta(GenericMeta):
 
@@ -110,7 +112,7 @@ def tc_prop(f):
     return f
 
 
-class Implicits(object, metaclass=ImplicitsMeta):
+class Implicits(Logging, metaclass=ImplicitsMeta):
 
     def _lookup_implicit_attr(self, name):
         for inst in type(self).implicits.v:
@@ -136,6 +138,12 @@ class Implicits(object, metaclass=ImplicitsMeta):
             raise TypeError(err)
         else:
             return op(other)
+
+    @property
+    def dbg(self):
+        v = self.log.verbose
+        v(self)
+        return self
 
 
 class ImplicitInstances(object, metaclass=abc.ABCMeta):
