@@ -88,6 +88,9 @@ class MethodLambda:
     def __getattr__(self, name):
         return MethodRef(IdAnonFunc(), name)
 
+    def __call__(self, *a, **kw):
+        return AnonFunc(IdAnonFunc(), '__call__', a, kw)
+
 __ = MethodLambda()
 
 

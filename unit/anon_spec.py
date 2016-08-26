@@ -80,4 +80,11 @@ class AnonSpec(Spec):
         (_ % 3 == 2)(5).should.equal(True)
         (9 / _)(3).should.equal(3.0)
 
+    def call_root(self):
+        x = 5
+        y = 4
+        f = lambda a: a + y
+        l = __(x)
+        l(f).should.equal(x + y)
+
 __all__ = ('AnonSpec',)
