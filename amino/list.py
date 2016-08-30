@@ -64,6 +64,10 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def gen(num: int, f: Callable[[], A]):
         return List.range(num) // (lambda a: f())
 
+    @staticmethod
+    def lines(data: str):
+        return List.wrap(data.splitlines())
+
     def lift(self, index: int) -> 'maybe.Maybe[A]':
         return maybe.Maybe.from_call(self.__getitem__, index, exc=IndexError)
 
