@@ -77,11 +77,13 @@ class Task(Generic[A], Implicits, implicits=True):
     def __repr__(self):
         return 'Task({})'.format(self.as_string)
 
-    def unsafe_perform_sync(self) -> Either[Exception, A]:
+    def attempt(self) -> Either[Exception, A]:
         try:
             return Right(self.run())
         except TaskException as e:
             return Left(e)
+
+    unsafe_perform_sync = attempt
 
     def and_then(self, nxt: 'Task[B]'):
         return self.flat_map(lambda a: nxt)
