@@ -56,6 +56,9 @@ class AnonFunc(AnonGetter):
             format_funcall(self.__name, self.__a, self.__kw)
         )
 
+    def __getitem__(self, key):
+        return AnonFunc(self, '__getitem__', [key], {})
+
 
 class MethodRef:
 
@@ -90,6 +93,9 @@ class MethodLambda:
 
     def __call__(self, *a, **kw):
         return AnonFunc(IdAnonFunc(), '__call__', a, kw)
+
+    def __getitem__(self, key):
+        return AnonFunc(IdAnonFunc(), '__getitem__', [key], {})
 
 __ = MethodLambda()
 

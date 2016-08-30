@@ -73,7 +73,7 @@ _file_logging_initialized = False
 
 
 def amino_file_logging(level: int=None, logfile=default_logfile,
-                      handler_level: int=logging.INFO):
+                       handler_level: int=logging.INFO):
     global _file_logging_initialized
     if not _file_logging_initialized:
         logfile.parent.mkdir(exist_ok=True)

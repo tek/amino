@@ -1,4 +1,4 @@
-from amino import __, Just
+from amino import __, Just, List
 from amino.test import Spec
 from amino.anon import L, _
 
@@ -86,5 +86,13 @@ class AnonSpec(Spec):
         f = lambda a: a + y
         l = __(x)
         l(f).should.equal(x + y)
+
+    def getitem(self):
+        f = __[1]
+        a = 13
+        f((1, a, 2)).should.equal(a)
+        g = __.filter(_ > 1)[1]
+        b = 6
+        g(List(4, 1, b)).should.equal(b)
 
 __all__ = ('AnonSpec',)
