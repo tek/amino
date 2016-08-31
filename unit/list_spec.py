@@ -82,4 +82,8 @@ class ListSpec(Spec):
         target = Just(List.wrap(range(n)))
         List.wrap(map(Just, range(n))).sequence(Maybe).should.equal(target)
 
+    def sort_by(self):
+        l = List(3, 2, 1)
+        l.sort_by(_ + 5).should.equal(l.reversed)
+
 __all__ = ('ListSpec',)

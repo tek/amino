@@ -200,4 +200,7 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def __repr__(self):
         return 'List({})'.format(', '.join(map(safe_string, self)))
 
+    def sort_by(self, f: Callable[[A], bool]):
+        return List.wrap(sorted(self, key=f))
+
 __all__ = ('List',)
