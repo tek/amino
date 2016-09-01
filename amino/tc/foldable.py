@@ -1,5 +1,6 @@
 import abc
 from typing import TypeVar, Generic, Callable
+import operator
 
 from lenses import lens, Lens
 
@@ -8,7 +9,7 @@ from fn import _
 from amino.tc.base import TypeClass
 from amino.tc.functor import Functor
 from amino.func import curried
-from amino.maybe import Maybe
+from amino.maybe import Maybe, Empty, Just
 from amino.boolean import Boolean
 
 F = TypeVar('F')
@@ -85,5 +86,20 @@ class Foldable(Generic[F], TypeClass):
     def find_lens_pred(self, fa: F, f: Callable[[A], bool]) -> Maybe[Lens]:
         g = lambda a: Boolean(f(a)).maybe(lens())
         return self.find_lens(fa, g)
+
+    def _min_max(self, fa: F, f: Callable[[A], int],
+                 pred: Callable[[A, A], A]) -> Maybe[A]:
+        def folder(z, a):
+            return (
+                z.map(lambda b: b if pred(f(b), f(a)) else a)
+                .or_else(Just(a))
+            )
+        return self.fold_left(fa, Empty())(folder)
+
+    def max_by(self, fa: F, f: Callable[[A], int]) -> Maybe[A]:
+        return self._min_max(fa, f, operator.gt)
+
+    def min_by(self, fa: F, f: Callable[[A], int]) -> Maybe[A]:
+        return self._min_max(fa, f, operator.lt)
 
 __all__ = ('Foldable',)
