@@ -190,6 +190,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def transpose(self):
         return List.wrap(map(List.wrap, zip(*self)))
 
+    def drop(self, n: int):
+        return self[n:]
+
     def drop_while(self, pred: Callable[[A], bool]):
         index = self.index_where(lambda a: not pred(a))
         return index / (lambda a: self[a:]) | self
