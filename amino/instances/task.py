@@ -1,23 +1,14 @@
 from typing import Callable, TypeVar
-from types import FunctionType, MethodType
 
 from amino import Just
 from amino.tc.monad import Monad
 from amino.tc.base import ImplicitInstances
 from amino.lazy import lazy
 from amino.task import Task
+from amino.anon import lambda_str
 
 A = TypeVar('A')
 B = TypeVar('B')
-
-
-def lambda_str(f):
-    if isinstance(f, MethodType):
-        return '{}.{}'.format(f.__self__.__class__.__name__, f.__name__)
-    elif isinstance(f, FunctionType):
-        return f.__name__
-    else:
-        return repr(f)
 
 
 class TaskInstances(ImplicitInstances):

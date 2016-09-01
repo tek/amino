@@ -1,6 +1,18 @@
+from types import FunctionType, MethodType
 import operator
 
 from amino import List
+
+
+def lambda_str(f):
+    if isinstance(f, MethodType):
+        return '{}.{}'.format(f.__self__.__class__.__name__, f.__name__)
+    elif isinstance(f, FunctionType):
+        return f.__name__
+    elif isinstance(f, str):
+        return f
+    else:
+        return repr(f)
 
 
 def format_funcall(fun, args, kwargs):
@@ -8,7 +20,7 @@ def format_funcall(fun, args, kwargs):
     kw = Map(kwargs).map2('{}={!r}'.format)
     a = list(map(repr, args)) + list(kw)
     args_fmt = ', '.join(a)
-    return '{}({})'.format(fun, args_fmt)
+    return '{}({})'.format(lambda_str(fun), args_fmt)
 
 
 class AnonCallable:
