@@ -86,4 +86,9 @@ class ListSpec(Spec):
         l = List(3, 2, 1)
         l.sort_by(_ + 5).should.equal(l.reversed)
 
+    def max_min(self):
+        l = List(3, 2, 1, 5, 6, 4, 3, 2)
+        l.max_by(_ + 4).should.contain(6)
+        l.min_by(_ + 4).should.contain(1)
+
 __all__ = ('ListSpec',)
