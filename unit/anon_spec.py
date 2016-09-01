@@ -94,5 +94,7 @@ class AnonSpec(Spec):
         g = __.filter(_ > 1)[1]
         b = 6
         g(List(4, 1, b)).should.equal(b)
+        h = _.x[0]
+        h(Just(List(a))).should.equal(a)
 
 __all__ = ('AnonSpec',)
