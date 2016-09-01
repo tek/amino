@@ -4,6 +4,7 @@ from typing import Callable, TypeVar, Generic, Any
 
 from amino import Either, Right, Left, Maybe, List, Empty, __, Just
 from amino.tc.base import Implicits
+from amino.anon import format_funcall
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -39,7 +40,8 @@ class Task(Generic[A], Implicits, implicits=True):
 
     @staticmethod
     def call(f: Callable[..., A], *a, **kw):
-        return Task(lambda: f(*a, **kw))
+        s = format_funcall(f, a, kw)
+        return Task(lambda: f(*a, **kw), as_string=Just(s))
 
     @staticmethod
     def now(a: A) -> 'Task[A]':
