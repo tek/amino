@@ -205,6 +205,8 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
 
     def sort_by(self, f: Callable[[A], bool]):
         return List.wrap(sorted(self, key=f))
+    def __hash__(self):
+        return hash(tuple(self))
 
     def replace_item(self, a, b) -> 'List[A]':
         return self.map(lambda c: b if c == a else c)
