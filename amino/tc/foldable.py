@@ -61,6 +61,10 @@ class Foldable(Generic[F], TypeClass):
     def find_map(self, fa: F, f: Callable[[A], Maybe[B]]) -> Maybe[B]:
         ...
 
+    def find_type(self, fa: F, tpe: type):
+        pred = lambda a: isinstance(a, tpe)
+        return self.find(fa, pred)
+
     @abc.abstractmethod
     def index_where(self, fa: F, f: Callable[[A], bool]) -> Maybe[int]:
         ...
