@@ -122,6 +122,8 @@ class Maybe(Generic[A], Implicits, implicits=True):
     def is_empty(self):
         return not self.is_just
 
+    empty = is_empty
+
     def __nonzero__(self):
         return self.is_just
 
