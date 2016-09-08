@@ -17,11 +17,11 @@ class Boolean(object):
     def flat_maybe(self, value: 'Maybe'):  # type: ignore
         return value if self else maybe.Empty()
 
-    def maybe_call(self, f):
-        return maybe.Just(f()) if self else maybe.Empty()
+    def maybe_call(self, f, *a, **kw):
+        return maybe.Just(f(*a, **kw)) if self else maybe.Empty()
 
-    def flat_maybe_call(self, f):
-        return f() if self else maybe.Empty()
+    def flat_maybe_call(self, f, *a, **kw):
+        return f(*a, **kw) if self else maybe.Empty()
 
     def either(self, l, r):
         return self.either_call(l, lambda: r)
