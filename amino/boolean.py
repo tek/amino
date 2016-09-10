@@ -32,6 +32,9 @@ class Boolean(object):
     def flat_either_call(self, l, r):
         return r() if self else Left(l)
 
+    def cata(self, t, f):
+        return t if self.value else f
+
     def __nonzero__(self):
         return self.value
 
