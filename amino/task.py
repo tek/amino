@@ -44,7 +44,7 @@ class Task(Generic[A], Implicits, implicits=True):
         try:
             s = format_funcall(f, a, kw)
         except Exception as e:
-            s = str(s)
+            s = str(f)
             log.error(e)
         return Task(lambda: f(*a, **kw), as_string=Just(s))
 
