@@ -135,4 +135,6 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
     def has_key(self, name):
         return Boolean(name in self)
 
+    contains = has_key
+
 __all__ = ('Map',)
