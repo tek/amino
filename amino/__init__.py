@@ -10,7 +10,7 @@ from amino.boolean import Boolean
 from amino.func import curried, F, I
 from amino.anon import __, L, _
 from amino.env_vars import env
-from amino.task import Try
+from amino.task import Try, Task
 from amino.logging import Logger, log
 from amino.eff import Eff
 
@@ -22,4 +22,4 @@ Path = pathlib.Path
 __all__ = ('Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future',
            'Boolean', 'development', 'flat_may', 'curried', '__', 'F', 'Left',
            'Right', 'Either', 'env', 'Try', 'LazyList', 'Logger', 'log', 'I',
-           'L', 'Eff')
+           'L', 'Eff', 'Task')
