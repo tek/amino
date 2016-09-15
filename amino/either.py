@@ -64,6 +64,10 @@ class Either(Generic[A, B], Implicits, implicits=True):
     def left_or_map(self, f: Callable[[B], Any]):
         return self.cata(I, f)
 
+    @property
+    def ljoin(self):
+        return self.right_or_map(Left)
+
     def __str__(self):
         return '{}({})'.format(self.__class__.__name__, self.value)
 
