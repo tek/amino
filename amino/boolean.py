@@ -35,6 +35,9 @@ class Boolean(object):
     def cata(self, t, f):
         return t if self.value else f
 
+    def cata_call(self, t, f):
+        return t() if self.value else f()
+
     def __nonzero__(self):
         return self.value
 
