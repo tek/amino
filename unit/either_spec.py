@@ -1,7 +1,7 @@
 from fn import _
 
 from amino.either import Left, Right
-from amino import Empty, Just, Maybe
+from amino import Empty, Just, Maybe, List, Either
 from amino.test import Spec
 
 
@@ -30,5 +30,7 @@ class EitherSpec(Spec):
         a = 'a'
         Right(Just(a)).sequence(Maybe).should.equal(Just(Right(a)))
         Left(Just(a)).sequence(Maybe).should.equal(Just(Left(Just(a))))
+        List(Right(a)).sequence(Either).should.equal(Right(List(a)))
+        List(Right(a), Left(a)).sequence(Either).should.equal(Left(a))
 
 __all__ = ('EitherSpec',)

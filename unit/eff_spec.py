@@ -8,12 +8,6 @@ from amino.task import Task
 
 class EffSpec(Spec):
 
-    def setup(self):
-        super().setup()
-
-    def test(self):
-        pass
-
     @property
     def _r(self):
         a, b = random.randint(0, 10), random.randint(0, 10)
