@@ -36,13 +36,13 @@ class AnonGetter(AnonCallable):
         self.__name = name
 
     def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, self.__name)
+        return '{}.{}'.format(self.__pre, self.__name)
 
     def __call__(self, obj):
         pre = self.__pre(obj)
         if not hasattr(pre, self.__name):
-            raise AttributeError('{!r} has no method \'{}\' -> {}'.format(
-                obj, self.__name, self))
+            raise AttributeError('{!r} has no method \'{}\' -> {!r}'.format(
+                pre, self.__name, self))
         return self.__dispatch__(getattr(pre, self.__name))
 
     def __dispatch__(self, obj):
@@ -65,7 +65,7 @@ class AnonFunc(AnonGetter):
     def __repr__(self):
         return '{!r}.{}'.format(
             self._AnonGetter__pre,
-            format_funcall(self.__name, self.__a, self.__kw)
+            format_funcall(self._AnonGetter__name, self.__a, self.__kw)
         )
 
     def __getitem__(self, key):
