@@ -5,7 +5,6 @@ from operator import eq, is_not
 import inspect
 import traceback
 
-from fn import _
 from fn.op import identity
 
 from amino.logging import log
@@ -76,6 +75,8 @@ class Maybe(Generic[A], Implicits, implicits=True):
 
     def or_else(self, ma: Union['Maybe[A]', Callable[[], 'Maybe[A]']]):
         return self.cata(lambda v: self, ma)
+
+    o = or_else
 
     def get_or_raise(self, e: Exception):
         def raise_e():
