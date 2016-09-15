@@ -12,7 +12,7 @@ from fn import _
 from amino import maybe, boolean
 from amino.logging import log
 from amino.tc.base import ImplicitsMeta, Implicits
-from amino.func import I
+from amino.func import I, curried
 from amino.util.string import safe_string
 
 A = TypeVar('A', covariant=True)
@@ -140,8 +140,10 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         seen = set()
         return List.wrap(x for x in self if x not in seen and not seen.add(x))
 
-    def __add__(self, other: typing.List[A]) -> 'List[A]':
+    def add(self, other: typing.List[A]) -> 'List[A]':
         return List.wrap(typing.List.__add__(self, other))
+
+    __add__ = add
 
     def without(self, el) -> 'List[A]':
         return self.filter(_ != el)
@@ -211,5 +213,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
 
     def replace_item(self, a, b) -> 'List[A]':
         return self.map(lambda c: b if c == a else c)
+
+    @curried
+    def replace_where(self, a, pred: Callable):
+        return self.map(lambda b: a if pred(b) else b)
 
 __all__ = ('List',)
