@@ -38,6 +38,7 @@ class TaskException(Exception):
 
 
 class Task(Generic[A], Implicits, implicits=True):
+    record_stack = False
 
     @staticmethod
     def call(f: Callable[..., A], *a, **kw):
@@ -69,7 +70,7 @@ class Task(Generic[A], Implicits, implicits=True):
     def __init__(self, f: Callable[[], A], remove: int=1, as_string=Empty()
                  ) -> None:
         self._run = f
-        self.stack = inspect.stack()[remove:]
+        self.stack = inspect.stack()[remove:] if self.record_stack else []
         # if `f` is not wrapped in lambda, get_or_else will call it
         self.as_string = str(as_string | (lambda: f))
 
