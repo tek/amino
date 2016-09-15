@@ -10,21 +10,22 @@ import amino
 from amino.logging import amino_stdout_logging, Logging
 from amino.test.sure_ext import install_assertion_builder, AssBuilder
 from amino.test import path
+from amino.task import Task
 
 
 default_timeout = 20 if 'TRAVIS' in os.environ else 5
 
 
-def later(ass, timeout=default_timeout, intval=0.1):
+def later(ass, *a, timeout=default_timeout, intval=0.1, **kw):
     start = datetime.now()
     ok = False
     while not ok and (datetime.now() - start).total_seconds() < timeout:
         try:
-            ass()
+            ass(*a, **kw)
             ok = True
         except AssertionError:
             time.sleep(intval)
-    return ass()
+    return ass(*a, **kw)
 
 
 class Spec(spec.Spec, Logging):
