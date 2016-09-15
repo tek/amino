@@ -1,7 +1,7 @@
 import abc
 from typing import TypeVar, Generic, Callable, Union
 
-from amino.tc.base import TypeClass
+from amino.tc.base import TypeClass, tc_prop
 from amino import maybe  # NOQA
 from amino.boolean import Boolean
 
@@ -36,5 +36,9 @@ class Optional(Generic[F], TypeClass):
     def task(self, fa: F, err: str=''):
         from amino.task import Task
         return Task.from_either(self.to_either(fa, err))
+
+    @tc_prop
+    def true(self, fa: F) -> Boolean:
+        return self.to_maybe(fa).exists(bool)
 
 __all__ = ('Optional',)
