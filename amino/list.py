@@ -214,4 +214,7 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def replace_where(self, a, pred: Callable):
         return self.map(lambda b: a if pred(b) else b)
 
+    def __mul__(self, other):
+        return List.wrap(super().__mul__(other))
+
 __all__ = ('List',)
