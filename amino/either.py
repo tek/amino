@@ -95,6 +95,9 @@ class Either(Generic[A, B], Implicits, implicits=True):
             raise err if isinstance(err, Exception) else Exception(err)
         return self.cata(fail, I)
 
+    def __iter__(self):
+        return iter(self.to_list)
+
 
 class Right(Either):
 
