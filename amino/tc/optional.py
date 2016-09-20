@@ -33,6 +33,8 @@ class Optional(Generic[F], TypeClass):
     def or_else(self, fa: F, a: Union[F, Callable[[], F]]):
         return fa if self.present(fa) else maybe.call_by_name(a)
 
+    o = or_else
+
     def task(self, fa: F, err: str=''):
         from amino.task import Task
         return Task.from_either(self.to_either(fa, err))
