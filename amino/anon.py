@@ -98,13 +98,23 @@ class IdAnonFunc:
         return '__'
 
 
+class AnonCall(AnonFunc):
+
+    def __init__(self, pre, a, kw) -> None:
+        super().__init__(pre, '__call__', a, kw)
+
+    def __call__(self, obj):
+        return self._AnonGetter__pre(obj)(
+            *self._AnonFunc__a, **self._AnonFunc__kw)
+
+
 class MethodLambda:
 
     def __getattr__(self, name):
         return MethodRef(IdAnonFunc(), name)
 
     def __call__(self, *a, **kw):
-        return AnonFunc(IdAnonFunc(), '__call__', a, kw)
+        return AnonCall(IdAnonFunc(), a, kw)
 
     def __getitem__(self, key):
         return AnonFunc(IdAnonFunc(), '__getitem__', [key], {})

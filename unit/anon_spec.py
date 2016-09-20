@@ -97,4 +97,14 @@ class AnonSpec(Spec):
         h = _.x[0]
         h(Just(List(a))).should.equal(a)
 
+    def instantiate_type(self):
+        a, b, c = 1, 2, 3
+        class T:
+            def __init__(self, a) -> None:
+                self.a = a
+            def __call__(self, a, b):
+                return self.a, a, b
+        l = Just(T) / __(a)
+        (l / __(b, c)).should.contain((a, b, c))
+
 __all__ = ('AnonSpec',)
