@@ -3,7 +3,7 @@ import inspect
 from typing import Callable, TypeVar, Generic, Any
 
 from amino import Either, Right, Left, Maybe, List, Empty, __, Just
-from amino.tc.base import Implicits
+from amino.tc.base import Implicits, ImplicitsMeta
 from amino.anon import format_funcall
 from amino.logging import log
 
@@ -37,7 +37,14 @@ class TaskException(Exception):
         return msg.format(self.format_stack, ex, self.cause, self.f)
 
 
-class Task(Generic[A], Implicits, implicits=True):
+class TaskMeta(ImplicitsMeta):
+
+    @property
+    def zero(self):
+        return Task.now(None)
+
+
+class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
     record_stack = False
 
     @staticmethod
