@@ -73,11 +73,6 @@ class Maybe(Generic[A], Implicits, implicits=True):
 
     __or__ = get_or_else
 
-    def or_else(self, ma: Union['Maybe[A]', Callable[[], 'Maybe[A]']]):
-        return self.cata(lambda v: self, ma)
-
-    o = or_else
-
     def get_or_raise(self, e: Exception):
         def raise_e():
             raise e
