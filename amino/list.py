@@ -12,7 +12,7 @@ from fn import _
 from amino import maybe, boolean
 from amino.logging import log
 from amino.tc.base import ImplicitsMeta, Implicits
-from amino.func import I, curried
+from amino.func import curried
 from amino.util.string import safe_string
 
 A = TypeVar('A', covariant=True)
@@ -83,10 +83,6 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
 
     def flat_smap(self, f: Callable[..., 'Iterable[B]']) -> 'List[B]':
         return List.wrap(flatten(list(itertools.starmap(f, self))))
-
-    @property
-    def join(self):
-        return self.flat_map(I)
 
     def foreach(self, f: Callable[[A], B]) -> None:
         for el in self:
