@@ -2,7 +2,7 @@ import traceback
 import inspect
 from typing import Callable, TypeVar, Generic, Any
 
-from amino import Either, Right, Left, Maybe, List, Empty, __, Just
+from amino import Either, Right, Left, Maybe, List, Empty, __, Just, env
 from amino.tc.base import Implicits, ImplicitsMeta
 from amino.anon import format_funcall
 from amino.logging import log
@@ -45,7 +45,7 @@ class TaskMeta(ImplicitsMeta):
 
 
 class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
-    record_stack = False
+    record_stack = 'AMINO_RECORD_STACK' in env
 
     @staticmethod
     def call(f: Callable[..., A], *a, **kw):
