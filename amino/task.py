@@ -61,6 +61,10 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
         return Task(lambda: a, as_string=Just(repr(a)))
 
     @staticmethod
+    def just(a: A) -> 'Task[Maybe[A]]':
+        return Task.now(Just(a))
+
+    @staticmethod
     def failed(err: str) -> 'Task[A]':
         def fail():
             raise Exception(err)
