@@ -145,6 +145,12 @@ class Implicits(Logging, metaclass=ImplicitsMeta):
         v(self)
         return self
 
+    @property
+    def dbgr(self):
+        v = self.log.verbose
+        v(repr(self))
+        return self
+
 
 class ImplicitInstances(object, metaclass=abc.ABCMeta):
 
