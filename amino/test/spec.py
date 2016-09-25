@@ -13,7 +13,7 @@ from amino.test import path
 from amino.task import Task
 
 
-default_timeout = 20 if 'TRAVIS' in os.environ else 5
+default_timeout = 20 if 'TRAVIS' in os.environ else 3
 
 
 def later(ass, *a, timeout=default_timeout, intval=0.1, **kw):
