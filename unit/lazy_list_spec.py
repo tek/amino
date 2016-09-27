@@ -80,4 +80,21 @@ class LazyListSpec(Spec):
         target = LazyList(List.wrap(range(n)))
         (l.sequence(Maybe) / _.drain).should.contain(target.drain)
 
+    def zip(self):
+        a = 1
+        b = 2
+        ab = (a, b)
+        l1 = LazyList((a, a, a, a), chunk_size=1)
+        l2 = LazyList((b, b, b, b), chunk_size=1)
+        l1[1]
+        z = l1 & l2
+        z.strict.should.equal(List(ab, ab))
+        z.drain.should.equal(List(ab, ab, ab, ab))
+
+    def apzip(self):
+        l = LazyList((1, 2, 3), chunk_size=1)
+        l[0]
+        z = l.apzip(_ + 2)
+        z.drain.should.equal(List((1, 3), (2, 4), (3, 5)))
+
 __all__ = ('LazyListSpec',)

@@ -1,6 +1,6 @@
 from typing import TypeVar, Callable, Tuple
 
-from amino import _, Maybe, LazyList
+from amino import Maybe, LazyList, _, L
 from amino.list import List
 from amino.func import F, curried
 from amino.anon import __
@@ -9,6 +9,8 @@ from amino.tc.base import ImplicitInstances, tc_prop
 from amino.lazy import lazy
 from amino.tc.traverse import Traverse
 from amino.tc.foldable import Foldable
+from amino.tc.zip import Zip
+from amino.instances.list import ListZip
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -24,6 +26,7 @@ class LazyListInstances(ImplicitInstances):
                 Functor: LazyListFunctor(),
                 Traverse: LazyListTraverse(),
                 Foldable: LazyListFoldable(),
+                Zip: LazyListZip(),
             }
         )
 
@@ -67,5 +70,20 @@ class LazyListFoldable(Foldable):
                     ) -> Maybe[int]:
         return fa.strict.index_where(f) | (
             fa._drain_find(f) / (lambda a: len(fa.strict) - 1))
+
+
+class LazyListZip(Zip):
+
+    def _zip(self, fs):
+        return zip(*map(_.source, fs))
+
+    def zip(self, fa: LazyList[A], fb: LazyList[B], *fs) -> LazyList:
+        fss = (fa, fb) + fs
+        maxlen = max(map(lambda a: len(a.strict), fss))
+        for f in fss:
+            f._fetch(maxlen - 1)
+        stricts = map(_.strict, fss)
+        strict = ListZip().zip(*stricts)
+        return LazyList(self._zip(fss), init=strict)
 
 __all__ = ('LazyListInstances',)
