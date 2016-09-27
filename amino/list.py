@@ -179,11 +179,6 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def cat(self, item):
         return self + List(item)
 
-    def zip(self, other: 'Iterable[B]', *others):
-        return List.wrap(zip(self, other, *others))
-
-    __and__ = zip
-
     @property
     def transpose(self):
         return List.wrap(map(List.wrap, zip(*self)))

@@ -10,6 +10,7 @@ from amino.tc.traverse import Traverse
 from amino.tc.applicative import Applicative
 from amino.tc.foldable import Foldable
 from amino.list import flatten
+from amino.tc.zip import Zip
 
 A = TypeVar('A', covariant=True)
 B = TypeVar('B')
@@ -25,6 +26,7 @@ class ListInstances(ImplicitInstances):
                 Monad: ListMonad(),
                 Traverse: ListTraverse(),
                 Foldable: ListFoldable(),
+                Zip: ListZip(),
             }
         )
 
@@ -73,5 +75,11 @@ class ListFoldable(Foldable):
     def index_where(self, fa: List[A], f: Callable[[A], bool]):
         gen = (maybe.Just(i) for i, a in enumerate(fa) if f(a))
         return next(gen, maybe.Empty())  # type: ignore
+
+
+class ListZip(Zip):
+
+    def zip(self, fa: List[A], fb: List[B], *fs) -> List:
+        return List.wrap(zip(fa, fb, *fs))
 
 __all__ = ('ListInstances',)
