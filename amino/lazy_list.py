@@ -1,3 +1,4 @@
+import itertools
 from functools import wraps
 from typing import Generic, TypeVar, Callable
 
@@ -64,7 +65,9 @@ class LazyList(Generic[A], Implicits, implicits=True):
         return self.strict
 
     def copy(self, wrap_source, transstrict: Callable[[List[A]], List[A]]):
-        return LazyList(wrap_source(self.source), transstrict(self.strict),
+        a, b = itertools.tee(self.source)
+        self.source = a
+        return LazyList(wrap_source(b), transstrict(self.strict),
                         self._chunk_size, self._post)
 
     @fetch

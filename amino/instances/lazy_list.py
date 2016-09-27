@@ -34,7 +34,7 @@ class LazyListFunctor(Functor):
         return LazyList([], List(a))
 
     def map(self, fa: LazyList[A], f: Callable[[A], B]) -> LazyList[B]:
-        return LazyList(map(f, fa.source), fa.strict, fa._chunk_size)
+        return fa.copy(lambda a: map(f, a), __.map(f))
 
 
 class LazyListTraverse(Traverse):

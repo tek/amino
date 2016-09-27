@@ -33,6 +33,7 @@ class LazyListSpec(Spec):
 
     def map(self):
         l = LazyList(itertools.count(), chunk_size=20)
+        l.lift(5)
         l2 = l.map(_ * 10)
         l2[:5].should.equal(List.wrap(range(0, 50, 10)))
 
