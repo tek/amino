@@ -126,6 +126,8 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
     def is_empty(self):
         return self.k.is_empty
 
+    empty = is_empty
+
     def at(self, *keys):
         return self.keyfilter(lambda a: a in keys)
 
