@@ -140,4 +140,7 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
 
     contains = has_key
 
+    def add_maybe(self, key: A, value: Maybe[B]):
+        return value / (lambda a: self + (key, a)) | self
+
 __all__ = ('Map',)
