@@ -47,7 +47,7 @@ class ListSpec(Spec):
 
     def is_empty(self):
         List(1).is_empty.should_not.be.ok
-        List().is_empty.should.be.ok
+        List().empty.should.be.ok
 
     def head_and_last(self):
         List(1, 2, 3).head.contains(1).should.be.ok
@@ -98,5 +98,9 @@ class ListSpec(Spec):
         l1, l2 = l.unzip
         l1.should.equal(l2)
         l1.should.equal(List(a, b, a))
+
+    def with_index(self):
+        l = List(1, 2, 3)
+        l.with_index.unzip.should.equal((List.range(3), l))
 
 __all__ = ('ListSpec',)
