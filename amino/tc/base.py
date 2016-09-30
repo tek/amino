@@ -1,7 +1,8 @@
 import importlib
 import abc
-from typing import GenericMeta, Dict, Callable  # type: ignore
-from functools import partial
+from typing import Dict, Callable
+from typing import GenericMeta  # type: ignore
+from functools import partial, wraps
 
 from fn import _, F
 
@@ -113,18 +114,34 @@ def tc_prop(f):
 
 
 class Implicits(Logging, metaclass=ImplicitsMeta):
+    permanent = True
 
     def _lookup_implicit_attr(self, name):
-        for inst in type(self).implicits.v:
-            if hasattr(inst, name):
-                f = getattr(inst, name)
-                if hasattr(f, '_tc_prop'):
-                    return f(self)
-                else:
-                    return partial(f, self)
+        return next((getattr(inst, name)
+                     for inst in type(self).implicits.v
+                     if hasattr(inst, name)), None)
+
+    def _bound_implicit_attr(self, name):
+        f = self._lookup_implicit_attr(name)
+        if f is not None:
+            if hasattr(f, '_tc_prop'):
+                return f(self)
+            else:
+                return partial(f, self)
+
+    def _set_implicit_attr(self, name):
+        f = self._lookup_implicit_attr(name)
+        if f is not None:
+            @wraps(f)
+            def wrap(self, *a, **kw):
+                return f(self, *a, **kw)
+            g = property(wrap) if hasattr(f, '_tc_prop') else wrap
+            setattr(type(self), name, g)
+            return getattr(self, name)
 
     def __getattr__(self, name):
-        imp = self._lookup_implicit_attr(name)
+        imp = (self._set_implicit_attr(name) if Implicits.permanent else
+               self._bound_implicit_attr(name))
         if imp is None:
             err = '\'{}\' has no attribute \'{}\''.format(self, name)
             raise AttributeError(err)
@@ -132,7 +149,8 @@ class Implicits(Logging, metaclass=ImplicitsMeta):
             return imp
 
     def _operator(self, name, other):
-        op = self._lookup_implicit_attr(name)
+        op = (self._set_implicit_attr(name) if Implicits.permanent else
+              self._bound_implicit_attr(name))
         if op is None:
             err = '\'{}\' has no implicit operator \'{}\''.format(self, name)
             raise TypeError(err)
