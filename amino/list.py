@@ -144,6 +144,8 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def without(self, el) -> 'List[A]':
         return self.filter(_ != el)
 
+    __sub__ = without
+
     def split(self, f: Callable[[A], bool]):
         def splitter(z, e):
             l, r = z
