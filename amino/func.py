@@ -56,4 +56,8 @@ class Identity:
 
 I = Identity()
 
-__all__ = ('curried', 'F', 'I')
+
+def flip(a, b):
+    return b, a
+
+__all__ = ('curried', 'F', 'I', 'flip')
