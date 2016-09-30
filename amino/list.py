@@ -12,7 +12,7 @@ from fn import _
 from amino import maybe, boolean
 from amino.logging import log
 from amino.tc.base import ImplicitsMeta, Implicits
-from amino.func import curried
+from amino.func import curried, I
 from amino.util.string import safe_string
 
 A = TypeVar('A', covariant=True)
@@ -203,6 +203,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
 
     def sort_by(self, f: Callable[[A], bool], reverse=False):
         return List.wrap(sorted(self, key=f, reverse=reverse))
+
+    def sort(self, reverse=False):
+        return self.sort_by(I, reverse)
 
     def replace_item(self, a, b) -> 'List[A]':
         return self.map(lambda c: b if c == a else c)
