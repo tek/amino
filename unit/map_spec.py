@@ -51,7 +51,7 @@ class MapSpec(Spec):
         k2 = 'key2'
         v2 = 'value2'
         m = Map({k1: v1, k2: v2})
-        res = m.map(lambda a: (len(a[0]), len(a[1])))
+        res = m.map(lambda a, b: (len(a), len(b)))
         res.should.have.key(len(k1)).being.equal(len(v1))
         res.should.have.key(len(k2)).being.equal(len(v2))
 
