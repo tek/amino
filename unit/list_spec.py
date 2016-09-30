@@ -91,4 +91,12 @@ class ListSpec(Spec):
         l.max_by(_ + 4).should.contain(6)
         l.min_by(_ + 4).should.contain(1)
 
+    def unzip(self):
+        a = 13
+        b = 29
+        l = List((a, a), (b, b), (a, a))
+        l1, l2 = l.unzip
+        l1.should.equal(l2)
+        l1.should.equal(List(a, b, a))
+
 __all__ = ('ListSpec',)
