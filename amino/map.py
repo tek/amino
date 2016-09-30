@@ -81,8 +81,9 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
     def keymap(self, f: Callable[[A], C]) -> 'Map[C, B]':
         return Map(dicttoolz.keymap(f, dict(self)))
 
-    def map(self, f: Callable[[Tuple[A, B]], Tuple[C, D]]) -> 'Map[C, D]':
-        return Map(dicttoolz.itemmap(f, self))
+    def map(self, f: Callable[[A, B], Tuple[C, D]]) -> 'Map[C, D]':
+        wrap = lambda a: f(*a)
+        return Map(dicttoolz.itemmap(wrap, self))
 
     def flat_map(
             self,
