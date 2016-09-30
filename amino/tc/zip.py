@@ -2,10 +2,10 @@ import abc
 from typing import TypeVar, Generic, Callable, Tuple
 
 from amino.tc.base import TypeClass, tc_prop
-from amino.tc.monad import Monad
 from amino.tc.monoid import Monoid
 from amino.tc.foldable import Foldable
 from amino.tc.applicative import Applicative
+from amino.tc.functor import Functor
 
 F = TypeVar('F')
 A = TypeVar('A')
@@ -22,7 +22,7 @@ class Zip(Generic[F], TypeClass):
         return self.zip(fa, fb)
 
     def apzip(self, fa: F, f: Callable[[A], B]) -> F:
-        return self.zip(fa, Monad[type(fa)].map(fa, f))
+        return self.zip(fa, Functor[type(fa)].map(fa, f))
 
     @tc_prop
     def unzip(self, fa: F) -> Tuple[F, F]:
