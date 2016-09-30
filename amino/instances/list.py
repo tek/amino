@@ -11,6 +11,7 @@ from amino.tc.applicative import Applicative
 from amino.tc.foldable import Foldable
 from amino.list import flatten
 from amino.tc.zip import Zip
+from amino.tc.monoid import Monoid
 
 A = TypeVar('A', covariant=True)
 B = TypeVar('B')
@@ -27,6 +28,7 @@ class ListInstances(ImplicitInstances):
                 Traverse: ListTraverse(),
                 Foldable: ListFoldable(),
                 Zip: ListZip(),
+                Monoid: ListMonoid(),
             }
         )
 
@@ -81,5 +83,15 @@ class ListZip(Zip):
 
     def zip(self, fa: List[A], fb: List[B], *fs) -> List:
         return List.wrap(zip(fa, fb, *fs))
+
+
+class ListMonoid(Monoid):
+
+    @property
+    def empty(self):
+        return List()
+
+    def combine(self, fa: List, fb: List):
+        return fa + fb
 
 __all__ = ('ListInstances',)
