@@ -32,9 +32,10 @@ class TaskException(Exception):
 
     def __str__(self):
         from traceback import format_tb
-        msg = 'Task exception at:\n{}\nCause:\n{}\n{}\n\nCallback:\n{}'
+        msg = 'Task exception at:\n{}\nCause:\n{}{}: {}\n\nCallback:\n{}'
         ex = ''.join(format_tb(self.cause.__traceback__))
-        return msg.format(self.format_stack, ex, self.cause, self.f)
+        return msg.format(self.format_stack, ex, self.cause.__class__.__name__,
+                          self.cause, self.f)
 
 
 class TaskMeta(ImplicitsMeta):
