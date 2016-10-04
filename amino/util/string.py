@@ -36,12 +36,12 @@ def decode_exc(value):
     return decode_list(value.args).head | str(value)
 
 
-def camelcaseify(name, sep=''):
-    return sep.join([n.capitalize() for n in name.split('_')])
+def camelcaseify(name, sep='', splitter='_'):
+    return sep.join([n.capitalize() for n in re.split(splitter, name)])
 
 
 def safe_string(value):
-    from amino import Try, L
+    from amino import Try
     return Try(str, value).or_else(lambda: Try(repr, value)) | 'invalid'
 
 __all__ = ('snake_case', 'decode', 'camelcaseify')
