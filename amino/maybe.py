@@ -10,15 +10,10 @@ from fn.op import identity
 from amino.logging import log
 from amino import boolean
 from amino.tc.base import Implicits
+from amino.func import call_by_name
 
 A = TypeVar('A')
 B = TypeVar('B')
-
-CallByName = Union[Any, Callable[[], Any]]
-
-
-def call_by_name(b: CallByName):
-    return b() if callable(b) else b  # type: ignore
 
 
 class Maybe(Generic[A], Implicits, implicits=True):
@@ -209,4 +204,4 @@ def flat_may(f):
         return res if isinstance(res, Maybe) else Maybe(res)
     return wrapper
 
-__all__ = ('Maybe', 'Just', 'Empty', 'may', 'call_by_name')
+__all__ = ('Maybe', 'Just', 'Empty', 'may')

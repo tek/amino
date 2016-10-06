@@ -1,5 +1,6 @@
 from functools import wraps, partial
 from inspect import getfullargspec
+from typing import Callable, Union, Any
 
 import fn
 
@@ -60,4 +61,10 @@ I = Identity()
 def flip(a, b):
     return b, a
 
-__all__ = ('curried', 'F', 'I', 'flip')
+CallByName = Union[Any, Callable[[], Any]]
+
+
+def call_by_name(b: CallByName):
+    return b() if callable(b) else b  # type: ignore
+
+__all__ = ('curried', 'F', 'I', 'flip', 'call_by_name')
