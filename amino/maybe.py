@@ -73,8 +73,8 @@ class Maybe(Generic[A], Implicits, implicits=True):
             raise e
         return self.cata(identity, raise_e)
 
-    def get_or_fail(self, err: str):
-        return self.get_or_raise(Exception(err))
+    def get_or_fail(self, err):
+        return self.get_or_raise(Exception(call_by_name(err)))
 
     def __contains__(self, v):
         return self.contains(v)
