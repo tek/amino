@@ -28,7 +28,7 @@ class Logger(logging.Logger):
             self._log(DDEBUG, message, args, **kws)
 
     def caught_exception(self, when, exc, *a, **kw):
-        headline = 'caught exception during {}'.format(when)
+        headline = 'caught exception while {}:'.format(when)
         self.exception(headline, exc_info=(type(exc), exc, exc.__traceback__))
 
 
@@ -84,7 +84,7 @@ def amino_file_logging(level: int=None, logfile=default_logfile,
         _file_logging_initialized = True
 
 
-class Logging(object):
+class Logging:
 
     @property
     def log(self) -> Logger:
@@ -93,6 +93,11 @@ class Logging(object):
     @lazy
     def _log(self) -> Logger:
         return amino_logger(self.__class__.__name__)
+
+    def _p(self, a):
+        v = self.log.verbose
+        v(a)
+        return a
 
 
 def sub_loggers(loggers, root):
