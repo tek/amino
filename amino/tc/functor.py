@@ -42,9 +42,6 @@ class Functor(Generic[F], TypeClass):
             return f(*args)
         return self.map(fa, wrapper)
 
-    def pair(self, fa: F, f: Callable[[A], B]) -> F:
-        return self.map(fa, lambda a: (a, f(a)))
-
     def replace(self, fa: F, b: B) -> F:
         cb = lambda a: b
         return self.map(fa, cb)
