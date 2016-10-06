@@ -1,6 +1,6 @@
 from amino import __, Just, List
 from amino.test import Spec
-from amino.anon import L, _
+from amino.anon import L, _, AnonError
 
 
 class _Inner:
@@ -106,5 +106,24 @@ class AnonSpec(Spec):
                 return self.a, a, b
         l = Just(T) / __(a)
         (l / __(b, c)).should.contain((a, b, c))
+
+    def method_lambda_with_placeholders(self):
+        class A:
+            def __init__(self, v) -> None:
+                self.v = v
+            def ma(self, a, b):
+                return A(self.v * a + b)
+            def mb(self, a, b, c, d):
+                return self.v * (a + b + c + d)
+        v1, v2, v3, v4, v5, v6 = 2, 3, 5, 7, 11, 13
+        f = __.ma(_, v1).mb(v2, _, v3, _)
+        a = A(v3)
+        target = (v3 * v4 + v1) * (v2 + v5 + v3 + v6)
+        f(a, v4, v5, v6).should.equal(target)
+
+    def bad_param_count(self):
+        f = __.map(_).map(_)
+        args = List(1), lambda a: a, lambda a: a, 5
+        f.when.called_with(*args).should.throw(AnonError)
 
 __all__ = ('AnonSpec',)

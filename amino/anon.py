@@ -1,7 +1,11 @@
 from types import FunctionType, MethodType
 import operator
 
-from amino import List
+from amino import List, Boolean
+
+
+class AnonError(Exception):
+    pass
 
 
 def lambda_str(f):
@@ -25,6 +29,9 @@ def format_funcall(fun, args, kwargs):
 
 class AnonCallable:
 
+    def __call_as_pre__(self, obj, a):
+        return self(obj), a
+
     def __call__(self, obj):
         return obj
 
@@ -38,26 +45,60 @@ class AnonGetter(AnonCallable):
     def __repr__(self):
         return '{}.{}'.format(self.__pre, self.__name)
 
-    def __call__(self, obj):
-        pre = self.__pre(obj)
+    def __call_as_pre__(self, obj, a):
+        return self.__call(obj, a)
+
+    def __call_pre(self, obj, a):
+        pre, rest = self.__pre.__call_as_pre__(obj, a)
         if not hasattr(pre, self.__name):
             raise AttributeError('{!r} has no method \'{}\' -> {!r}'.format(
                 pre, self.__name, self))
-        return self.__dispatch__(getattr(pre, self.__name))
+        return pre, rest
 
-    def __dispatch__(self, obj):
-        return obj
+    def __call(self, obj, a):
+        pre, rest = self.__call_pre(obj, a)
+        return self.__dispatch__(getattr(pre, self.__name), rest)
+
+    def __call__(self, obj, *a):
+        result, rest = self.__call(obj, List.wrap(a))
+        if not rest.empty:
+            msg = 'extraneous arguments to {}: {}'
+            raise AnonError(msg.format(self, rest.mk_string(',')))
+        return result
+
+    def __dispatch__(self, obj, a):
+        return obj, a
 
 
-class AnonFunc(AnonGetter):
+class HasArgs:
+
+    def __substitute__(self, params, args):
+        def go(z, arg):
+            def transform(value):
+                return arg(value) if isinstance(arg, AnonCallable) else value
+            def try_sub(new, rest):
+                is_lambda = Boolean(arg is _ or isinstance(arg, AnonCallable))
+                return is_lambda.m(lambda: (transform(new), rest))
+            r, a = z
+            new, rest = a.detach_head.flat_map2(try_sub) | (arg, a)
+            return r.cat(new), rest
+        subbed, rest = params.fold_left((List(), args))(go)
+        # allow callables to remain in args, but not placeholders
+        if rest.empty and subbed.exists(lambda a: a is _):
+            raise AnonError('too few arguments for {}: {}'.format(self, args))
+        return subbed, rest
+
+
+class AnonFunc(AnonGetter, HasArgs):
 
     def __init__(self, pre: 'AnonFunc', name: str, a, kw) -> None:
         super().__init__(pre, name)
-        self.__a = a
+        self.__args = List.wrap(a)
         self.__kw = kw
 
-    def __dispatch__(self, obj):
-        return obj(*self.__a, **self.__kw)
+    def __dispatch__(self, obj, a):
+        sub_a, rest = self.__substitute__(self.__args, List.wrap(a))
+        return obj(*sub_a, **self.__kw), rest
 
     def __getattr__(self, name):
         return MethodRef(self, name)
@@ -65,7 +106,7 @@ class AnonFunc(AnonGetter):
     def __repr__(self):
         return '{!r}.{}'.format(
             self._AnonGetter__pre,
-            format_funcall(self._AnonGetter__name, self.__a, self.__kw)
+            format_funcall(self._AnonGetter__name, self.__args, self.__kw)
         )
 
     def __getitem__(self, key):
@@ -89,10 +130,7 @@ class MethodRef:
         return '__.{}'.format(self.__name)
 
 
-class IdAnonFunc:
-
-    def __call__(self, obj):
-        return obj
+class IdAnonFunc(AnonCallable):
 
     def __repr__(self):
         return '__'
@@ -103,9 +141,9 @@ class AnonCall(AnonFunc):
     def __init__(self, pre, a, kw) -> None:
         super().__init__(pre, '__call__', a, kw)
 
-    def __call__(self, obj):
+    def __call__(self, obj, *a, **kw):
         return self._AnonGetter__pre(obj)(
-            *self._AnonFunc__a, **self._AnonFunc__kw)
+            *self._AnonFunc__args, **self._AnonFunc__kw)
 
 
 class MethodLambda:
@@ -122,7 +160,7 @@ class MethodLambda:
 __ = MethodLambda()
 
 
-class ComplexLambda:
+class ComplexLambda(AnonCallable, HasArgs):
 
     def __init__(self, func, *a, **kw) -> None:
         assert callable(func), 'ComplexLambda: {} is not callable'.format(func)
@@ -131,22 +169,8 @@ class ComplexLambda:
         self.__kwargs = kw
 
     def __call__(self, *a, **kw):
-        sub_a = self.__substitute(List.wrap(a))
+        sub_a, rest = self.__substitute__(self.__args, List.wrap(a))
         return self.__func(*sub_a, **kw)
-
-    def __substitute(self, args):
-        def errmsg():
-            return 'too few arguments for lambda "{}": {}'.format(self, args)
-        def is_lambda(arg):
-            return arg is _ or isinstance(arg, AnonCallable)
-        def go(z, arg):
-            def transform(value):
-                return arg(value) if isinstance(arg, AnonCallable) else value
-            r, a = z
-            new, rest = (a.detach_head.get_or_fail(errmsg()) if is_lambda(arg)
-                         else (arg, a))
-            return r.cat(transform(new)), rest
-        return self.__args.fold_left((List(), args))(go)[0]
 
     def __getattr__(self, name):
         return MethodRef(self, name)
