@@ -1,5 +1,6 @@
 from amino import maybe
 from amino.either import Right, Left
+from amino.func import call_by_name
 
 
 class Boolean(object):
@@ -20,6 +21,9 @@ class Boolean(object):
     def maybe_call(self, f, *a, **kw):
         return maybe.Just(f(*a, **kw)) if self else maybe.Empty()
 
+    def m(self, v):
+        return maybe.Maybe(call_by_name(v)) if self else maybe.Empty()
+
     def flat_maybe_call(self, f, *a, **kw):
         return f(*a, **kw) if self else maybe.Empty()
 
@@ -32,11 +36,20 @@ class Boolean(object):
     def flat_either_call(self, l, r):
         return r() if self else Left(l)
 
+    def e(self, l, r):
+        return Right(call_by_name(r)) if self else Left(call_by_name(l))
+
+    def flat_e(self, l, r):
+        return call_by_name(r) if self else Left(call_by_name(l))
+
     def cata(self, t, f):
         return t if self.value else f
 
     def cata_call(self, t, f):
         return t() if self.value else f()
+
+    def c(self, t, f):
+        return call_by_name(t) if self.value else call_by_name(f)
 
     def __nonzero__(self):
         return self.value
