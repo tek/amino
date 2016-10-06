@@ -2,7 +2,7 @@ import traceback
 import inspect
 from typing import Callable, TypeVar, Generic, Any
 
-from amino import Either, Right, Left, Maybe, List, Empty, __, Just, env
+from amino import Either, Right, Left, Maybe, List, Empty, __, Just, env, _
 from amino.tc.base import Implicits, ImplicitsMeta
 from amino.anon import format_funcall
 from amino.logging import log
@@ -25,17 +25,25 @@ class TaskException(Exception):
             pre = rev[:i + 1]
             post = rev[i:].drop_while(__.filename.endswith('/amino/task.py'))
             return pre + post
-        start = rev.index_where(lambda a: a.function == 'unsafe_perform_sync')
-        stack = start / remove_recursion | rev
-        data = stack / (lambda a: a[1:-2] + tuple(a[-2]))
-        return ''.join(traceback.format_list(data))
+        def remove_internal():
+            start = rev.index_where(_.function == 'unsafe_perform_sync')
+            return start / remove_recursion | rev
+        def find_loc():
+            return (self.stack
+                    .find(lambda a: '/amino/' not in a.filename)
+                    .to_list)
+        frames = find_loc() if Task.stack_only_location else remove_internal()
+        data = frames / (lambda a: a[1:-2] + tuple(a[-2]))
+        return ''.join(traceback.format_list(list(data)))
 
     def __str__(self):
         from traceback import format_tb
-        msg = 'Task exception at:\n{}\nCause:\n{}{}: {}\n\nCallback:\n{}'
+        msg = 'Task exception{}\nCause:\n{}{}: {}\n\nCallback:\n{}'
         ex = ''.join(format_tb(self.cause.__traceback__))
-        return msg.format(self.format_stack, ex, self.cause.__class__.__name__,
-                          self.cause, self.f)
+        loc = ('' if self.stack.empty else
+               ' at:\n{}'.format(self.format_stack))
+        return msg.format(loc, ex, self.cause.__class__.__name__, self.cause,
+                          self.f)
 
 
 class TaskMeta(ImplicitsMeta):
@@ -45,8 +53,30 @@ class TaskMeta(ImplicitsMeta):
         return Task.now(None)
 
 
+class TaskCallback:
+
+    @staticmethod
+    def _get_stack():
+        return inspect.stack()
+
+    def __init__(self, f: Callable, as_string=Empty()) -> None:
+        self.f = f
+        self.stack = TaskCallback._get_stack() if Task.record_stack else []
+        # if `f` is not wrapped in lambda, get_or_else will call it
+        self.as_string = str(as_string | (lambda: f))
+
+    def run(self):
+        try:
+            return self.f()
+        except TaskException as e:
+            raise e
+        except Exception as e:
+            raise TaskException(self.as_string, self.stack, e)
+
+
 class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
     record_stack = 'AMINO_RECORD_STACK' in env
+    stack_only_location = True
 
     @staticmethod
     def call(f: Callable[..., A], *a, **kw):
@@ -79,23 +109,14 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
     def from_maybe(a: Maybe[A], error: str) -> 'Task[A]':
         return a / Task.now | Task.failed(error)
 
-    def __init__(self, f: Callable[[], A], remove: int=1, as_string=Empty()
-                 ) -> None:
-        self._run = f
-        self.stack = inspect.stack()[remove:] if self.record_stack else []
-        # if `f` is not wrapped in lambda, get_or_else will call it
-        self.as_string = str(as_string | (lambda: f))
+    def __init__(self, f: Callable[[], A], as_string=Empty()) -> None:
+        self._callback = TaskCallback(f, as_string)
 
     def run(self):
-        try:
-            return self._run()
-        except TaskException as e:
-            raise e
-        except Exception as e:
-            raise TaskException(self.as_string, self.stack, e)
+        return self._callback.run()
 
     def __repr__(self):
-        return 'Task({})'.format(self.as_string)
+        return 'Task({})'.format(self._callback.as_string)
 
     def attempt(self) -> Either[Exception, A]:
         try:
@@ -110,9 +131,13 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
 
     __add__ = and_then
 
+    @property
+    def as_string(self):
+        return self._callback.as_string
+
 
 def Try(f: Callable[..., A], *a, **kw) -> Either[Exception, A]:
-    return Task.call(f, *a, **kw).unsafe_perform_sync()
+    return Task.call(f, *a, **kw).attempt()
 
 
 def task(fun):

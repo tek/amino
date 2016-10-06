@@ -26,11 +26,11 @@ class TaskMonad(Monad):
 
     def flat_map(self, fa: Task[A], f: Callable[[A], Task[B]]) -> Task[B]:
         s = '{}.flat_map({})'.format(fa.as_string, lambda_str(f))
-        return Task(lambda: f(fa.run()).run(), 5, Just(s))
+        return Task(lambda: f(fa.run()).run(), Just(s))
 
     def map(self, fa: Task[A], f: Callable[[A], B]) -> Task[B]:
         s = '{}.map({})'.format(fa.as_string, lambda_str(f))
-        return Task(lambda: f(fa.run()), 5, Just(s))
+        return Task(lambda: f(fa.run()), Just(s))
 
 
 __all__ = ('TaskInstances',)
