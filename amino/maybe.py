@@ -79,12 +79,6 @@ class Maybe(Generic[A], Implicits, implicits=True):
     def __contains__(self, v):
         return self.contains(v)
 
-    def zip(self, other: 'Maybe[B]') -> 'Maybe[Tuple[A, B]]':
-        if self.is_just and other.is_just:
-            return Just((self._get, other._get))
-        else:
-            return Empty()
-
     def foreach(self, f: Callable[[A], Any]):
         self.cata(f, None)
 

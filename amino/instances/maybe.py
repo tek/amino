@@ -10,6 +10,7 @@ from amino.maybe import call_by_name
 from amino.tc.applicative import Applicative
 from amino.tc.traverse import Traverse
 from amino.tc.foldable import Foldable
+from amino.tc.zip import Zip
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -26,6 +27,7 @@ class MaybeInstances(ImplicitInstances):
                 Optional: MaybeOptional(),
                 Traverse: MaybeTraverse(),
                 Foldable: MaybeFoldable(),
+                Zip: MaybeZip(),
             }
         )
 
@@ -84,5 +86,12 @@ class MaybeFoldable(Foldable):
 
     def index_where(self, fa: Maybe[A], f: Callable[[A], bool]):
         return fa / f // (lambda a: Just(0) if a else Empty())
+
+
+class MaybeZip(Zip):
+
+    def zip(self, fa: Maybe[A], fb: Maybe[B], *fs) -> Maybe:
+        f = lambda a: MaybeMonad().map(fb, lambda b: (a, b))
+        return MaybeMonad().flat_map(fa, f)
 
 __all__ = ('MaybeInstances',)
