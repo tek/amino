@@ -135,6 +135,13 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
     def as_string(self):
         return self._callback.as_string
 
+    def join_maybe(self, err):
+        return self.flat_map(lambda a: Task.from_maybe(a, err))
+
+    @property
+    def join_either(self):
+        return self.flat_map(Task.from_either)
+
 
 def Try(f: Callable[..., A], *a, **kw) -> Either[Exception, A]:
     return Task.call(f, *a, **kw).attempt()
