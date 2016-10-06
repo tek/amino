@@ -11,7 +11,7 @@ class EffSpec(Spec):
     @property
     def _r(self):
         a, b = random.randint(0, 10), random.randint(0, 10)
-        return a, b if a != b else self._r
+        return (a, b) if a != b else self._r
 
     def eff_map(self):
         a, b = self._r
