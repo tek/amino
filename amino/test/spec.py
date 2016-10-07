@@ -1,8 +1,11 @@
 import os
 import time
 import shutil
+import inspect
 import warnings
+import traceback
 from datetime import datetime
+from functools import wraps
 
 import spec
 
@@ -10,7 +13,7 @@ import amino
 from amino.logging import amino_stdout_logging, Logging
 from amino.test.sure_ext import install_assertion_builder, AssBuilder
 from amino.test import path
-from amino.task import Task
+from amino import Path, List
 
 
 default_timeout = 20 if 'TRAVIS' in os.environ else 3
@@ -63,4 +66,38 @@ class IntegrationSpec(Spec):
         amino.integration_test = True
         super().setup()
 
-__all__ = ('Spec', 'IntegrationSpec')
+
+def profiled(sort='time'):
+    fname = 'prof'
+    def dec(f):
+        import cProfile
+        import pstats
+        @wraps(f)
+        def wrap(*a, **kw):
+            cProfile.runctx('f(*a, **kw)', dict(), dict(f=f, a=a, kw=kw),
+                            filename=fname)
+            stats = pstats.Stats(fname)
+            stats.sort_stats(sort).print_stats(30)
+            Path(fname).unlink()
+        return wrap
+    return dec
+
+
+def callers(limit=20):
+    stack = (List.wrap(inspect.stack())
+             .filter_not(lambda a: 'amino' in a.filename))
+    data = stack[:limit] / (lambda a: a[1:-2] + tuple(a[-2]))
+    return ''.join(traceback.format_list(data))
+
+
+def timed(f):
+    def wrap(*a, **kw):
+        import time
+        start = time.time()
+        v = f(*a, **kw)
+        from ribosome.logging import log
+        log.info('{}: {}'.format(f.__name__, time.time() - start))
+        return v
+    return wrap
+
+__all__ = ('Spec', 'IntegrationSpec', 'profiled', 'later', 'timed')
