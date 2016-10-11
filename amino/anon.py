@@ -16,7 +16,7 @@ def lambda_str(f):
     elif isinstance(f, str):
         return f
     else:
-        return repr(f)
+        return str(f)
 
 
 def format_funcall(fun, args, kwargs):

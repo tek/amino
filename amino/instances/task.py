@@ -22,15 +22,16 @@ class TaskInstances(ImplicitInstances):
 class TaskMonad(Monad):
 
     def pure(self, a: A):
-        return Task(lambda: a, as_string=Just(a))
+        return Task.now(a)
 
     def flat_map(self, fa: Task[A], f: Callable[[A], Task[B]]) -> Task[B]:
-        s = '{}.flat_map({})'.format(fa.as_string, lambda_str(f))
-        return Task(lambda: f(fa.run()).run(), Just(s))
+        return fa.flat_map(f)
 
     def map(self, fa: Task[A], f: Callable[[A], B]) -> Task[B]:
         s = '{}.map({})'.format(fa.as_string, lambda_str(f))
-        return Task(lambda: f(fa.run()), Just(s))
+        def map(a):
+            return Task.now(f(a))
+        return fa.flat_map(map)
 
 
 __all__ = ('TaskInstances',)

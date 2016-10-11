@@ -15,8 +15,13 @@ class F(fn.F):
 
     @property
     def name(self):
-        f = self.f.func if self._is_partial else self.f
-        return f.__name__
+        from amino.anon import AnonCallable
+        f = (
+            self.f.func
+            if isinstance(self.f.func, AnonCallable) else
+            self.f.func.__name__
+        ) if self._is_partial else self.f.__name__
+        return str(f)
 
     @property
     def _is_partial(self):

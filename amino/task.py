@@ -1,11 +1,16 @@
+import abc
+import time
 import traceback
 import inspect
 from typing import Callable, TypeVar, Generic, Any
 
+from fn.recur import tco
+
 from amino import Either, Right, Left, Maybe, List, Empty, __, Just, env, _
 from amino.tc.base import Implicits, ImplicitsMeta
-from amino.anon import format_funcall
+from amino.anon import format_funcall, lambda_str, L
 from amino.logging import log
+from amino.func import F
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -53,43 +58,29 @@ class TaskMeta(ImplicitsMeta):
         return Task.now(None)
 
 
-class TaskCallback:
-
-    @staticmethod
-    def _get_stack():
-        return inspect.stack()
-
-    def __init__(self, f: Callable, as_string=Empty()) -> None:
-        self.f = f
-        self.stack = TaskCallback._get_stack() if Task.record_stack else []
-        # if `f` is not wrapped in lambda, get_or_else will call it
-        self.as_string = str(as_string | (lambda: f))
-
-    def run(self):
-        try:
-            return self.f()
-        except TaskException as e:
-            raise e
-        except Exception as e:
-            raise TaskException(self.as_string, self.stack, e)
-
-
 class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
-    record_stack = 'AMINO_RECORD_STACK' in env
+    debug = 'AMINO_TASK_DEBUG' in env
     stack_only_location = True
 
+    def __init__(self) -> None:
+        self.stack = inspect.stack() if Task.debug else []
+
     @staticmethod
-    def call(f: Callable[..., A], *a, **kw):
+    def suspend(f: Callable[..., A], *a, **kw):
         try:
             s = format_funcall(f, a, kw)
         except Exception as e:
             s = str(f)
             log.error(e)
-        return Task(lambda: f(*a, **kw), as_string=Just(s))
+        return Suspend(F(f, *a, **kw) >> Now, s)
+
+    @staticmethod
+    def call(f: Callable[..., A], *a, **kw):
+        return Task.suspend(f, *a, **kw)
 
     @staticmethod
     def now(a: A) -> 'Task[A]':
-        return Task(lambda: a, as_string=Just(repr(a)))
+        return Now(a)
 
     @staticmethod
     def just(a: A) -> 'Task[Maybe[A]]':
@@ -99,7 +90,7 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
     def failed(err: str) -> 'Task[A]':
         def fail():
             raise Exception(err)
-        return Task(fail)
+        return Task.suspend(fail)
 
     @staticmethod
     def from_either(a: Either[Any, A]) -> 'Task[A]':
@@ -109,11 +100,53 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
     def from_maybe(a: Maybe[A], error: str) -> 'Task[A]':
         return a / Task.now | Task.failed(error)
 
-    def __init__(self, f: Callable[[], A], as_string=Empty()) -> None:
-        self._callback = TaskCallback(f, as_string)
-
     def run(self):
-        return self._callback.run()
+        @tco
+        def run(t):
+            if isinstance(t, Now):
+                return True, (t.value,)
+            elif isinstance(t, Task):
+                return True, (t.step,)
+            else:
+                return False, t
+        return run(self)
+
+    @property
+    def _name(self):
+        return self.__class__.__name__
+
+    def flat_map(self, f: Callable[[A], 'Task[B]'], as_string=Empty()
+                 ) -> 'Task[B]':
+        s = (as_string |
+             (lambda: '{}.flat_map({})'.format(self.as_string, lambda_str(f))))
+        return self._flat_map(f, s)
+
+    @abc.abstractmethod
+    def _flat_map(self, f: Callable[[A], 'Task[B]'], as_string) -> 'Task[B]':
+        ...
+
+    @property
+    def step(self):
+        try:
+            return self._step_timed if Task.debug else self._step
+        except TaskException as e:
+            raise e
+        except Exception as e:
+            raise TaskException(self.as_string, self.stack, e)
+
+    @property
+    def _step_timed(self):
+        start = time.time()
+        v = self._step
+        dur = time.time() - start
+        if dur > 0.1:
+            self.log.ddebug('task {} took {:.4f}s'.format(
+                self.as_string, dur))
+        return v
+
+    @abc.abstractproperty
+    def _step(self):
+        ...
 
     def __repr__(self):
         return 'Task({})'.format(self._callback.as_string)
@@ -131,10 +164,6 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
 
     __add__ = and_then
 
-    @property
-    def as_string(self):
-        return self._callback.as_string
-
     def join_maybe(self, err):
         return self.flat_map(lambda a: Task.from_maybe(a, err))
 
@@ -143,13 +172,71 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
         return self.flat_map(Task.from_either)
 
 
+class Suspend(Generic[A], Task[A]):
+
+    def __init__(self, thunk: Callable, as_string) -> None:
+        super().__init__()
+        self.thunk = thunk
+        self.as_string = as_string
+
+    @property
+    def _step(self):
+        return self.thunk()
+
+    def __str__(self):
+        return '{}({})'.format(self._name, self.as_string)
+
+    def _flat_map(self, f: Callable[[A], 'Task[B]'], as_string) -> 'Task[B]':
+        return BindSuspend(self.thunk, f, as_string)
+
+
+class BindSuspend(Generic[A], Task[A]):
+
+    def __init__(self, thunk, f: Callable, as_string) -> None:
+        super().__init__()
+        self.thunk = thunk
+        self.f = f
+        self.as_string = as_string
+
+    @property
+    def _step(self):
+        return self.thunk().flat_map(self.f, as_string=Just(self.as_string))
+
+    def __str__(self):
+        return '{}({})'.format(self._name, self.as_string)
+
+    def _flat_map(self, f: Callable[[A], 'Task[B]'], as_string) -> 'Task[B]':
+        bs = L(BindSuspend)(self.thunk, L(self.f)(_).flat_map(f,
+                                                              Just(as_string)),
+                            as_string)
+        return Suspend(bs, as_string)
+
+
+class Now(Generic[A], Task[A]):
+
+    def __init__(self, value) -> None:
+        super().__init__()
+        self.value = value
+        self.as_string = str(self)
+
+    @property
+    def _step(self):
+        return self
+
+    def __str__(self):
+        return '{}({})'.format(self._name, self.value)
+
+    def _flat_map(self, f: Callable[[A], 'Task[B]'], as_string) -> 'Task[B]':
+        return Suspend(F(f, self.value), as_string)
+
+
 def Try(f: Callable[..., A], *a, **kw) -> Either[Exception, A]:
-    return Task.call(f, *a, **kw).attempt()
+    return Task.suspend(f, *a, **kw).attempt()
 
 
 def task(fun):
     def dec(*a, **kw):
-        return Task.call(fun, *a, **kw)
+        return Task.suspend(fun, *a, **kw)
     return dec
 
 __all__ = ('Task', 'Try', 'task')
