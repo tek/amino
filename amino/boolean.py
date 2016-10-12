@@ -62,6 +62,15 @@ class Boolean(object):
 
     __repr__ = __str__
 
+    def __eq__(self, other):
+        return (
+            self.value == other
+            if isinstance(other, bool) else
+            self.value == other.value
+            if isinstance(other, Boolean) else
+            False
+        )
+
     @property
     def no(self):
         return Boolean(not self.value)
