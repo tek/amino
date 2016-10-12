@@ -69,7 +69,11 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         return List.wrap(data.splitlines())
 
     def lift(self, index: int) -> 'maybe.Maybe[A]':
-        return maybe.Maybe.from_call(self.__getitem__, index, exc=IndexError)
+        return (
+            (maybe.Just(self[index]) if len(self) > index else maybe.Empty())
+            if index >= 0 else
+            (maybe.Just(self[index]) if len(self) >= -index else maybe.Empty())
+        )
 
     def lift_all(self, index, *indexes):
         def folder(z, n):
