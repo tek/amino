@@ -6,6 +6,7 @@ import warnings
 import traceback
 from datetime import datetime
 from functools import wraps
+from contextlib import contextmanager
 
 import spec
 
@@ -92,6 +93,7 @@ def callers(limit=20):
 
 
 def timed(f):
+    @wraps(f)
     def wrap(*a, **kw):
         import time
         start = time.time()
@@ -101,4 +103,14 @@ def timed(f):
         return v
     return wrap
 
-__all__ = ('Spec', 'IntegrationSpec', 'profiled', 'later', 'timed')
+
+@contextmanager
+def timer(name='timer'):
+    import time
+    start = time.time()
+    v = yield
+    from ribosome.logging import log
+    log.info('{}: {}'.format(name, time.time() - start))
+    return v
+
+__all__ = ('Spec', 'IntegrationSpec', 'profiled', 'later', 'timed', 'timer')
