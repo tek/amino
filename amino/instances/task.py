@@ -1,6 +1,6 @@
 from typing import Callable, TypeVar
 
-from amino import Just
+from amino import Just, L, _, Empty
 from amino.tc.monad import Monad
 from amino.tc.base import ImplicitInstances
 from amino.lazy import lazy
@@ -28,10 +28,8 @@ class TaskMonad(Monad):
         return fa.flat_map(f)
 
     def map(self, fa: Task[A], f: Callable[[A], B]) -> Task[B]:
-        s = '{}.map({})'.format(fa.as_string, lambda_str(f))
-        def map(a):
-            return Task.now(f(a))
-        return fa.flat_map(map)
-
+        s = 'map({})'.format(lambda_str(f))
+        mapper = L(f)(_) >> L(Task.now)(_)
+        return fa.flat_map(mapper, Empty(), Just(s))
 
 __all__ = ('TaskInstances',)

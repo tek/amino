@@ -10,18 +10,28 @@ from amino import Either, Right, Left, Maybe, List, Empty, __, Just, env, _
 from amino.tc.base import Implicits, ImplicitsMeta
 from amino.anon import format_funcall, lambda_str, L
 from amino.logging import log
-from amino.func import F
 
 A = TypeVar('A')
 B = TypeVar('B')
 
 
 class TaskException(Exception):
+    remove_pkgs = List('amino', 'fn')
 
     def __init__(self, f, stack, cause) -> None:
         self.f = f
         self.stack = List.wrap(stack)
         self.cause = cause
+
+    @property
+    def location(self):
+        files = List('task', 'anon', 'instances/task', 'tc/base')
+        def filt(entry, name):
+            return entry.filename.endswith('/amino/{}.py'.format(name))
+        stack = self.stack.filter_not(lambda a: files.exists(L(filt)(a, _)))
+        pred = (lambda a: not TaskException.remove_pkgs
+                .exists(lambda b: '/{}/'.format(b) in a.filename))
+        return stack.find(pred)
 
     @property
     def format_stack(self):
@@ -33,11 +43,8 @@ class TaskException(Exception):
         def remove_internal():
             start = rev.index_where(_.function == 'unsafe_perform_sync')
             return start / remove_recursion | rev
-        def find_loc():
-            return (self.stack
-                    .find(lambda a: '/amino/' not in a.filename)
-                    .to_list)
-        frames = find_loc() if Task.stack_only_location else remove_internal()
+        frames = (self.location.to_list if Task.stack_only_location else
+                  remove_internal())
         data = frames / (lambda a: a[1:-2] + tuple(a[-2]))
         return ''.join(traceback.format_list(list(data)))
 
@@ -66,17 +73,26 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
         self.stack = inspect.stack() if Task.debug else []
 
     @staticmethod
-    def suspend(f: Callable[..., A], *a, **kw):
+    def delay(f: Callable[..., A], *a, **kw):
         try:
             s = format_funcall(f, a, kw)
         except Exception as e:
             s = str(f)
             log.error(e)
-        return Suspend(F(f, *a, **kw) >> Now, s)
+        return Suspend(L(f)(*a, **kw) >> Now, s)
+
+    @staticmethod
+    def suspend(f: Callable[..., 'Task[A]'], *a, **kw):
+        try:
+            s = format_funcall(f, a, kw)
+        except Exception as e:
+            s = str(f)
+            log.error(e)
+        return Suspend(L(f)(*a, **kw), s)
 
     @staticmethod
     def call(f: Callable[..., A], *a, **kw):
-        return Task.suspend(f, *a, **kw)
+        return Task.delay(f, *a, **kw)
 
     @staticmethod
     def now(a: A) -> 'Task[A]':
@@ -106,7 +122,7 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
             if isinstance(t, Now):
                 return True, (t.value,)
             elif isinstance(t, Task):
-                return True, (t.step,)
+                return True, (t.step(),)
             else:
                 return False, t
         return run(self)
@@ -115,41 +131,38 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
     def _name(self):
         return self.__class__.__name__
 
-    def flat_map(self, f: Callable[[A], 'Task[B]'], as_string=Empty()
+    def flat_map(self, f: Callable[[A], 'Task[B]'], ts=Empty(), fs=Empty()
                  ) -> 'Task[B]':
-        s = (as_string |
-             (lambda: '{}.flat_map({})'.format(self.as_string, lambda_str(f))))
-        return self._flat_map(f, s)
+        ts = ts | (lambda: self.string)
+        fs = fs | (lambda: 'flat_map({})'.format(lambda_str(f)))
+        return self._flat_map(f, ts, fs)
 
     @abc.abstractmethod
-    def _flat_map(self, f: Callable[[A], 'Task[B]'], as_string) -> 'Task[B]':
+    def _flat_map(self, f: Callable[[A], 'Task[B]'], ts, fs) -> 'Task[B]':
         ...
 
-    @property
     def step(self):
         try:
-            return self._step_timed if Task.debug else self._step
+            return self._step_timed() if Task.debug else self._step()
         except TaskException as e:
             raise e
         except Exception as e:
-            raise TaskException(self.as_string, self.stack, e)
+            raise TaskException(self.string, self.stack, e)
 
-    @property
-    def _step_timed(self):
-        start = time.time()
-        v = self._step
-        dur = time.time() - start
-        if dur > 0.1:
-            self.log.ddebug('task {} took {:.4f}s'.format(
-                self.as_string, dur))
-        return v
-
-    @abc.abstractproperty
+    @abc.abstractmethod
     def _step(self):
         ...
 
+    def _step_timed(self):
+        start = time.time()
+        v = self._step()
+        dur = time.time() - start
+        if dur > 0.1:
+            self.log.ddebug('task {} took {:.4f}s'.format(self.string, dur))
+        return v
+
     def __repr__(self):
-        return 'Task({})'.format(self._callback.as_string)
+        return 'Task({})'.format(self.string)
 
     def attempt(self) -> Either[Exception, A]:
         try:
@@ -171,45 +184,60 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
     def join_either(self):
         return self.flat_map(Task.from_either)
 
+    def with_string(self, s):
+        self.string = s
+        return self
+
+    def with_stack(self, s):
+        self.stack = s
+        return self
+
 
 class Suspend(Generic[A], Task[A]):
 
-    def __init__(self, thunk: Callable, as_string) -> None:
+    def __init__(self, thunk: Callable, string) -> None:
         super().__init__()
         self.thunk = thunk
-        self.as_string = as_string
+        self.string = string
 
-    @property
     def _step(self):
-        return self.thunk()
+        return self.thunk().with_stack(self.stack)
 
     def __str__(self):
-        return '{}({})'.format(self._name, self.as_string)
+        return '{}({})'.format(self._name, self.string)
 
-    def _flat_map(self, f: Callable[[A], 'Task[B]'], as_string) -> 'Task[B]':
-        return BindSuspend(self.thunk, f, as_string)
+    def _flat_map(self, f: Callable[[A], 'Task[B]'], ts, fs) -> 'Task[B]':
+        return BindSuspend(self.thunk, f, ts, fs)
 
 
 class BindSuspend(Generic[A], Task[A]):
 
-    def __init__(self, thunk, f: Callable, as_string) -> None:
+    def __init__(self, thunk, f: Callable, ts, fs) -> None:
         super().__init__()
         self.thunk = thunk
         self.f = f
-        self.as_string = as_string
+        self.ts = ts
+        self.fs = fs
 
-    @property
     def _step(self):
-        return self.thunk().flat_map(self.f, as_string=Just(self.as_string))
+        return (
+            self.thunk()
+            .flat_map(self.f, fs=Just(self.fs))
+            .with_stack(self.stack)
+        )
 
     def __str__(self):
-        return '{}({})'.format(self._name, self.as_string)
+        return '{}({})'.format(self._name, self.string)
 
-    def _flat_map(self, f: Callable[[A], 'Task[B]'], as_string) -> 'Task[B]':
-        bs = L(BindSuspend)(self.thunk, L(self.f)(_).flat_map(f,
-                                                              Just(as_string)),
-                            as_string)
-        return Suspend(bs, as_string)
+    def _flat_map(self, f: Callable[[A], 'Task[B]'], ts, fs) -> 'Task[B]':
+        bs = L(BindSuspend)(self.thunk,
+                            L(self.f)(_).flat_map(f, Just(ts), Just(fs)), ts,
+                            fs)
+        return Suspend(bs, '{}.{}'.format(ts, fs))
+
+    @property
+    def string(self):
+        return '{}.{}'.format(self.ts, self.fs)
 
 
 class Now(Generic[A], Task[A]):
@@ -217,26 +245,33 @@ class Now(Generic[A], Task[A]):
     def __init__(self, value) -> None:
         super().__init__()
         self.value = value
-        self.as_string = str(self)
+        self.string = str(self)
 
-    @property
     def _step(self):
         return self
 
     def __str__(self):
         return '{}({})'.format(self._name, self.value)
 
-    def _flat_map(self, f: Callable[[A], 'Task[B]'], as_string) -> 'Task[B]':
-        return Suspend(F(f, self.value), as_string)
+    def _flat_map(self, f: Callable[[A], 'Task[B]'], ts, fs) -> 'Task[B]':
+        return Suspend(L(f)(self.value), '{}.{}'.format(ts, fs))
+
+    @property
+    def ts(self):
+        return 'Task'
+
+    @property
+    def fs(self):
+        return 'now({})'.format(self.value)
 
 
 def Try(f: Callable[..., A], *a, **kw) -> Either[Exception, A]:
-    return Task.suspend(f, *a, **kw).attempt()
+    return Task.delay(f, *a, **kw).attempt()
 
 
 def task(fun):
     def dec(*a, **kw):
-        return Task.suspend(fun, *a, **kw)
+        return Task.delay(fun, *a, **kw)
     return dec
 
 __all__ = ('Task', 'Try', 'task')
