@@ -19,7 +19,8 @@ from amino import Path, List
 default_timeout = 20 if 'TRAVIS' in os.environ else 3
 
 
-def later(ass, *a, timeout=default_timeout, intval=0.1, **kw):
+def later(ass, *a, timeout=None, intval=0.1, **kw):
+    timeout = default_timeout if timeout is None else timeout
     start = datetime.now()
     ok = False
     while not ok and (datetime.now() - start).total_seconds() < timeout:
