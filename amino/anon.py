@@ -1,5 +1,8 @@
-from types import FunctionType, MethodType
+import abc
 import operator
+from types import FunctionType, MethodType
+
+from toolz import merge
 
 from amino import List, Boolean
 
@@ -27,16 +30,48 @@ def format_funcall(fun, args, kwargs):
     return '{}({})'.format(lambda_str(fun), args_fmt)
 
 
-class AnonCallable:
+class Anon(metaclass=abc.ABCMeta):
 
-    def __call_as_pre__(self, obj, a):
+    @abc.abstractmethod
+    def __call__(self, *a, **kw):
+        ...
+
+
+class AnonCallable(Anon):
+
+    @abc.abstractmethod
+    def __call_as_pre__(self, *a, **kw):
+        ...
+
+    @abc.abstractproperty
+    def __name__(self):
+        ...
+
+
+class AnonAttr(Anon):
+
+    @abc.abstractmethod
+    def __substitute_object__(self, obj):
+        ...
+
+
+class AnonMemberCallable(AnonCallable, AnonAttr):
+    _call_as_pre_error = 'must pass object to {}'
+
+    def __call_as_pre__(self, *a, **kw):
+        def err():
+            raise AnonError(self._call_as_pre_error.format(self))
+        obj, a2 = List.wrap(a).detach_head.get_or_else(err)
+        return self.__call_as_pre_member__(obj, a2)
+
+    def __call_as_pre_member__(self, obj, a):
         return self(obj), a
 
     def __call__(self, obj):
         return obj
 
 
-class AnonGetter(AnonCallable):
+class AnonGetter(AnonMemberCallable):
 
     def __init__(self, pre, name: str) -> None:
         self.__pre = pre
@@ -45,11 +80,11 @@ class AnonGetter(AnonCallable):
     def __repr__(self):
         return '{}.{}'.format(self.__pre, self.__name)
 
-    def __call_as_pre__(self, obj, a):
+    def __call_as_pre_member__(self, obj, a):
         return self.__call(obj, a)
 
     def __call_pre(self, obj, a):
-        pre, rest = self.__pre.__call_as_pre__(obj, a)
+        pre, rest = self.__pre.__call_as_pre__(obj, *a)
         if not hasattr(pre, self.__name):
             raise AttributeError('{!r} has no method \'{}\' -> {!r}'.format(
                 pre, self.__name, self))
@@ -69,15 +104,23 @@ class AnonGetter(AnonCallable):
     def __dispatch__(self, obj, a):
         return obj, a
 
+    @property
+    def __name__(self):
+        return self.__name
+
+    def __substitute_object__(self, obj):
+        return self.__pre(obj)
+
 
 class HasArgs:
 
     def __substitute__(self, params, args):
         def go(z, arg):
             def transform(value):
-                return arg(value) if isinstance(arg, AnonCallable) else value
+                return (arg.__substitute_object__(value)
+                        if isinstance(arg, AnonAttr) else value)
             def try_sub(new, rest):
-                is_lambda = Boolean(arg is _ or isinstance(arg, AnonCallable))
+                is_lambda = Boolean(arg is _ or isinstance(arg, AnonAttr))
                 return is_lambda.m(lambda: (transform(new), rest))
             r, a = z
             new, rest = a.detach_head.flat_map2(try_sub) | (arg, a)
@@ -112,8 +155,11 @@ class AnonFunc(AnonGetter, HasArgs):
     def __getitem__(self, key):
         return AnonFunc(self, '__getitem__', [key], {})
 
+    def __substitute_object__(self, obj):
+        return self(obj)
 
-class MethodRef:
+
+class MethodRef(AnonAttr):
 
     def __init__(self, pre: AnonFunc, name: str) -> None:
         self.__pre = pre
@@ -129,11 +175,25 @@ class MethodRef:
     def __repr__(self):
         return '__.{}'.format(self.__name)
 
+    @property
+    def __name__(self):
+        return self.__name
 
-class IdAnonFunc(AnonCallable):
+    def __substitute_object__(self, obj):
+        return getattr(obj, self.__name)
+
+
+class IdAnonFunc(AnonMemberCallable):
 
     def __repr__(self):
         return '__'
+
+    @property
+    def __name__(self):
+        return repr(self)
+
+    def __substitute_object__(self, obj):
+        return L(self)
 
 
 class AnonCall(AnonFunc):
@@ -160,7 +220,29 @@ class MethodLambda:
 __ = MethodLambda()
 
 
-class ComplexLambda(AnonCallable, HasArgs):
+class AnonFunctionCallable(AnonCallable):
+    pass
+
+
+class AnonChain(AnonFunctionCallable):
+
+    def __init__(self, pre, post) -> None:
+        self.__pre = pre
+        self.__post = post
+
+    def __call__(self, *a, **kw):
+        result, rest = self.__pre.__call_as_pre__(*a, **kw)
+        return self.__post(result, *rest, **kw)
+
+    def __call_as_pre__(self, *a, **kw):
+        result, rest = self.__pre.__call_as_pre__(*a, **kw)
+        return self.__post.__call_as_pre__(*rest, **kw)
+
+    def __str__(self):
+        return '({} >> {})'.format(self.__pre, self.__post)
+
+
+class ComplexLambda(AnonFunctionCallable, HasArgs):
 
     def __init__(self, func, *a, **kw) -> None:
         assert callable(func), 'ComplexLambda: {} is not callable'.format(func)
@@ -169,18 +251,51 @@ class ComplexLambda(AnonCallable, HasArgs):
         self.__kwargs = kw
 
     def __call__(self, *a, **kw):
+        result, rest = self.__call(List.wrap(a), kw)
+        if not rest.empty:
+            msg = 'extraneous arguments to {}: {}'
+            raise AnonError(msg.format(self, rest.mk_string(',')))
+        return result
+
+    def __call(self, a, kw):
         sub_a, rest = self.__substitute__(self.__args, List.wrap(a))
-        return self.__func(*sub_a, **kw)
+        sub_kw = merge(self.__kwargs, kw)
+        return self.__func(*sub_a, **sub_kw), rest
+
+    def __call_as_pre__(self, *a, **kw):
+        return self.__call(a, kw)
 
     def __getattr__(self, name):
         return MethodRef(self, name)
 
     @property
     def __name(self):
-        return getattr(self.__func, '__name__', str(self.__func))
+        return (
+            str(self.__func)
+            if isinstance(self.__func, AnonCallable) else
+            getattr(self.__func, '__name__', str(self.__func))
+        )
 
-    def __repr__(self):
-        return format_funcall(self.__name, self.__args, self.__kwargs)
+    def __str__(self):
+        name = 'L({})'.format(self.__name)
+        return format_funcall(name, self.__args, self.__kwargs)
+
+    def __rshift__(self, f):
+        return AnonChain(self, f)
+
+    @property
+    def __name__(self):
+        return self.__func.__name__
+
+
+class LazyMethod(Anon):
+
+    def __init__(self, obj, attr: MethodRef) -> None:
+        self.__obj = obj
+        self.__attr = attr
+
+    def __call__(self, *a, **kw):
+        return self.__attr(*a, **kw)(self.__obj)
 
 
 class L:
@@ -190,6 +305,9 @@ class L:
 
     def __call__(self, *a, **kw):
         return ComplexLambda(self.__func, *a, **kw)
+
+    def __getattr__(self, name):
+        return L(LazyMethod(self.__func, MethodRef(IdAnonFunc(), name)))
 
 
 def lambda_op(op, s):
@@ -279,6 +397,9 @@ class AttrLambda(Opers, AnonGetter, AnonCallable):
 
     def __repr__(self):
         return '{}.{}'.format(self._AnonGetter__pre, self._AnonGetter__name)
+
+    def __substitute_object__(self, obj):
+        return self(obj)
 
 
 class OperatorLambda(AttrLambda):

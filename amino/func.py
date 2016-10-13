@@ -27,7 +27,7 @@ class F(fn.F):
     def _is_partial(self):
         return isinstance(self.f, partial)
 
-    def __repr__(self):
+    def __str__(self):
         from amino.anon import format_funcall
         rep = (format_funcall(self.name, self.f.args, self.f.keywords)
                if self._is_partial
@@ -57,10 +57,22 @@ class Identity:
     def __call__(self, a):
         return a
 
-    def __repr__(self):
-        return 'a => a'
+    def __str__(self):
+        return '(a => a)'
 
 I = Identity()
+
+
+class Val:
+
+    def __init__(self, value) -> None:
+        self.value = value
+
+    def __call__(self):
+        return self.value
+
+    def __str__(self):
+        return '{}({})'.format(self.__class__.__name__, self.value)
 
 
 def flip(a, b):
@@ -72,4 +84,4 @@ CallByName = Union[Any, Callable[[], Any]]
 def call_by_name(b: CallByName):
     return b() if callable(b) else b  # type: ignore
 
-__all__ = ('curried', 'F', 'I', 'flip', 'call_by_name')
+__all__ = ('curried', 'F', 'I', 'flip', 'call_by_name', 'Val')

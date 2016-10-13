@@ -1,4 +1,4 @@
-from amino import __, Just, List
+from amino import __, Just, List, I, Try
 from amino.test import Spec
 from amino.anon import L, _, AnonError
 
@@ -65,8 +65,8 @@ class AnonSpec(Spec):
         v3 = 47
         v4 = 83
         f = lambda a, b, c, d: b * d
-        res = Just((v1, v2)).map2(L(f)(2, __.plus(v3), 4, _ + v4))
-        res.should.contain((v1.a + v3) * (v2 + v4))
+        l = L(f)(2, __.plus(v3), 4, _ + v4)
+        l(v1, v2).should.equal((v1.a + v3) * (v2 + v4))
 
     def attr_lambda(self):
         a = _Att()
@@ -121,9 +121,33 @@ class AnonSpec(Spec):
         target = (v3 * v4 + v1) * (v2 + v5 + v3 + v6)
         f(a, v4, v5, v6).should.equal(target)
 
+    def lambda_arg_method_ref(self):
+        values = List.range(5) / str
+        s = values.mk_string(',')
+        l = L(Try)(__.split, ',')
+        (l(s) / List.wrap).should.contain(values)
+
     def bad_param_count(self):
         f = __.map(_).map(_)
         args = List(1), lambda a: a, lambda a: a, 5
         f.when.called_with(*args).should.throw(AnonError)
+
+    def shift(self):
+        f = _ + 1
+        g = _ + 2
+        l = L(f)(1) >> L(g)(_)
+        l().should.equal(4)
+
+    def nest_method_lambda_shift(self):
+        class A(object):
+            def run(self):
+                pass
+        l = L(__.run())(_) >> L(I)(_)
+        l(A()).should.be.none
+
+    def lazy_method(self):
+        values = List.range(5) / str
+        s = values.mk_string(',')
+        L(s).split(',')().should.equal(values)
 
 __all__ = ('AnonSpec',)

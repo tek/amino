@@ -1,8 +1,9 @@
-import abc
 import re
+import abc
 from typing import Callable, Iterable, TypeVar
+from functools import partial
 
-import amino.func
+import amino  # NOQA
 from amino.tc.apply import Apply
 from amino import I
 from amino.tc.base import tc_prop
@@ -17,20 +18,23 @@ class FlatMap(Apply):
     _product_re = re.compile('^product(\d+)$')
 
     def ap(self, fa: F, ff: F):
-        return self.flat_map(ff, lambda f: self.map(fa, f))
+        f = lambda f: self.map(fa, f)
+        return self.flat_map(ff, f)
 
     @abc.abstractmethod
     def flat_map(self, fa: F, f: Callable[[A], F]) -> F:
         ...
 
     def flat_smap(self, fa: F, f: Callable[..., F]) -> F:
-        return self.flat_map(fa, lambda v: f(*v))
+        g = lambda v: f(*v)
+        return self.flat_map(fa, g)
 
     def __floordiv__(self, fa, f):
         return self.flat_map(fa, f)
 
     def product(self, fa: F, fb: F) -> F:
-        return self.flat_map(fa, lambda a: self.map(fb, lambda b: (a, b)))
+        f = lambda a: self.map(fb, lambda b: (a, b))
+        return self.flat_map(fa, f)
 
     __and__ = product
 
@@ -38,9 +42,9 @@ class FlatMap(Apply):
         flat_map = self._flat_map_re.match(name)
         product = self._product_re.match(name)
         if flat_map is not None:
-            return amino.func.F(self.flat_map_n, int(flat_map.group(1)))
+            return partial(self.flat_map_n, int(flat_map.group(1)))
         elif product is not None:
-            return amino.func.F(self.product_n, int(product.group(1)))
+            return partial(self.product_n, int(product.group(1)))
         else:
             return super().__getattr__(name)
 
