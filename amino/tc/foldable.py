@@ -4,13 +4,12 @@ import operator
 
 from lenses import lens, Lens
 
-from fn import _
-
 from amino.tc.base import TypeClass
 from amino.tc.functor import Functor
 from amino.func import curried
 from amino.maybe import Maybe, Empty, Just
 from amino.boolean import Boolean
+from amino import _
 
 F = TypeVar('F')
 G = TypeVar('G')
@@ -49,7 +48,7 @@ class Foldable(Generic[F], TypeClass):
         ...
 
     def fold_map(self, fa: F, z: B, f: Callable[[A], B],
-                 g: Callable[[Z, B], Z]=_ + _) -> Z:
+                 g: Callable[[Z, B], Z]=operator.add) -> Z:
         ''' map `f` over the traversable, then fold over the result
         using the supplied initial element `z` and operation `g`,
         defaulting to addition for the latter.

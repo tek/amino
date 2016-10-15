@@ -7,8 +7,6 @@ from functools import reduce
 
 from toolz.itertoolz import cons
 
-from fn import _
-
 from amino import maybe, boolean
 from amino.logging import log
 from amino.tc.base import ImplicitsMeta, Implicits

@@ -1,7 +1,7 @@
 import abc
 from typing import Generic, Callable, Any, TypeVar
 
-from fn import F
+from amino import L
 
 A = TypeVar('A')
 
@@ -21,7 +21,7 @@ class Transformer(Generic[A], metaclass=abc.ABCMeta):
     __floordiv__ = flat_map
 
     def map(self, f: Callable[[A], Any]):
-        return self.flat_map(F(f) >> self.pure)
+        return self.flat_map(L(f)() >> self.pure)
 
     __truediv__ = map
 

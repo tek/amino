@@ -1,7 +1,7 @@
-from fn import _
+import operator
 
 from amino.either import Left, Right
-from amino import Empty, Just, Maybe, List, Either
+from amino import Empty, Just, Maybe, List, Either, _
 from amino.test import Spec
 
 
@@ -24,7 +24,7 @@ class EitherSpec(Spec):
     def ap2(self):
         a = 'a'
         b = 'b'
-        Right(a).ap2(Right(b), _ + _).should.equal(Right(a + b))
+        Right(a).ap2(Right(b), operator.add).should.equal(Right(a + b))
 
     def traverse(self):
         a = 'a'

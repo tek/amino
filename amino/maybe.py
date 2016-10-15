@@ -5,12 +5,9 @@ from operator import eq, is_not
 import inspect
 import traceback
 
-from fn.op import identity
-
-from amino.logging import log
 from amino import boolean
 from amino.tc.base import Implicits
-from amino.func import call_by_name
+from amino.func import call_by_name, I
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -34,6 +31,7 @@ class Maybe(Generic[A], Implicits, implicits=True):
             return Maybe.check(f(*args, **kwargs))
         except exc:
             if exc == Exception:
+                from amino.logging import log
                 frame = inspect.currentframe().f_back  # type: ignore
                 stack = traceback.format_stack(frame)
                 log.exception('Maybe.from_call:')
@@ -64,14 +62,14 @@ class Maybe(Generic[A], Implicits, implicits=True):
         return self.flat_map(l)
 
     def get_or_else(self, a: Union[A, Callable[[], A]]):
-        return self.cata(identity, a)
+        return self.cata(I, a)
 
     __or__ = get_or_else
 
     def get_or_raise(self, e: Exception):
         def raise_e():
             raise e
-        return self.cata(identity, raise_e)
+        return self.cata(I, raise_e)
 
     def get_or_fail(self, err):
         return self.get_or_raise(Exception(call_by_name(err)))
@@ -83,7 +81,7 @@ class Maybe(Generic[A], Implicits, implicits=True):
         self.cata(f, None)
 
     def error(self, f: Callable[[], Any]) -> 'Maybe[A]':
-        self.cata(identity, f)
+        self.cata(I, f)
         return self
 
     def observe(self, f: Callable[[A], Any]):
@@ -91,10 +89,6 @@ class Maybe(Generic[A], Implicits, implicits=True):
         return self
 
     effect = observe
-
-    def debug(self, prefix=None):
-        prefix = '' if prefix is None else prefix + ' '
-        self.observe(lambda a: log.debug(prefix + str(a)))
 
     def __iter__(self):
         return iter(self.to_list)

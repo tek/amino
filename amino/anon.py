@@ -287,6 +287,12 @@ class ComplexLambda(AnonFunctionCallable, HasArgs):
     def __name__(self):
         return self.__func.__name__
 
+    def __truediv__(self, other):
+        return self.map(other)
+
+    def __floordiv__(self, other):
+        return self.flat_map(other)
+
 
 class LazyMethod(Anon):
 

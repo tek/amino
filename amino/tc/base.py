@@ -4,8 +4,6 @@ from typing import Dict, Callable
 from typing import GenericMeta  # type: ignore
 from functools import partial, wraps
 
-from fn import _, F
-
 from amino.util.string import snake_case
 from amino.lazy import lazy
 from amino.tc.show import Show
@@ -221,7 +219,8 @@ class AllInstances(object):
         class @`C`.
         '''
         from amino.lazy_list import LazyList
-        match = F(self._lookup_type, TC)
+        from amino.anon import _, L
+        match = L(self._lookup_type)(TC, _)
         result = LazyList(map(match, G.__mro__))\
             .find(_.is_just)\
             .join\

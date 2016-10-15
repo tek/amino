@@ -1,8 +1,6 @@
-from fn import _
-
 from amino.test import Spec
 
-from amino import Map, Empty, Just
+from amino import Map, Empty, Just, _
 
 
 class MapSpec(Spec):

@@ -1,11 +1,6 @@
-import sure  # NOQA
-from flexmock import flexmock  # NOQA
-
-from fn import _
-
 from amino.test import Spec
 
-from amino import List, Empty, Just, Maybe
+from amino import List, Empty, Just, Maybe, _
 
 
 class ListSpec(Spec):

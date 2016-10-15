@@ -1,11 +1,10 @@
 import os
 import re
 import logging
+import operator
 from typing import Callable
 import sys
 from pathlib import Path
-
-from fn import F, _
 
 from amino.lazy import lazy
 
@@ -101,10 +100,10 @@ class Logging:
 
 
 def sub_loggers(loggers, root):
-    from amino import Map
-    children = loggers.keyfilter(F(re.match, '{}\.[^.]+$'.format(root)))
-    sub = (children.k / F(sub_loggers, loggers))\
-        .fold_left(Map())(_ ** _)
+    from amino import Map, _, L
+    children = loggers.keyfilter(L(re.match)('{}\.[^.]+$'.format(root), _))
+    sub = (children.k / L(sub_loggers)(loggers, _))\
+        .fold_left(Map())(operator.pow)
     return Map({loggers[root]: sub})
 
 
@@ -121,7 +120,8 @@ def indent(strings, level, width=1):
 
 
 def format_logger_tree(tree, fmt_logger, level=0):
-    sub_f = F(format_logger_tree, fmt_logger=fmt_logger, level=level + 1)
+    from amino import _, L
+    sub_f = L(format_logger_tree)(_, fmt_logger, level=level + 1)
     formatted = tree.bimap(fmt_logger, sub_f)
     return '\n'.join(indent(formatted.map2('{}\n{}'.format), level))
 

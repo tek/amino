@@ -1,8 +1,8 @@
-from fn import _
+import operator
 
 from amino.test import Spec
 
-from amino import Maybe, Empty, Just, F, Left, Right
+from amino import Maybe, Empty, Just, Left, Right, _, L
 from amino.tc.monad import Monad
 
 
@@ -24,7 +24,7 @@ class Maybe_(Spec):
         a = 'start'
         b = 'end'
         Maybe(a).flat_map(lambda v: Maybe(v + b)).should.contain(a + b)
-        f = F(Maybe) // (_ + b) >> Monad[Maybe].pure  # type: ignore
+        f = L(Maybe)(_).flat_map(lambda c: Monad[Maybe].pure(c + b))
         f(a).should.contain(a + b)
 
     def join(self):
@@ -75,8 +75,8 @@ class Maybe_(Spec):
         b = 13
         ja = Just(a)
         jb = Just(b)
-        ja.product(jb).smap(_ + _).should.contain(a + b)
-        ja.ap2(jb, _ + _).should.contain(a + b)
+        ja.product(jb).smap(operator.add).should.contain(a + b)
+        ja.ap2(jb, operator.add).should.contain(a + b)
 
     def optional(self):
         a = 'a'
