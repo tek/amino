@@ -41,7 +41,12 @@ def camelcaseify(name, sep='', splitter='_'):
 
 
 def safe_string(value):
-    from amino import Try
-    return Try(str, value).or_else(lambda: Try(repr, value)) | 'invalid'
+    try:
+        return str(value)
+    except Exception:
+        try:
+            return repr(value)
+        except Exception:
+            return 'invalid'
 
 __all__ = ('snake_case', 'decode', 'camelcaseify')
