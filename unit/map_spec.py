@@ -73,4 +73,9 @@ class MapSpec(Spec):
         res.should.have.key(k1).being.equal(v1)
         res.should_not.have.key(k2)
 
+    def bimap(self):
+        f = _ + 1
+        g = _ + 2
+        Map({1: 2}).bimap(f, g).should.equal(Map({2: 4}))
+
 __all__ = ('MapSpec')

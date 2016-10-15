@@ -94,7 +94,7 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
         return Map(filtered)
 
     def bimap(self, fa: Callable[[A], C], fb: Callable[[B], D]) -> 'Map[C, D]':
-        return self.map(lambda item: (fa(item[0]), fb(item[1])))
+        return self.map(lambda a, b: (fa(a), fb(b)))
 
     def map2(self, f: Callable[[A, B], C]) -> List[C]:
         return List.wrap([f(a, b) for a, b in self.items()])
