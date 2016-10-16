@@ -55,6 +55,7 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
 
     @staticmethod
     def random_string(num: int=10):
+        from amino.anon import _
         chars = string.ascii_letters + string.digits
         return ''.join(random.choice(chars) for _ in range(num))
 
@@ -74,6 +75,7 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         )
 
     def lift_all(self, index, *indexes):
+        from amino.anon import _
         def folder(z, n):
             return n.ap(z / _.cat)
         els = List.wrap(indexes) / self.lift
@@ -144,6 +146,7 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     __add__ = add
 
     def without(self, el) -> 'List[A]':
+        from amino.anon import _
         return self.filter(_ != el)
 
     __sub__ = without
@@ -164,6 +167,7 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         return self
 
     def index_of(self, target: Any):
+        from amino.anon import _
         return self.index_where(_ == target)
 
     @property
