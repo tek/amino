@@ -27,6 +27,9 @@ class Boolean(object):
     def flat_maybe_call(self, f, *a, **kw):
         return f(*a, **kw) if self else maybe.Empty()
 
+    def flat_m(self, v):
+        return call_by_name(v) if self else maybe.Empty()
+
     def either(self, l, r):
         return self.either_call(l, lambda: r)
 
