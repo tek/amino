@@ -107,6 +107,10 @@ class Either(Generic[A, B], Implicits, implicits=True):
     def __iter__(self):
         return iter(self.to_list)
 
+    @property
+    def swap(self):
+        return Left(self.value) if self.is_right else Right(self.value)
+
 
 class Right(Either):
 
