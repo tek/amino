@@ -38,6 +38,15 @@ class Either(Generic[A, B], Implicits, implicits=True):
             .flat_map2(Either.import_name)
         )
 
+    @staticmethod
+    def import_module(modname):
+        try:
+            mod = importlib.import_module(modname)
+        except ImportError as e:
+            return Left(e)
+        else:
+            return Right(mod)
+
     @property
     def is_right(self):
         return boolean.Boolean(isinstance(self, Right))
