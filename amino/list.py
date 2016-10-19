@@ -136,9 +136,15 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         return self.last.product(self.init)
 
     @property
-    def distinct(self):
-        seen = set()
-        return List.wrap(x for x in self if x not in seen and not seen.add(x))
+    def distinct(self) -> 'List[A]':
+        return self.distinct_by(I)
+
+    def distinct_by(self, f: Callable[[A], bool]) -> 'List[A]':
+        seen = set()  # type: set
+        def pred(a):
+            v = f(a)
+            return v in seen or seen.add(v)
+        return List.wrap(x for x in self if not pred(x))
 
     def add(self, other: typing.List[A]) -> 'List[A]':
         return List.wrap(typing.List.__add__(self, other))
