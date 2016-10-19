@@ -159,7 +159,7 @@ class AnonFunc(AnonGetter, HasArgs):
         return self(obj)
 
 
-class MethodRef(AnonAttr):
+class MethodRef(AnonMemberCallable):
 
     def __init__(self, pre: AnonFunc, name: str) -> None:
         self.__pre = pre
@@ -181,6 +181,10 @@ class MethodRef(AnonAttr):
 
     def __substitute_object__(self, obj):
         return getattr(obj, self.__name)
+
+    def __call_as_pre_member__(self, obj, a):
+        pre, rest = self.__call_pre(obj, a)
+        return self.__dispatch__(getattr(pre, self.__name), rest)
 
 
 class IdAnonFunc(AnonMemberCallable):
@@ -276,7 +280,7 @@ class ComplexLambda(AnonFunctionCallable, HasArgs):
             getattr(self.__func, '__name__', str(self.__func))
         )
 
-    def __str__(self):
+    def __repr__(self):
         name = 'L({})'.format(self.__name)
         return format_funcall(name, self.__args, self.__kwargs)
 
@@ -302,6 +306,9 @@ class LazyMethod(Anon):
 
     def __call__(self, *a, **kw):
         return self.__attr(*a, **kw)(self.__obj)
+
+    def __getattr__(self, name):
+        return LazyMethod(self.__obj, getattr(self.__attr, name))
 
 
 class L:
