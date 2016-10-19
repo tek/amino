@@ -8,21 +8,21 @@ class TaskSpec(Spec):
     def sequence(self):
         f = lambda: 3
         t = List(Task.now(1), Task.now(2), Task.delay(f)).sequence(Task)
-        t.attempt().should.equal(Right(List(1, 2, 3)))
+        t.attempt.should.equal(Right(List(1, 2, 3)))
 
     def zip(self):
         t = Task.now(1) & Task.now(2)
-        t.attempt().should.equal(Right((1, 2)))
+        t.attempt.should.equal(Right((1, 2)))
 
     def trampoline(self):
         t = (List.range(1000).fold_left(Task.now(1))(
             lambda z, a: z.flat_map(Task.now, fs=Just('now'))))
-        t.attempt().should.contain(1)
+        t.attempt.should.contain(1)
 
     def now(self):
         v = 5
         t = Task.now(v)
-        t.attempt().should.contain(v)
+        t.attempt.should.contain(v)
 
     def delay(self):
         v = 13
@@ -42,7 +42,7 @@ class TaskSpec(Spec):
         v = 13
         w = 29
         t = Task.now(v).flat_map(L(Task.now)(_ + w))
-        t.attempt().should.contain(v + w)
+        t.attempt.should.contain(v + w)
 
     def flat_map_delay(self):
         v = 13
@@ -50,7 +50,7 @@ class TaskSpec(Spec):
         x = 17
         f = _ + x
         t = Task.delay(f, v).flat_map(L(Task.now)(_ + w))
-        t.attempt().should.contain(v + w + x)
+        t.attempt.should.contain(v + w + x)
 
     def flat_map_delay_2(self):
         v = 13
@@ -59,7 +59,7 @@ class TaskSpec(Spec):
         f = _ + w
         g = _ + x
         t = Task.delay(f, v).flat_map(lambda a: Task.delay(g, a))
-        t.attempt().should.contain(v + w + x)
+        t.attempt.should.contain(v + w + x)
 
     def flat_map_twice(self):
         v = 13
@@ -70,7 +70,7 @@ class TaskSpec(Spec):
             .flat_map(L(Task.now)(_ + w))
             .flat_map(L(Task.now)(_ + x))
         )
-        t.attempt().should.contain(v + w + x)
+        t.attempt.should.contain(v + w + x)
 
     def flat_map_thrice(self):
         v = 13
@@ -83,19 +83,19 @@ class TaskSpec(Spec):
             .flat_map(L(Task.now)(_ + x))
             .flat_map(L(Task.now)(_ + y))
         )
-        t.attempt().should.contain(v + w + x + y)
+        t.attempt.should.contain(v + w + x + y)
 
     def map(self):
         v = 13
         w = 29
         t = Task.now(v).map(_ + w)
-        t.attempt().should.contain(v + w)
+        t.attempt.should.contain(v + w)
 
     def and_then(self):
         v = 7
         f = lambda: v
         t = Task.now(1).and_then(Task.delay(f))
-        t.attempt().should.contain(v)
+        t.attempt.should.contain(v)
 
     def location(self):
         Task.debug = True
@@ -106,7 +106,7 @@ class TaskSpec(Spec):
         g = lambda a, b: Task.now(a + b)
         t = Task.delay(f, 1).flat_map(L(g)(_, 3))
         t2 = t.map(fail)
-        exc = t2.attempt().value
+        exc = t2.attempt.value
         code = (exc.location / _.code_context) | ''
         code[0].should.contain('t.map(fail)')
 

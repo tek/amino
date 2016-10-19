@@ -164,13 +164,15 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
     def __repr__(self):
         return 'Task({})'.format(self.string)
 
+    @property
     def attempt(self) -> Either[Exception, A]:
         try:
             return Right(self.run())
         except TaskException as e:
             return Left(e)
 
-    unsafe_perform_sync = attempt
+    def unsafe_perform_sync(self):
+        return self.attempt
 
     def and_then(self, nxt: 'Task[B]'):
         return self.flat_map(lambda a: nxt)
@@ -266,7 +268,7 @@ class Now(Generic[A], Task[A]):
 
 
 def Try(f: Callable[..., A], *a, **kw) -> Either[Exception, A]:
-    return Task.delay(f, *a, **kw).attempt()
+    return Task.delay(f, *a, **kw).attempt
 
 
 def task(fun):
