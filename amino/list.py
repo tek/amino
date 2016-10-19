@@ -193,6 +193,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def cat(self, item):
         return self + List(item)
 
+    def cat_m(self, item: maybe.Maybe):
+        return item / self.cat | self
+
     @property
     def transpose(self):
         return List.wrap(map(List.wrap, zip(*self)))
