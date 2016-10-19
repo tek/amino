@@ -187,6 +187,14 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def join_lines(self):
         return self.mk_string('\n')
 
+    @property
+    def join_comma(self):
+        return self.mk_string(', ')
+
+    @property
+    def join_tokens(self):
+        return self.mk_string(' ')
+
     def cons(self, item):
         return List.wrap(cons(item, self))
 
