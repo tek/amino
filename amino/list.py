@@ -202,7 +202,10 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         return self.filter_not(els.contains)
 
     def __repr__(self):
-        return 'List({})'.format(', '.join(map(safe_string, self)))
+        return 'List({})'.format(', '.join(map(repr, self)))
+
+    def __str__(self):
+        return '[{}]'.format(', '.join(map(safe_string, self)))
 
     def __hash__(self):
         return hash(tuple(self))

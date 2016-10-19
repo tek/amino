@@ -61,9 +61,10 @@ class Boolean(object):
         return self.value
 
     def __str__(self):
-        return '{}({})'.format(self.__class__.__name__, self.value)
+        return '⊤' if self.value else '⊥'
 
-    __repr__ = __str__
+    def __repr__(self):
+        return '{}({})'.format(self.__class__.__name__, self.value)
 
     def __eq__(self, other):
         return (
