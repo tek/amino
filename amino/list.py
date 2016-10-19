@@ -55,9 +55,8 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
 
     @staticmethod
     def random_string(num: int=10):
-        from amino.anon import _
         chars = string.ascii_letters + string.digits
-        return ''.join(random.choice(chars) for _ in range(num))
+        return ''.join(random.choice(chars) for i in range(num))
 
     @staticmethod
     def gen(num: int, f: Callable[[], A]):

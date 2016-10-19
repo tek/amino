@@ -150,4 +150,13 @@ class AnonSpec(Spec):
         s = values.mk_string(',')
         L(s).split(',')().should.equal(values)
 
+    def lazy_method_nested(self):
+        class A:
+            def __init__(self, a) -> None:
+                self.a = a
+        values = List.range(5) / str
+        s = values.mk_string(',')
+        a = A(A(A(s)))
+        L(a).a.a.a.split(',')().should.equal(values)
+
 __all__ = ('AnonSpec',)

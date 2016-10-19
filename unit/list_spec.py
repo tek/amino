@@ -53,6 +53,9 @@ class ListSpec(Spec):
             List(1, 3, 6, 9, 5, 7, 2)
         )
 
+    def distinct_by(self):
+        List(1, 2, 3, 4, 5, 4).distinct_by(_ % 2).should.equal(List(1, 2))
+
     def split(self):
         z = List(5, 2, 8, 2, 9, 4, 1, 7)
         l, r = z.split(_ >= 5)
