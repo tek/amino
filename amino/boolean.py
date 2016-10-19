@@ -79,4 +79,8 @@ class Boolean(object):
     def no(self):
         return Boolean(not self.value)
 
+    @property
+    def json(self):
+        return self.value
+
 __all__ = ('Boolean',)

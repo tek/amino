@@ -111,6 +111,10 @@ class Either(Generic[A, B], Implicits, implicits=True):
     def swap(self):
         return Left(self.value) if self.is_right else Right(self.value)
 
+    @property
+    def json(self):
+        return self.to_maybe.json
+
 
 class Right(Either):
 

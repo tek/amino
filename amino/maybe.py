@@ -127,6 +127,10 @@ class Maybe(Generic[A], Implicits, implicits=True):
     def contains_coro(self):
         return self.exists(inspect.iscoroutine)
 
+    @property
+    def json(self):
+        return self.cata(I, lambda: None)
+
 
 class Just(Maybe):
 
