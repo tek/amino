@@ -175,7 +175,8 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
         return self.attempt
 
     def and_then(self, nxt: 'Task[B]'):
-        return self.flat_map(lambda a: nxt)
+        fs = 'and_then({})'.format(nxt.string)
+        return self.flat_map(lambda a: nxt, fs=Just(fs))
 
     __add__ = and_then
 
