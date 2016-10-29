@@ -4,9 +4,9 @@ import operator
 
 from lenses import lens, Lens
 
-from amino.tc.base import TypeClass
+from amino.tc.base import TypeClass, tc_prop
 from amino.tc.functor import Functor
-from amino.func import curried
+from amino.func import curried, I
 from amino.maybe import Maybe, Empty, Just
 from amino.boolean import Boolean
 from amino import _
@@ -104,5 +104,13 @@ class Foldable(Generic[F], TypeClass):
 
     def min_by(self, fa: F, f: Callable[[A], int]) -> Maybe[A]:
         return self._min_max(fa, f, operator.lt)
+
+    @tc_prop
+    def max(self, fa: F):
+        return self.max_by(fa, I)
+
+    @tc_prop
+    def min(self, fa: F):
+        return self.min_by(fa, I)
 
 __all__ = ('Foldable',)
