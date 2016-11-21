@@ -2,7 +2,7 @@ from pathlib import Path
 
 import sure
 
-from amino import Maybe, Empty, Just
+from amino import Maybe, Empty, Just, Left, Right
 
 
 class AssBuilder(sure.AssertionBuilder):
@@ -52,6 +52,14 @@ class AssBuilder(sure.AssertionBuilder):
     @sure.assertionmethod
     def start_with(self, prefix):
         return self.match('^{}'.format(prefix))
+
+    @sure.assertionproperty
+    def right(self):
+        return self.be.a(Right)
+
+    @sure.assertionproperty
+    def left(self):
+        return self.be.a(Left)
 
 
 def install_assertion_builder(builder):
