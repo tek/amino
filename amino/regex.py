@@ -46,4 +46,8 @@ class Match:
 
     l = groups
 
+    @property
+    def match(self):
+        return self.internal.group(0)
+
 __all__ = ('Regex',)
