@@ -22,6 +22,10 @@ class Map(Dict[A, B], Generic[A, B]):  # type: ignore
     def get(self, key):
         return Dict.get(self, key)
 
+    @may
+    def lift(self, key):
+        return Dict.get(self, key)
+
     def get_item(self, key):
         return self.get(key) / (lambda a: (key, a))
 
