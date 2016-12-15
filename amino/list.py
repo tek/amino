@@ -35,6 +35,10 @@ class ListMeta(ImplicitsMeta):
         return super().__subclasscheck__(subclass)
 
 
+def _rand_str(chars, num: int=10):
+    return ''.join(random.choice(chars) for i in range(num))
+
+
 class List(typing.List[A], Generic[A], Implicits, implicits=True,
            metaclass=ListMeta):
 
@@ -56,7 +60,12 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     @staticmethod
     def random_string(num: int=10):
         chars = string.ascii_letters + string.digits
-        return ''.join(random.choice(chars) for i in range(num))
+        return _rand_str(chars, num)
+
+    @staticmethod
+    def random_alpha(num: int=10):
+        chars = string.ascii_letters
+        return _rand_str(chars, num)
 
     @staticmethod
     def gen(num: int, f: Callable[[], A]):
