@@ -75,6 +75,12 @@ class Val:
         return '{}({})'.format(self.__class__.__name__, self.value)
 
 
+class ReplaceVal(Val):
+
+    def __call__(self, *a, **kw):
+        return super().__call__()
+
+
 def flip(a, b):
     return b, a
 
@@ -84,4 +90,4 @@ CallByName = Union[Any, Callable[[], Any]]
 def call_by_name(b: CallByName):
     return b() if callable(b) else b  # type: ignore
 
-__all__ = ('curried', 'F', 'I', 'flip', 'call_by_name', 'Val')
+__all__ = ('curried', 'F', 'I', 'flip', 'call_by_name', 'Val', 'ReplaceVal')

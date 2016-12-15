@@ -3,7 +3,7 @@ import os
 from amino.map import Map
 
 
-class EnvVars(object):
+class EnvVars:
 
     @property
     def vars(self):
