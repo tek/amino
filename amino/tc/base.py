@@ -16,13 +16,15 @@ class TypeClassMeta(GenericMeta):
     def __getitem__(self, tpe: type):
         return Instances.lookup(self, tpe)
 
-    def exists(self, tpe: type):
+    def exists_instance(self, tpe: type):
         try:
             self[tpe]
         except ImplicitNotFound:
             return False
         else:
             return True
+
+    exists = exists_instance
 
 
 class TypeClass(object, metaclass=TypeClassMeta):
