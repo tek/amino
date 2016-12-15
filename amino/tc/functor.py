@@ -4,6 +4,7 @@ from typing import TypeVar, Generic, Callable
 
 import amino.func
 from amino.tc.base import TypeClass
+from amino.func import ReplaceVal
 
 F = TypeVar('F')
 A = TypeVar('A')
@@ -21,10 +22,12 @@ class Functor(Generic[F], TypeClass):
         return self.map(fa, f)
 
     def smap(self, fa: F, f: Callable[..., B]) -> F:
-        return self.map(fa, lambda v: f(*v))
+        splat = lambda v: f(*v)
+        return self.map(fa, splat)
 
     def ssmap(self, fa: F, f: Callable[..., B]) -> F:
-        return self.map(fa, lambda v: f(**v))
+        splat = lambda v: f(**v)
+        return self.map(fa, splat)
 
     def __getattr__(self, name):
         match = self._map_re.match(name)
@@ -43,7 +46,6 @@ class Functor(Generic[F], TypeClass):
         return self.map(fa, wrapper)
 
     def replace(self, fa: F, b: B) -> F:
-        cb = lambda a: b
-        return self.map(fa, cb)
+        return self.map(fa, ReplaceVal(b))
 
 __all__ = ('Functor',)
