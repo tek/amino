@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version_parts = (8, 10, 9)
+version_parts = (8, 10, 10)
 version = '.'.join(map(str, version_parts))
 
 gh_lenses =\
