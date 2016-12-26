@@ -107,6 +107,8 @@ class ImplicitsMeta(GenericMeta):
             self._implicits_instance = self._implicits.instances
         return self._implicits_instance
 
+    __copy__ = None
+
 
 def tc_prop(f):
     f._tc_prop = True

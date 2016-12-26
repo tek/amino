@@ -5,6 +5,7 @@ from toolz import dicttoolz
 from amino import Maybe, may, Just
 from amino.list import List
 from amino.boolean import Boolean
+from amino.tc.base import Implicits, ImplicitsMeta
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -12,7 +13,8 @@ C = TypeVar('C')
 D = TypeVar('D')
 
 
-class Map(Dict[A, B], Generic[A, B]):  # type: ignore
+class Map(Dict[A, B], Generic[A, B], Implicits,  # type: ignore
+          metaclass=ImplicitsMeta):
 
     @staticmethod
     def wrap(d: Dict[A, B]) -> 'Map[A, B]':

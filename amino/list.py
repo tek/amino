@@ -2,8 +2,8 @@ import itertools
 import typing
 import random
 import string
-from typing import TypeVar, Callable, Generic, Iterable, Any
 from functools import reduce
+from typing import TypeVar, Callable, Generic, Iterable, Any
 
 from toolz.itertoolz import cons
 
