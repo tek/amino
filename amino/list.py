@@ -29,10 +29,10 @@ class ListMeta(ImplicitsMeta):
         else:
             return super().__instancecheck__(instance)
 
-    def __subclasscheck__(self, subclass):
-        if subclass is list:
-            return False
-        return super().__subclasscheck__(subclass)
+    # def __subclasscheck__(self, subclass):
+    #     if subclass is list:
+    #         return False
+    #     return super().__subclasscheck__(subclass)
 
 
 def _rand_str(chars, num: int=10):
