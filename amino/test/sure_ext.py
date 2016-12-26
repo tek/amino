@@ -2,7 +2,7 @@ from pathlib import Path
 
 import sure
 
-from amino import Maybe, Empty, Just, Left, Right
+from amino import Maybe, Empty, Just, Left, Right, Either
 
 
 class AssBuilder(sure.AssertionBuilder):
@@ -40,6 +40,8 @@ class AssBuilder(sure.AssertionBuilder):
     def empty(self):
         if isinstance(self.obj, Maybe):
             return self.be.a(Empty)
+        elif isinstance(self.obj, Either):
+            return self.be.a(Left)
         else:
             return super().empty
 
