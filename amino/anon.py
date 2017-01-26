@@ -11,7 +11,7 @@ class AnonError(Exception):
     pass
 
 
-def lambda_str(f):
+def lambda_str(f) -> str:
     if isinstance(f, MethodType):
         return '{}.{}'.format(f.__self__.__class__.__name__, f.__name__)
     elif isinstance(f, FunctionType):
@@ -22,7 +22,7 @@ def lambda_str(f):
         return str(f)
 
 
-def format_funcall(fun, args, kwargs):
+def format_funcall(fun, args, kwargs) -> str:
     from amino import Map
     kw = Map(kwargs).map2('{}={!r}'.format)
     a = list(map(repr, args)) + list(kw)
