@@ -16,7 +16,7 @@ class EnvVars:
         return self.vars.get(name)
 
     def __setitem__(self, name, value):
-        self.vars[name] = value
+        os.environ[name] = str(value)
 
 env = EnvVars()
 
