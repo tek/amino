@@ -1,8 +1,11 @@
-from functools import wraps, partial
+from functools import wraps, partial, singledispatch
 from inspect import getfullargspec
-from typing import Callable, Union, Any
+import typing
+from typing import Callable, Union, Any, Dict
 
 import fn
+
+from amino.util.string import snake_case
 
 
 class F(fn.F):
@@ -88,6 +91,38 @@ CallByName = Union[Any, Callable[[], Any]]
 
 
 def call_by_name(b: CallByName):
-    return b() if callable(b) else b  # type: ignore
+    return b() if callable(b) else b
 
-__all__ = ('curried', 'F', 'I', 'flip', 'call_by_name', 'Val', 'ReplaceVal')
+
+def dispatch(obj: Any, tpes: typing.List[type], prefix: str,
+             default: Callable=None) -> Any:
+    @singledispatch
+    def main(o, *a, **kw):
+        if default is None:
+            msg = 'no dispatcher defined for {} on {} {}'
+            raise TypeError(msg.format(o, obj.__class__.__name__, prefix))
+        else:
+            default(o, *a, **kw)
+    for tpe in tpes:
+        fun = getattr(obj, '{}{}'.format(prefix, snake_case(tpe.__name__)))
+        main.register(tpe)(fun)
+    return main
+
+
+def dispatch_with(rules: Dict[type, Callable], default: Callable=None):
+    @singledispatch
+    def main(o, *a, **kw):
+        if default is None:
+            msg = 'no dispatcher defined for {} {} ({})'
+            raise TypeError(msg.format(type(o), o, rules))
+        else:
+            default(o, *a, **kw)
+    for tpe, fun in rules.items():
+        main.register(tpe)(fun)
+    return main
+
+def is_not_none(a):
+    return a is not None
+
+__all__ = ('curried', 'F', 'I', 'flip', 'call_by_name', 'Val', 'ReplaceVal',
+           'dispatch', 'dispatch_with', 'is_not_none')
