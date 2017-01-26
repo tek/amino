@@ -60,6 +60,11 @@ class Either(Generic[A, B], Implicits, implicits=True):
             f(self.value)
         return self
 
+    def bieffect(self, l: Callable[[A], Any],
+                 r: Callable[[B], Any]) -> 'Either[A, B]':
+        self.cata(l, r)
+        return self
+
     def cata(self, fl: Callable[[A], Any], fr: Callable[[B], Any]):
         f = fl if self.is_left else fr
         return f(self.value)  # type: ignore
