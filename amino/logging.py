@@ -36,6 +36,7 @@ logging.Logger.ddebug = Logger.ddebug  # type: ignore
 logging.Logger.caught_exception = Logger.caught_exception  # type: ignore
 
 log = amino_root_logger = logging.getLogger('amino')
+log.setLevel(DDEBUG)
 
 
 def install_logger_class():
@@ -50,36 +51,44 @@ _stdout_logging_initialized = False
 _level_env_var = 'AMINO_LOG_LEVEL'
 
 
-def init_loglevel(logger: logging.Logger, level: int=None):
+def init_loglevel(handler: logging.Handler, level: int=None):
     if level is not None:
-        logger.setLevel(level)
+        handler.setLevel(level)
     elif _level_env_var in os.environ:
-        logger.setLevel(os.environ[_level_env_var])
+        handler.setLevel(os.environ[_level_env_var])
     elif amino.development:
-        logger.setLevel(VERBOSE)
+        handler.setLevel(VERBOSE)
+
+amino_stdout_handler = logging.StreamHandler(stream=sys.stdout)
 
 
 def amino_stdout_logging(level: int=None):
     global _stdout_logging_initialized
     if not _stdout_logging_initialized:
-        amino_root_logger.addHandler(logging.StreamHandler(stream=sys.stdout))
-        init_loglevel(amino_root_logger, level)
+        amino_root_logger.addHandler(amino_stdout_handler)
+        init_loglevel(amino_stdout_handler, level)
         _stdout_logging_initialized = True
 
 
-default_logfile = Path.home() / '.python' / 'log'  # type: ignore
+default_logfile = Path.home() / '.python' / 'log'
 _file_logging_initialized = False
+_file_fmt = ('{asctime} [{levelname} @ {name}:{funcName}:{lineno}] {message}')
 
 
-def amino_file_logging(level: int=None, logfile=default_logfile,
-                       handler_level: int=logging.INFO):
+def amino_file_logging(logger: logging.Logger, level: int=logging.DEBUG,
+                       logfile=default_logfile, fmt=None):
+    logfile.parent.mkdir(exist_ok=True)
+    formatter = logging.Formatter(fmt or _file_fmt, style='{')
+    handler = logging.FileHandler(str(logfile))
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    init_loglevel(handler, level)
+
+
+def amino_root_file_logging(level: int=logging.DEBUG, **kw):
     global _file_logging_initialized
     if not _file_logging_initialized:
-        logfile.parent.mkdir(exist_ok=True)
-        handler = logging.FileHandler(str(logfile))
-        handler.setLevel(handler_level)
-        amino_root_logger.addHandler(handler)
-        init_loglevel(amino_root_logger, level)
+        amino_file_logging(amino_root_logger, level, **kw)
         _file_logging_initialized = True
 
 
@@ -87,7 +96,7 @@ class Logging:
 
     @property
     def log(self) -> Logger:
-        return self._log  # type: ignore
+        return self._log
 
     @lazy
     def _log(self) -> Logger:
@@ -97,6 +106,13 @@ class Logging:
         v = self.log.verbose
         v(a)
         return a
+
+    def _dbg(self, fmt, level=DDEBUG):
+        def log(a):
+            msg = fmt.format(a)
+            self.log.log(level, msg)
+            return a
+        return log
 
 
 def sub_loggers(loggers, root):
@@ -136,4 +152,5 @@ def print_info(out: Callable[[str], None]):
         return '{}: {} {}'.format(l.name, lname(l), handlers)
     out(format_logger_tree(logger_tree('amino'), logger))
 
-__all__ = ('amino_root_logger', 'amino_stdout_logging', 'amino_file_logging')
+__all__ = ('amino_root_logger', 'amino_stdout_logging', 'amino_file_logging',
+           'amino_root_file_logging')

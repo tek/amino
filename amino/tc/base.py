@@ -8,7 +8,7 @@ from amino.util.string import snake_case
 from amino.lazy import lazy
 from amino.tc.show import Show
 
-from amino.logging import Logging
+from amino.logging import amino_root_logger
 
 
 class TypeClassMeta(GenericMeta):
@@ -115,7 +115,7 @@ def tc_prop(f):
     return f
 
 
-class Implicits(Logging, metaclass=ImplicitsMeta):
+class Implicits(metaclass=ImplicitsMeta):
     permanent = True
 
     def _lookup_implicit_attr(self, name):
@@ -161,8 +161,7 @@ class Implicits(Logging, metaclass=ImplicitsMeta):
 
     @property
     def dbg(self):
-        v = self.log.verbose
-        v(self)
+        amino_root_logger.verbose(self)
         return self
 
     @property
