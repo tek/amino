@@ -5,7 +5,7 @@ import string
 from functools import reduce
 from typing import TypeVar, Callable, Generic, Iterable, Any
 
-from toolz.itertoolz import cons
+from toolz.itertoolz import cons, groupby
 
 from amino import maybe, boolean
 from amino.logging import log
@@ -254,5 +254,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
 
     def __mul__(self, other):
         return List.wrap(super().__mul__(other))
+
+    def group_by(self, f):
+        from amino import Map
+        return Map(groupby(f, self)).valmap(List.wrap)
 
 __all__ = ('List',)
