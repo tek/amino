@@ -46,6 +46,10 @@ class Maybe(Generic[A], Implicits, implicits=True):
     def wrap(mb: Union['Maybe[A]', None]):
         return mb if mb is not None and isinstance(mb, Just) else Empty()
 
+    @staticmethod
+    def getattr(obj, attr):
+        return Maybe.check(getattr(obj, attr, None))
+
     @property
     def _get(self) -> Union[A, None]:
         pass
