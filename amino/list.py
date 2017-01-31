@@ -188,20 +188,24 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def reversed(self):
         return List.wrap(reversed(self))
 
-    def mk_string(self, sep=''):
+    def mk_string(self, sep: str='') -> str:
         return sep.join(self / str)
 
     @property
-    def join_lines(self):
+    def join_lines(self) -> str:
         return self.mk_string('\n')
 
     @property
-    def join_comma(self):
+    def join_comma(self) -> str:
         return self.mk_string(', ')
 
     @property
-    def join_tokens(self):
+    def join_tokens(self) -> str:
         return self.mk_string(' ')
+
+    @property
+    def join_dot(self) -> str:
+        return self.mk_string('.')
 
     def cons(self, item):
         return List.wrap(cons(item, self))
@@ -216,7 +220,7 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def transpose(self):
         return List.wrap(map(List.wrap, zip(*self)))
 
-    def drop(self, n: int):
+    def drop(self, n: int) -> 'List[A]':
         return self[n:]
 
     def take(self, n: int):
@@ -225,6 +229,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def drop_while(self, pred: Callable[[A], bool]):
         index = self.index_where(lambda a: not pred(a))
         return index / (lambda a: self[a:]) | self
+
+    def drop_right(self, n: int) -> 'List[A]':
+        return self.take(self.length - n)
 
     def remove_all(self, els: 'List[A]') -> 'List[A]':
         return self.filter_not(els.contains)
