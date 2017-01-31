@@ -1,6 +1,7 @@
 import re
+from typing import Any
 
-from amino import L, _, Maybe, Map, List
+from amino import L, _, Maybe, Map, List, Either
 
 
 class Regex:
@@ -21,6 +22,16 @@ class Regex:
             .to_either('`{}` does not match `{}`'.format(data, self.spec)) /
             L(Match)(self, _, data)
         )
+
+    def search(self, data, *a, **kw) -> Maybe['Match']:
+        return (
+            Maybe(self.rex.search(data, *a, **kw))
+            .to_either('`{}` does not contain `{}`'.format(data, self.spec)) /
+            L(Match)(self, _, data)
+        )
+
+    def __str__(self):
+        return 'Regex({})'.format(self.spec)
 
 
 class Match:
