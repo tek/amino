@@ -113,8 +113,8 @@ class Either(Generic[A, B], Implicits, implicits=True):
         return iter(self.to_list)
 
     @property
-    def swap(self):
-        return Left(self.value) if self.is_right else Right(self.value)
+    def swap(self) -> 'Either[B, A]':
+        return self.cata(Right, Left)
 
     @property
     def json(self):

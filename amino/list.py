@@ -266,4 +266,22 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         from amino import Map
         return Map(groupby(f, self)).valmap(List.wrap)
 
+
+class Lists:
+
+    wrap = List.wrap
+    range = List.range
+    random_string = List.random_string
+    random_alpha = List.random_alpha
+    gen = List.gen
+    lines = List.lines
+
+    @staticmethod
+    def split(data: str, splitter: str, maxsplit: int=-1) -> List[str]:
+        return List.wrap(data.split(splitter, maxsplit))
+
+    @staticmethod
+    def rsplit(data: str, splitter: str, maxsplit: int=-1) -> List[str]:
+        return List.wrap(data.rsplit(splitter, maxsplit))
+
 __all__ = ('List',)
