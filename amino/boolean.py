@@ -1,3 +1,5 @@
+from typing import Union
+
 from amino import maybe
 from amino.either import Right, Left
 from amino.func import call_by_name
@@ -5,7 +7,7 @@ from amino.func import call_by_name
 
 class Boolean(object):
 
-    def __init__(self, value: bool) -> None:
+    def __init__(self, value: Union['Boolean', bool]) -> None:
         self.value = bool(value)
 
     @staticmethod
@@ -74,6 +76,12 @@ class Boolean(object):
             if isinstance(other, Boolean) else
             False
         )
+
+    def __and__(self, other: 'Boolean') -> 'Boolean':
+        return Boolean(self and other)
+
+    def __or__(self, other: 'Boolean') -> 'Boolean':
+        return Boolean(self or other)
 
     @property
     def no(self):
