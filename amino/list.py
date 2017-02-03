@@ -116,6 +116,10 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     empty = is_empty
 
     @property
+    def nonempty(self) -> boolean.Boolean:
+        return not self.empty
+
+    @property
     def length(self):
         return len(self)
 
