@@ -91,4 +91,8 @@ class Boolean(object):
     def json(self):
         return self.value
 
-__all__ = ('Boolean',)
+
+true = Boolean(True)
+false = Boolean(False)
+
+__all__ = ('Boolean', 'true', 'false')
