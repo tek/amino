@@ -22,7 +22,6 @@ setup(
     ],
     tests_require=[
         'spec',
-        'flexmock',
         'sure',
     ],
     dependency_links=[

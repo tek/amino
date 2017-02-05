@@ -1,6 +1,3 @@
-import sure  # NOQA
-from flexmock import flexmock  # NOQA
-
 from amino.lazy import lazy, Lazy
 from amino.test import Spec
 
