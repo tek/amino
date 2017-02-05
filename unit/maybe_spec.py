@@ -60,10 +60,9 @@ class Maybe_(Spec):
         ac = lambda: a
         e.or_else(ac).should.equal(a)
 
-    def tap(self):
+    def foreach(self):
         a = 1
         b = 6
-
         def setter(c):
             nonlocal a
             a = c + 1

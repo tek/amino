@@ -81,9 +81,6 @@ class Maybe(Generic[A], Implicits, implicits=True):
     def __contains__(self, v):
         return self.contains(v)
 
-    def foreach(self, f: Callable[[A], Any]):
-        self.cata(f, None)
-
     def error(self, f: Callable[[], Any]) -> 'Maybe[A]':
         self.cata(I, f)
         return self
