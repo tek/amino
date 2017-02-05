@@ -7,19 +7,22 @@ from amino.tc.traverse import Traverse
 from amino.lazy import lazy
 from amino.maybe import Just, Empty
 from amino.either import Right, Either, Left
+from amino.map import Map
 from amino.tc.applicative import Applicative
 from amino.tc.foldable import Foldable
 from amino import curried
+from amino.tc.zip import Zip
 
 A = TypeVar('A')
 B = TypeVar('B')
 C = TypeVar('C')
+D = TypeVar('D')
 
 
 class EitherInstances(ImplicitInstances):
 
     @lazy
-    def _instances(self):
+    def _instances(self) -> Map:
         from amino.map import Map
         return Map(
             {
@@ -27,6 +30,7 @@ class EitherInstances(ImplicitInstances):
                 Optional: EitherOptional(),
                 Traverse: EitherTraverse(),
                 Foldable: EitherFoldable(),
+                Zip: EitherZip(),
             }
         )
 
@@ -85,5 +89,12 @@ class EitherFoldable(Foldable):
 
     def index_where(self, fa: Either[A, B], f: Callable[[B], bool]):
         return fa.to_maybe.index_where(f)
+
+
+class EitherZip(Zip):
+
+    def zip(self, fa: Either[A, B], fb: Either[C, D], *fs: Either) -> Either:
+        f = lambda a: EitherMonad().map(fb, lambda b: (a, b))
+        return EitherMonad().flat_map(fa, f)
 
 __all__ = ('EitherInstances',)
