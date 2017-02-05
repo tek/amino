@@ -24,6 +24,9 @@ class Zip(Generic[F], TypeClass):
     def apzip(self, fa: F, f: Callable[[A], B]) -> F:
         return self.zip(fa, Functor[type(fa)].map(fa, f))
 
+    def flat_apzip(self, fa: F, f: Callable[[A], B]) -> F:
+        return self.zip(fa, Functor[type(fa)].flat_map(fa, f))
+
     @tc_prop
     def unzip(self, fa: F) -> Tuple[F, F]:
         tpe = type(fa)
