@@ -10,6 +10,7 @@ from amino.func import curried, I
 from amino.maybe import Maybe, Empty, Just
 from amino.boolean import Boolean
 from amino import _
+from amino.tc.monoid import Monoid
 
 F = TypeVar('F')
 G = TypeVar('G')
@@ -55,6 +56,10 @@ class Foldable(Generic[F], TypeClass):
         '''
         mapped = Functor[type(fa)].map(fa, f)
         return self.fold_left(mapped)(z)(g)
+
+    def fold(self, fa: F, tpe: type) -> A:
+        mono = Monoid[tpe]
+        return self.fold_left(fa)(mono.empty)(mono.combine)
 
     @abc.abstractmethod
     def find_map(self, fa: F, f: Callable[[A], Maybe[B]]) -> Maybe[B]:
