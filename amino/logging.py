@@ -2,13 +2,14 @@ import os
 import re
 import logging
 import operator
-from typing import Callable
+from typing import Callable, Any
 import sys
 from pathlib import Path
 
 from amino.lazy import lazy
 
 import amino
+from amino.func import call_by_name
 
 VERBOSE = 15
 DDEBUG = 5
@@ -22,9 +23,9 @@ class Logger(logging.Logger):
         if self.isEnabledFor(VERBOSE):
             self._log(VERBOSE, message, args, **kws)
 
-    def ddebug(self, message, *args, **kws):
+    def ddebug(self, message, *args, **kws) -> None:
         if self.isEnabledFor(DDEBUG):
-            self._log(DDEBUG, message, args, **kws)
+            self._log(DDEBUG, call_by_name(message), args, **kws)
 
     def caught_exception(self, when, exc, *a, **kw):
         headline = 'caught exception while {}:'.format(when)
@@ -71,12 +72,11 @@ def amino_stdout_logging(level: int=None):
 
 
 default_logfile = Path.home() / '.python' / 'log'
-_file_logging_initialized = False
 _file_fmt = ('{asctime} [{levelname} @ {name}:{funcName}:{lineno}] {message}')
 
 
 def amino_file_logging(logger: logging.Logger, level: int=logging.DEBUG,
-                       logfile=default_logfile, fmt=None):
+                       logfile: Path=default_logfile, fmt: str=None) -> None:
     logfile.parent.mkdir(exist_ok=True)
     formatter = logging.Formatter(fmt or _file_fmt, style='{')
     handler = logging.FileHandler(str(logfile))
@@ -85,11 +85,8 @@ def amino_file_logging(logger: logging.Logger, level: int=logging.DEBUG,
     init_loglevel(handler, level)
 
 
-def amino_root_file_logging(level: int=logging.DEBUG, **kw):
-    global _file_logging_initialized
-    if not _file_logging_initialized:
-        amino_file_logging(amino_root_logger, level, **kw)
-        _file_logging_initialized = True
+def amino_root_file_logging(level: int=logging.DEBUG, **kw: Any) -> None:
+    amino_file_logging(amino_root_logger, level, **kw)
 
 
 class Logging:
