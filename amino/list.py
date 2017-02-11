@@ -270,6 +270,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         from amino import Map
         return Map(groupby(f, self)).valmap(List.wrap)
 
+    def slice(self, start: int, end: int) -> 'List[A]':
+        return self[start:end]
+
 
 class Lists:
 
