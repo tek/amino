@@ -1,4 +1,4 @@
-from typing import TypeVar, Callable, Tuple
+from typing import TypeVar, Callable, Tuple, Any
 
 from amino.tc.base import tc_prop, ImplicitInstances
 from amino.tc.optional import Optional
@@ -10,7 +10,7 @@ from amino.either import Right, Either, Left
 from amino.map import Map
 from amino.tc.applicative import Applicative
 from amino.tc.foldable import Foldable
-from amino import curried
+from amino import curried, Maybe, Boolean
 from amino.tc.zip import Zip
 
 A = TypeVar('A')
@@ -37,8 +37,8 @@ class EitherInstances(ImplicitInstances):
 
 class EitherMonad(Monad):
 
-    def pure(self, a: A):
-        return Right(a)
+    def pure(self, b: B) -> Either[A, B]:
+        return Right(b)
 
     def flat_map(self, fa: Either[A, B], f: Callable[[B], Either[A, C]]
                  ) -> Either[A, C]:
@@ -48,20 +48,20 @@ class EitherMonad(Monad):
 class EitherOptional(Optional):
 
     @tc_prop
-    def to_maybe(self, fa: Either):
+    def to_maybe(self, fa: Either[A, B]) -> Maybe[A]:
         return Just(fa.value) if fa.is_right else Empty()
 
-    def to_either(self, fa: Either, left):
+    def to_either(self, fa: Either[A, B], left: C) -> Either[C, B]:
         return fa
 
     @tc_prop
-    def present(self, fa: Either):
+    def present(self, fa: Either) -> Boolean:
         return fa.is_right
 
 
 class EitherTraverse(Traverse):
 
-    def traverse(self, fa: Either[A, B], f: Callable, tpe: type):
+    def traverse(self, fa: Either[A, B], f: Callable, tpe: type) -> Any:
         monad = Applicative[tpe]
         r = lambda a: monad.map(f(a), Right)
         return fa.cata(lambda a: monad.pure(Left(a)), r)
@@ -73,21 +73,23 @@ class EitherFoldable(Foldable):
     def with_index(self, fa: Either[A, B]) -> Either[A, Tuple[int, B]]:
         return Right(0) & fa
 
-    def filter(self, fa: Either[A, B], f: Callable[[B], bool]):
+    def filter(self, fa: Either[A, B], f: Callable[[B], bool]
+               ) -> Either[Any, B]:
         return fa // (lambda a: Right(a) if f(a) else Left('filtered'))
 
     @curried
     def fold_left(self, fa: Either[A, B], z: C, f: Callable[[C, B], C]) -> C:
         return fa / (lambda a: f(z, a)) | z
 
-    def find(self, fa: Either[A, B], f: Callable[[B], bool]):
+    def find(self, fa: Either[A, B], f: Callable[[B], bool]) -> Maybe[B]:
         return fa.to_maybe.find(f)
 
     def find_map(self, fa: Either[A, B], f: Callable[[B], Either[A, C]]
                  ) -> Either[A, C]:
         return fa // f
 
-    def index_where(self, fa: Either[A, B], f: Callable[[B], bool]):
+    def index_where(self, fa: Either[A, B], f: Callable[[B], bool]
+                    ) -> Maybe[int]:
         return fa.to_maybe.index_where(f)
 
 

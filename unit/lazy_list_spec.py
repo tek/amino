@@ -1,12 +1,12 @@
 import itertools
 
 from amino.test import Spec
-from amino import LazyList, List, _, Just, Maybe
+from amino import LazyList, List, _, Just, Maybe, Task
 
 
 class LazyListSpec(Spec):
 
-    def slice_infinite(self):
+    def slice_infinite(self) -> None:
         l = LazyList(itertools.count(), chunk_size=20)
         l[:15].should.have.length_of(15)
         l.strict.should.have.length_of(20)
@@ -15,7 +15,7 @@ class LazyListSpec(Spec):
         l[:21].should.have.length_of(21)
         l.strict.should.have.length_of(40)
 
-    def slice_finite(self):
+    def slice_finite(self) -> None:
         l = LazyList(range(30), chunk_size=20)
         l[:15].should.have.length_of(15)
         l.strict.should.have.length_of(20)
@@ -24,40 +24,40 @@ class LazyListSpec(Spec):
         l[:21].should.have.length_of(21)
         l.strict.should.have.length_of(30)
 
-    def single(self):
+    def single(self) -> None:
         l = LazyList(range(30), chunk_size=20)
         l[19].should.equal(19)
         l.strict.should.have.length_of(20)
         l[20].should.equal(20)
         l.strict.should.have.length_of(30)
 
-    def map(self):
+    def map(self) -> None:
         l = LazyList(itertools.count(), chunk_size=20)
         l.lift(5)
         l2 = l.map(_ * 10)
         l2[:5].should.equal(List.wrap(range(0, 50, 10)))
 
-    def with_index(self):
+    def with_index(self) -> None:
         l = LazyList(itertools.count(), chunk_size=20)
         l2 = l.map(_ * 5).with_index
         l2[:2].should.equal(List((0, 0), (1, 5)))
 
-    def index_of(self):
+    def index_of(self) -> None:
         l = LazyList(range(30), chunk_size=20)
         l.index_of(21).should.contain(21)
         l.index_of(49).should.be.empty
 
-    def find(self):
+    def find(self) -> None:
         l = LazyList(range(30), chunk_size=20)
         l.find(_ == 21).should.contain(21)
         l.find(_ == 49).should.be.empty
 
-    def deep(self):
+    def deep(self) -> None:
         n = int(1e4)
         l = LazyList(List.wrap(range(n)))
         l.index_of(n - 1).should.contain(n - 1)
 
-    def filter(self):
+    def filter(self) -> None:
         l = LazyList(range(30))
         l2 = l.filter(_ % 2 == 0)
         l2.strict.should.have.length_of(0)
@@ -67,20 +67,26 @@ class LazyListSpec(Spec):
         l4.strict.should.have.length_of(15)
         l4.drain.should.equal(List.wrap(range(0, 30, 2)))
 
-    def fold_left(self):
+    def fold_left(self) -> None:
         LazyList((1, 2, 3)).fold_left('')(lambda a, b: str(b) + a)\
             .should.equal('321')
 
-    def fold_map(self):
+    def fold_map(self) -> None:
         LazyList((1, 2, 3)).fold_map(5, _ * 2).should.equal(17)
 
-    def traverse(self):
+    def sequence(self) -> None:
         n = 3
         l = LazyList(map(Just, range(n)))
         target = LazyList(List.wrap(range(n)))
         (l.sequence(Maybe) / _.drain).should.contain(target.drain)
 
-    def zip(self):
+    def traverse_task(self) -> None:
+        n = 3
+        l = LazyList(range(n))
+        result = l.traverse(Task.now, Task).attempt / _.drain
+        result.should.contain(l.drain)
+
+    def zip(self) -> None:
         a = 1
         b = 2
         ab = (a, b)
@@ -91,7 +97,7 @@ class LazyListSpec(Spec):
         z.strict.should.equal(List(ab, ab))
         z.drain.should.equal(List(ab, ab, ab, ab))
 
-    def apzip(self):
+    def apzip(self) -> None:
         l = LazyList((1, 2, 3), chunk_size=1)
         l[0]
         z = l.apzip(_ + 2)
