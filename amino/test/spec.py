@@ -33,12 +33,12 @@ def later(ass, *a, timeout=None, intval=0.1, **kw):
     return ass(*a, **kw)
 
 
-class Spec(spec.Spec, Logging):
+class SpecBase(Logging):
 
     def __init__(self):
         self._warnings = True
 
-    def setup(self):
+    def setup(self) -> None:
         if path.__base_dir__:
             shutil.rmtree(str(path.temp_path()), ignore_errors=True)
         if self._warnings:
@@ -61,12 +61,20 @@ class Spec(spec.Spec, Logging):
         time.sleep(seconds)
 
 
-class IntegrationSpec(Spec):
+class Spec(SpecBase, spec.Spec):
+    pass
 
-    def setup(self):
+
+class IntegrationSpecBase(SpecBase):
+
+    def setup(self) -> None:
         os.environ['AMINO_INTEGRATION'] = '1'
         amino.integration_test = True
         super().setup()
+
+
+class IntegrationSpec(IntegrationSpecBase, Spec):
+    pass
 
 
 def profiled(sort='time'):
@@ -113,4 +121,5 @@ def timer(name='timer'):
     log.info('{}: {}'.format(name, time.time() - start))
     return v
 
-__all__ = ('Spec', 'IntegrationSpec', 'profiled', 'later', 'timed', 'timer')
+__all__ = ('Spec', 'IntegrationSpec', 'profiled', 'later', 'timed', 'timer',
+           'IntegrationSpecBase')
