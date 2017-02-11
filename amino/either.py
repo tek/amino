@@ -95,14 +95,6 @@ class Either(Generic[A, B], Implicits, implicits=True):
     def lmap(self, f: Callable[[A], Any]):
         return Left(f(self.value)) if self.is_left else self  # type: ignore
 
-    def zip(self, other: 'Either[Any, C]') -> 'Either[A, Tuple[B, C]]':
-        if self.is_right and other.is_right:
-            return Right((self.value, other.value))
-        elif self.is_left:
-            return self
-        else:
-            return other
-
     @property
     def get_or_raise(self):
         def fail(err):
