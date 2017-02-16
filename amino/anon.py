@@ -253,6 +253,8 @@ class ComplexLambda(AnonFunctionCallable, HasArgs):
         self.__func = func
         self.__args = List.wrap(a)
         self.__kwargs = kw
+        self.__qualname__ = self._func.__name__
+        self.__annotations__ = {}
 
     def __call__(self, *a, **kw):
         result, rest = self.__call(List.wrap(a), kw)
