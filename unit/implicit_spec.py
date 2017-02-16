@@ -4,7 +4,7 @@ from amino import Just, Map, List
 from amino.test import Spec
 from amino.instances.maybe import MaybeMonad
 from amino.tc.base import (ImplicitInstances, Instances, InstancesMetadata,
-                           AutoImplicitInstances, TypeClass)
+                           TypeClass)
 from amino.tc.monoid import Monoid
 from amino.lazy import lazy
 from amino.instances.list import ListMonoid
@@ -47,12 +47,31 @@ class BFunctor(Functor):
         return fa
 
 
-class BInstances(AutoImplicitInstances):
-    tpe = B
+class BInstances(ImplicitInstances, tpe=B):
 
     @lazy
-    def _instances(self) -> Map[str, TypeClass]:
+    def _instances(self) -> Map[type, TypeClass]:
         return Map({Functor: BFunctor()})
+
+
+class C:
+    pass
+
+
+class CMonoid(Monoid, tpe=C):
+
+    @property
+    def empty(self) -> C:
+        return C()
+
+    def combine(self, l: C, r: C) -> C:
+        return C()
+
+
+class CFunctor(Functor, tpe=C):
+
+    def map(self, fa: C, f: Callable) -> C:
+        return fa
 
 
 class ImplicitSpec(Spec):
@@ -64,5 +83,9 @@ class ImplicitSpec(Spec):
         Monoid[A].should.be.a(AMonoid)
         Monoid[List].should.be.a(ListMonoid)
         Functor[B].should.be.a(BFunctor)
+
+    def auto_type_class(self) -> None:
+        Monoid[C].should.be.a(CMonoid)
+        Functor[C].should.be.a(CFunctor)
 
 __all__ = ('ImplicitSpec',)

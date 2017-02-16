@@ -3,6 +3,7 @@ import abc
 from typing import Dict, Tuple, Any, Callable, Union, Optional, GenericMeta
 from functools import partial, wraps
 
+import amino  # NOQA
 from amino.util.string import snake_case
 from amino.lazy import lazy
 from amino.tc.show import Show
@@ -11,6 +12,14 @@ from amino.logging import amino_root_logger
 
 
 class TypeClassMeta(GenericMeta):
+
+    def __new__(cls: type, name: str, bases: tuple, namespace: dict,
+                tpe: type=None, **kw: dict) -> type:
+        inst = super().__new__(cls, name, bases, namespace,  # type: ignore
+                               **kw)
+        if tpe is not None:
+            Instances.add_auto(tpe, inst())
+        return inst
 
     def __getitem__(self, tpe: type) -> 'TypeClass':
         return Instances.lookup(self, tpe)
@@ -53,7 +62,18 @@ operators = (
 )
 
 
-class ImplicitInstances(metaclass=abc.ABCMeta):
+class ImplicitInstancesMeta(abc.ABCMeta):
+
+    def __new__(cls: type, name: str, bases: tuple, namespace: dict,
+                tpe: type=None, **kw: dict) -> type:
+        inst = super().__new__(cls, name, bases, namespace,  # type: ignore
+                               **kw)
+        if tpe is not None and name != 'ImplicitInstances':
+            Instances.add_instances(tpe, inst())
+        return inst
+
+
+class ImplicitInstances(metaclass=ImplicitInstancesMeta):
 
     @lazy
     def instances(self) -> Dict[type, TypeClass]:
@@ -211,31 +231,6 @@ class Implicits(metaclass=ImplicitsMeta):
         return self
 
 
-class TypeAttrMissing(Exception):
-
-    def __init__(self, name: str) -> None:
-        msg = 'Instances class `{}` has no attribute `tpe`'.format(name)
-        super().__init__(msg)
-
-
-class AutoImplicitInstancesMeta(abc.ABCMeta):
-
-    def __new__(cls: type, name: str, bases: tuple, namespace: dict) -> type:
-        inst = super().__new__(cls, name, bases, namespace)
-        if name != 'AutoImplicitInstances':
-            imp_mod = inst.__module__
-            if not hasattr(inst, 'tpe'):
-                raise TypeAttrMissing(name)
-            tpe_name = getattr(inst, 'tpe').__name__
-            Instances.add(InstancesMetadata(tpe_name, imp_mod, name))
-        return inst
-
-
-class AutoImplicitInstances(ImplicitInstances,
-                            metaclass=AutoImplicitInstancesMeta):
-    pass
-
-
 class GlobalTypeClasses(TypeClasses):
 
     @property
@@ -255,23 +250,54 @@ class ImplicitNotFound(Exception):
         super().__init__(msg)
 
 
+class AutoImplicitInstances(ImplicitInstances):
+
+    def __init__(self, tpe: type, instance: TypeClass) -> None:
+        self.tpe = tpe
+        self.instance = instance
+
+    @lazy
+    def _instances(self) -> Dict[type, TypeClass]:
+        from amino import Map
+        return Map({self.tpe: self.instance})
+
+
+class NoTypeClass(Exception):
+
+    def __init__(self, inst) -> None:
+        super().__init__('invalid type class: {}'.format(inst))
+
+
 class AllInstances:
 
     def __init__(self) -> None:
         self._instances = dict()  # type: Dict[str, InstancesMetadata]
+        self._auto_instances = dict()  # type: Dict[type, ImplicitInstances]
 
     def add(self, data: InstancesMetadata) -> None:
         self._instances[data.name] = data
+
+    def add_instances(self, tpe: type, instances: ImplicitInstances) -> None:
+        if tpe in self._auto_instances:
+            self._auto_instances[tpe]._instances.update(instances._instances)
+        else:
+            self._auto_instances[tpe] = instances
+
+    def add_auto(self, tpe: type, inst: TypeClass) -> None:
+        mro = inst.__class__.__mro__
+        if len(mro) < 2 or TypeClass not in mro:
+            raise NoTypeClass(inst)
+        self.add_instances(tpe, AutoImplicitInstances(mro[1], inst))
 
     def lookup(self, TC: type, G: type) -> TypeClass:
         ''' Find an instance of the type class `TC` for type `G`.
         Iterates `G`'s parent classes, looking up instances for each,
         checking whether the instance is a subclass of the target type
-        class @`C`.
+        class `TC`.
         '''
         from amino.lazy_list import LazyList
-        from amino.anon import _, L
-        match = L(self._lookup_type)(TC, _)
+        from amino.anon import _
+        match = lambda a: self._lookup_type(TC, a)
         result = (
             LazyList(map(match, G.__mro__))
             .find(_.is_just)
@@ -283,8 +309,12 @@ class AllInstances:
     def _lookup_type(self, TC: type, G: type
                      ) -> 'amino.maybe.Maybe[TypeClass]':
         from amino.maybe import Empty
+        match = lambda I: isinstance(I, TC)
+        if G in self._auto_instances:
+            m = self._auto_instances[G].instances.find(match)
+            if m.is_just:
+                return m
         if G.__name__ in self._instances:
-            match = lambda I: isinstance(I, TC)
             return (
                 self._instances[G.__name__].instances  # type: ignore
                 .find(match)
