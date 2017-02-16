@@ -158,7 +158,7 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
         v = self._step()
         dur = time.time() - start
         if dur > 0.1:
-            self.log.ddebug('task {} took {:.4f}s'.format(self.string, dur))
+            log.ddebug('task {} took {:.4f}s'.format(self.string, dur))
         return v
 
     def __repr__(self):
@@ -248,7 +248,6 @@ class Now(Generic[A], Task[A]):
     def __init__(self, value) -> None:
         super().__init__()
         self.value = value
-        self.string = str(self)
 
     def _step(self):
         return self
@@ -266,6 +265,10 @@ class Now(Generic[A], Task[A]):
     @property
     def fs(self):
         return 'now({})'.format(self.value)
+
+    @property
+    def string(self) -> str:
+        return str(self)
 
 
 def Try(f: Callable[..., A], *a, **kw) -> Either[Exception, A]:
