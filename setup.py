@@ -20,10 +20,6 @@ setup(
         'toolz',
         'lenses',
     ],
-    tests_require=[
-        'spec',
-        'sure',
-    ],
     dependency_links=[
         gh_lenses,
     ]
