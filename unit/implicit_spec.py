@@ -1,4 +1,5 @@
-from typing import Callable
+from typing import Callable, Any
+import collections.abc
 
 from amino import Just, Map, List
 from amino.test import Spec
@@ -74,6 +75,16 @@ class CFunctor(Functor, tpe=C):
         return fa
 
 
+def _pred_d_functor(tpe: type) -> bool:
+    return issubclass(tpe, collections.abc.Iterable)
+
+
+class DFunctor(Functor, pred=_pred_d_functor):
+
+    def map(a: Any, f: Callable) -> Any:
+        return a
+
+
 class ImplicitSpec(Spec):
 
     def set_attr(self) -> None:
@@ -87,5 +98,11 @@ class ImplicitSpec(Spec):
     def auto_type_class(self) -> None:
         Monoid[C].should.be.a(CMonoid)
         Functor[C].should.be.a(CFunctor)
+
+    def pred_type_class(self) -> None:
+        Functor[list].should.be.a(DFunctor)
+        Functor[str].should.be.a(DFunctor)
+        Functor[str].should.be.a(DFunctor)
+        Functor.m(int).should.be.empty
 
 __all__ = ('ImplicitSpec',)
