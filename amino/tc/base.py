@@ -18,17 +18,27 @@ class TypeClassMeta(GenericMeta):
                 tpe: type=None, pred: Callable=None, **kw: dict) -> type:
         inst = super().__new__(cls, name, bases, namespace,  # type: ignore
                                **kw)
-        if tpe is not None:
-            Instances.add_auto(tpe, inst())
-        elif pred is not None:
-            Instances.add_pred(pred, inst())
+        if name != 'TypeClass':
+            if tpe is not None:
+                Instances.add_auto(tpe, inst())
+            elif pred is not None:
+                Instances.add_pred(pred, inst())
         return inst
 
-    def __getitem__(self, tpe: type) -> 'TypeClass':
+    def fatal(self, tpe: type) -> 'TypeClass':
         return Instances.lookup(self, tpe)
 
-    def m(self, tpe: type) -> 'amino.maybe.Maybe':
+    def fatal_for(self, a: Any) -> 'amino.maybe.Maybe[TypeClass]':
+        return self.fatal(type(a))
+
+    def __getitem__(self, tpe: type) -> 'TypeClass':
+        return self.fatal(tpe)
+
+    def m(self, tpe: type) -> 'amino.maybe.Maybe[TypeClass]':
         return Instances.lookup_m(self, tpe)
+
+    def m_for(self, a: Any) -> 'amino.maybe.Maybe[TypeClass]':
+        return self.m(type(a))
 
     def exists_instance(self, tpe: type) -> bool:
         try:
