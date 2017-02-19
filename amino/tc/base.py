@@ -339,10 +339,13 @@ class AllInstances:
         from amino.lazy_list import LazyList
         from amino.anon import _
         match = lambda a: self._lookup_type(TC, a)
+        def attach_type(tc: TypeClass) -> None:
+            tc.tpe = G
         return (
             LazyList(map(match, G.__mro__))
             .find(_.is_just)
             .join
+            .foreach(attach_type)
         )
 
     def _lookup_type(self, TC: type, G: type
