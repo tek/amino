@@ -1,6 +1,8 @@
 import sys
 from pathlib import Path
 
+from amino import env
+
 __base_dir__ = None
 
 
@@ -21,6 +23,7 @@ def setup(path):
     container = str(path.parent)
     if container not in sys.path:
         sys.path.insert(0, container)
+        env['PYTHONPATH'] = '{}:{}'.format(container, env['PYTHONPATH'] | '')
 
 
 def _check():
