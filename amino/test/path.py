@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 __base_dir__ = None
@@ -17,6 +18,9 @@ def setup(path):
         path = path.parent
     global __base_dir__
     __base_dir__ = path
+    container = str(path.parent)
+    if container not in sys.path:
+        sys.path.insert(0, container)
 
 
 def _check():
