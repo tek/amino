@@ -20,7 +20,7 @@ def setup(path):
         path = path.parent
     global __base_dir__
     __base_dir__ = path
-    container = str(path.parent)
+    container = pkg_dir()
     if container not in sys.path:
         sys.path.insert(0, container)
         env['PYTHONPATH'] = '{}:{}'.format(container, env['PYTHONPATH'] | '')
@@ -66,5 +66,9 @@ def load_fixture(*components):
 def base_dir():
     return __base_dir__
 
+
+def pkg_dir() -> Path:
+    return base_dir().parent
+
 __all__ = ('create_temp_file', 'temp_file', 'temp_path', 'temp_dir',
-           'fixture_path', 'load_fixture', 'base_dir')
+           'fixture_path', 'load_fixture', 'base_dir', 'pkg_dir')
