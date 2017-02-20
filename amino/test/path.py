@@ -20,7 +20,7 @@ def setup(path):
         path = path.parent
     global __base_dir__
     __base_dir__ = path
-    container = pkg_dir()
+    container = str(pkg_dir())
     if container not in sys.path:
         sys.path.insert(0, container)
         env['PYTHONPATH'] = '{}:{}'.format(container, env['PYTHONPATH'] | '')
