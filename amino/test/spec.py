@@ -10,7 +10,6 @@ from contextlib import contextmanager
 
 import amino
 from amino.logging import amino_stdout_logging, Logging
-from amino.test.sure_ext import install_assertion_builder, AssBuilder
 from amino.test import path
 from amino import Path, List
 
@@ -43,7 +42,6 @@ class SpecBase(Logging):
             warnings.resetwarnings()
         amino.development = True
         amino_stdout_logging()
-        install_assertion_builder(AssBuilder)
 
     def teardown(self, *a, **kw):
         warnings.simplefilter('ignore')
