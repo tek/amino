@@ -1,7 +1,7 @@
 from lenses import lens
 
 from amino import List, _
-from amino.test import Spec
+from amino.test.spec_spec import Spec
 from amino.lens.tree import path_lens_pred
 
 

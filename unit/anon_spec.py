@@ -1,5 +1,5 @@
 from amino import __, Just, List, I, Try
-from amino.test import Spec
+from amino.test.spec_spec import Spec
 from amino.anon import L, _, AnonError
 
 

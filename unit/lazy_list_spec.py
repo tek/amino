@@ -1,6 +1,6 @@
 import itertools
 
-from amino.test import Spec
+from amino.test.spec_spec import Spec
 from amino import LazyList, List, _, Just, Maybe, Task
 
 

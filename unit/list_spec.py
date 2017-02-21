@@ -1,4 +1,4 @@
-from amino.test import Spec
+from amino.test.spec_spec import Spec
 
 from amino import List, Empty, Just, Maybe, _
 

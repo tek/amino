@@ -2,7 +2,7 @@ import operator
 
 from amino.either import Left, Right
 from amino import Empty, Just, Maybe, List, Either, _
-from amino.test import Spec
+from amino.test.spec_spec import Spec
 
 
 class EitherSpec(Spec):

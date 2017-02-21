@@ -1,6 +1,6 @@
 import operator
 
-from amino.test import Spec
+from amino.test.spec_spec import Spec
 
 from amino import Maybe, Empty, Just, Left, Right, _, L
 from amino.tc.monad import Monad

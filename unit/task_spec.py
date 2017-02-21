@@ -1,6 +1,6 @@
 from amino.task import Task, TaskException
-from amino.test import Spec
-from amino import List, Right, L, _, Just, __
+from amino.test.spec_spec import Spec
+from amino import List, Right, L, _, Just
 
 
 class TaskSpec(Spec):

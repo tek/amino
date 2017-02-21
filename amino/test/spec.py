@@ -8,8 +8,6 @@ from datetime import datetime
 from functools import wraps
 from contextlib import contextmanager
 
-import spec
-
 import amino
 from amino.logging import amino_stdout_logging, Logging
 from amino.test.sure_ext import install_assertion_builder, AssBuilder
@@ -61,20 +59,12 @@ class SpecBase(Logging):
         time.sleep(seconds)
 
 
-class Spec(SpecBase, spec.Spec):
-    pass
-
-
 class IntegrationSpecBase(SpecBase):
 
     def setup(self) -> None:
         os.environ['AMINO_INTEGRATION'] = '1'
         amino.integration_test = True
         super().setup()
-
-
-class IntegrationSpec(IntegrationSpecBase, Spec):
-    pass
 
 
 def profiled(sort='time'):

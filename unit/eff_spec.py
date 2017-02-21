@@ -2,7 +2,7 @@ import random
 
 from amino import List, Right, _, Just, Empty, Maybe, Either, Left
 
-from amino.test import Spec
+from amino.test.spec_spec import Spec
 from amino.task import Task
 
 

@@ -2,7 +2,7 @@ from typing import Callable, Any
 import collections.abc
 
 from amino import Just, Map, List
-from amino.test import Spec
+from amino.test.spec_spec import Spec
 from amino.instances.maybe import MaybeMonad
 from amino.tc.base import (ImplicitInstances, Instances, InstancesMetadata,
                            TypeClass)

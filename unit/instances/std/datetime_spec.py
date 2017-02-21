@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from amino.test import Spec
+from amino.test.spec_spec import Spec
 from amino.tc.monoid import Monoid
 from amino.instances.std.datetime import TimedeltaInstances  # NOQA
 from amino import List

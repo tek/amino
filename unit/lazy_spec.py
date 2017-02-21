@@ -1,5 +1,5 @@
 from amino.lazy import lazy, Lazy
-from amino.test import Spec
+from amino.test.spec_spec import Spec
 
 
 class A(Lazy):
