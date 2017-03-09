@@ -158,7 +158,7 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
         v = self._step()
         dur = time.time() - start
         if dur > 0.1:
-            log.ddebug('task {} took {:.4f}s'.format(self.string, dur))
+            log.ddebug(lambda: 'task {} took {:.4f}s'.format(self.string, dur))
         return v
 
     def __repr__(self):
