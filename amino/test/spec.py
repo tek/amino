@@ -4,7 +4,6 @@ import shutil
 import inspect
 import warnings
 import traceback
-from datetime import datetime
 from functools import wraps
 from contextlib import contextmanager
 
@@ -15,19 +14,6 @@ from amino import Path, List
 
 
 default_timeout = 20 if 'TRAVIS' in os.environ else 3
-
-
-def later(ass, *a, timeout=None, intval=0.1, **kw):
-    timeout = default_timeout if timeout is None else timeout
-    start = datetime.now()
-    ok = False
-    while not ok and (datetime.now() - start).total_seconds() < timeout:
-        try:
-            ass(*a, **kw)
-            ok = True
-        except AssertionError:
-            time.sleep(intval)
-    return ass(*a, **kw)
 
 
 class SpecBase(Logging):
@@ -45,13 +31,6 @@ class SpecBase(Logging):
 
     def teardown(self, *a, **kw):
         warnings.simplefilter('ignore')
-
-    def _wait_for(self, pred, timeout=default_timeout, intval=0.1):
-        start = datetime.now()
-        while (not pred() and
-               (datetime.now() - start).total_seconds() < timeout):
-            time.sleep(intval)
-        pred().should.be.ok
 
     def _wait(self, seconds):
         time.sleep(seconds)
