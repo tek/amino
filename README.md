@@ -61,6 +61,26 @@ j.flat_map(L(Just)(_ - 2))
 # Just(-1)
 ```
 
+### Either
+A simple coproduct type that can be inhabited by two types.
+
+```python
+r = Right(5)
+l = Left('error')
+
+r.map(_ + 1)
+# Right(6)
+
+l.map(_ + 1)
+# Left('error')
+
+l.lmap(_ + ' in test')
+# Left('error in test')
+
+r.flat_map(lambda a: Left(a + 3))
+# Left(8)
+```
+
 ## Typeclasses
 Although these make a lot more sense with a real type system, they provide a
 nice abstraction for functionality.
