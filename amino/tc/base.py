@@ -376,7 +376,7 @@ class AllInstances:
 
     def _lookup_pred(self, TC: type, G: type) -> Optional[TypeClass]:
         if TC in self.pred_instances:
-            return next((b.tc for a, b in self.pred_instances[TC].items() if b.pred(G)), None)
+            return next((a.tc for a in self.pred_instances[TC] if a.pred(G)), None)
         else:
             return None
 
