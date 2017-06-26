@@ -23,7 +23,7 @@ Key = Union[str, int]
 class Node(Generic[Data], Logging, abc.ABC, Implicits, implicits=True, auto=True):
 
     @abc.abstractproperty
-    def tpe(self) -> Type[Data]:
+    def tpe(self) -> type:
         ...
 
     def __init__(self, data: Data, parent: 'Node') -> None:
@@ -138,11 +138,11 @@ class Inode(Generic[Data], Node[Data]):
 
 class ListNode(Generic[Data], Inode[Data]):
 
-    def __init__(self, sub: List[Node]) -> None:
+    def __init__(self, sub: List[Node[Data]]) -> None:
         self._sub = sub
 
     @property
-    def sub(self) -> List[Node]:
+    def sub(self) -> List[Node[Data]]:
         return self._sub
 
     @property
@@ -156,6 +156,10 @@ class ListNode(Generic[Data], Inode[Data]):
     @property
     def head(self) -> 'SubTree':
         return self.lift(0)
+
+    @property
+    def last(self) -> 'SubTree':
+        return self.lift(-1)
 
     def __str__(self) -> str:
         return '{}({})'.format(self.__class__.__name__, self._sub.map(str).mk_string(','))
@@ -381,6 +385,10 @@ class SubTreeMap(SubTreeValid[MapNode]):
 
     def _getitem(self, key: Key) -> SubTree:
         return self._data.lift(key)
+
+    @property
+    def _keys(self) -> List[str]:
+        return self._data.k
 
 
 class SubTreeInvalid(SubTree):
