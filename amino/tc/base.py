@@ -35,7 +35,7 @@ class TypeClassMeta(GenericMeta):
         return self.fatal(tpe)
 
     def m(self, tpe: type) -> 'amino.maybe.Maybe[TypeClass]':
-        return Instances.lookup_m(self, tpe)
+        return amino.maybe.Maybe.check(Instances.lookup(self, tpe))
 
     def m_for(self, a: Any) -> 'amino.maybe.Maybe[TypeClass]':
         return self.m(type(a))
