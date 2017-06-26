@@ -26,7 +26,7 @@ class TypeClassMeta(GenericMeta):
         return inst
 
     def fatal(self, tpe: type) -> 'TypeClass':
-        return Instances.lookup(self, tpe)
+        return Instances.lookup_fatal(self, tpe)
 
     def fatal_for(self, a: Any) -> 'amino.maybe.Maybe[TypeClass]':
         return self.fatal(type(a))
@@ -159,24 +159,24 @@ class ImplicitsMeta(GenericMeta):
         for op in operators:
             setattr(inst, op, ImplicitsMeta._mk_operator(op))
 
-    def __new__(cls: type, name: str, bases: tuple, namespace: dict,
-                imp_mod: str=None, imp_cls: str=None, implicits: bool=False,
-                **kw: dict) -> type:
-        inst = super().__new__(cls, name, bases, namespace,  # type: ignore
-                               **kw)
+    def __new__(cls: type, name: str, bases: tuple, namespace: dict, imp_mod: str=None, imp_cls: str=None,
+                implicits: bool=False, auto: bool=False, **kw: dict) -> type:
+        inst = super().__new__(cls, name, bases, namespace, **kw)  # type: ignore
+        inst.auto = auto or getattr(inst, 'auto', False)
         if not implicits:
-            inst._instances_meta = None
             return inst
         else:
-            if imp_mod is None or imp_cls is None:
-                imp_mod, imp_cls = _infer_implicits(name)
+            inst.instances_meta = None
             inst.name = name
             ImplicitsMeta._attach_operators(inst)
-            meta = InstancesMetadata(name, imp_mod, imp_cls)
-            inst.imp_mod = imp_mod
-            inst.imp_cls = imp_cls
-            inst.instances_meta = meta
-            Instances.add(meta)
+            if not inst.auto:
+                if imp_mod is None or imp_cls is None:
+                    imp_mod, imp_cls = _infer_implicits(name)
+                meta = InstancesMetadata(name, imp_mod, imp_cls)
+                inst.imp_mod = imp_mod
+                inst.imp_cls = imp_cls
+                inst.instances_meta = meta
+                Instances.add(meta)
             return inst
 
     __copy__ = None
@@ -193,12 +193,11 @@ class Implicits(metaclass=ImplicitsMeta):
     def _lookup_implicit_attr(self, name: str) -> Optional[Callable]:
         meta = type(self).instances_meta  # type: ignore
         if meta is not None:
-            return next((getattr(inst, name)
-                        for inst in meta.instances.v
-                        if hasattr(inst, name)), None)
+            return next((getattr(inst, name) for inst in meta.instances.v if hasattr(inst, name)), None)
+        elif self.auto:
+            return Instances.lookup_auto_attr(type(self), name)
 
-    def _bound_implicit_attr(self, name: str
-                             ) -> Union[None, Callable, partial]:
+    def _bound_implicit_attr(self, name: str) -> Union[None, Callable, partial]:
         f = self._lookup_implicit_attr(name)
         if f is not None:
             if hasattr(f, '_tc_prop'):
@@ -296,8 +295,7 @@ class AllInstances:
     def __init__(self) -> None:
         self.instances = dict()  # type: Dict[str, InstancesMetadata]
         self.auto_instances = dict()  # type: Dict[type, ImplicitInstances]
-        self.pred_instances = (
-            dict())  # type: Dict[type, amino.list.List[PredTypeClass]]
+        self.pred_instances = (dict())  # type: Dict[type, amino.list.List[PredTypeClass]]
 
     def add(self, data: InstancesMetadata) -> None:
         self.instances[data.name] = data
@@ -327,69 +325,60 @@ class AllInstances:
         else:
             self.pred_instances[tc_type] = amino.list.List(data)
 
-    def lookup(self, TC: type, G: type) -> TypeClass:
-        return self.lookup_m(TC, G).get_or_raise(ImplicitNotFound(TC, G))
+    def lookup_fatal(self, TC: type, G: type) -> TypeClass:
+        tc = self.lookup(TC, G)
+        if tc is None:
+            raise ImplicitNotFound(TC, G)
+        return tc
 
-    def lookup_m(self, TC: type, G: type) -> 'amino.maybe.Maybe[TypeClass]':
+    def lookup(self, TC: type, G: type) -> Optional[TypeClass]:
         ''' Find an instance of the type class `TC` for type `G`.
         Iterates `G`'s parent classes, looking up instances for each,
         checking whether the instance is a subclass of the target type
         class `TC`.
         '''
-        from amino.lazy_list import LazyList
-        from amino.anon import _
         match = lambda a: self._lookup_type(TC, a)
-        def attach_type(tc: TypeClass) -> None:
-            tc.tpe = G
-        return (
-            LazyList(map(match, G.__mro__))
-            .find(_.is_just)
-            .join
-            .foreach(attach_type)
-        )
+        def attach_type(tc: TypeClass) -> TypeClass:
+            setattr(tc, 'tpe', G)
+            return tc
+        return next((attach_type(a) for a in map(match, G.__mro__) if a is not None), None)
 
-    def _lookup_type(self, TC: type, G: type
-                     ) -> 'amino.maybe.Maybe[TypeClass]':
-        return (
-            self._lookup_auto(TC, G)
-            .o(lambda: self._lookup_regular(TC, G))
-            .o(lambda: self._lookup_pred(TC, G))
-        )
+    def lookup_auto_attr(self, tpe: type, name: str) -> Optional[Callable]:
+        def check(t: type) -> 'amino.maybe.Maybe[Callable]':
+            if t in self.auto_instances:
+                ins = self.auto_instances[t]
+                return next((getattr(inst, name) for inst in ins.instances.v if hasattr(inst, name)), None)
+            else:
+                return None
+        return next((a for a in map(check, tpe.__mro__) if a is not None), None)
 
-    def _lookup_auto(self, TC: type, G: type
-                     ) -> 'amino.maybe.Maybe[TypeClass]':
-        from amino.maybe import Empty
+    def _lookup_type(self, TC: type, G: type) -> Optional[TypeClass]:
+        auto = self._lookup_auto(TC, G)
+        if auto is not None:
+            return auto
+        reg = self._lookup_regular(TC, G)
+        if reg is not None:
+            return reg
+        return self._lookup_pred(TC, G)
+
+    def _lookup_auto(self, TC: type, G: type) -> Optional[TypeClass]:
         if G in self.auto_instances:
-            return (
-                self.auto_instances[G].instances
-                .find(lambda I: isinstance(I, TC))
-                .map(lambda a: a[1])
-            )
+            return next((b for a, b in self.auto_instances[G].instances.items() if isinstance(b, TC)),  # type: ignore
+                        None)
         else:
-            return Empty()
+            return None
 
-    def _lookup_regular(self, TC: type, G: type
-                        ) -> 'amino.maybe.Maybe[TypeClass]':
-        from amino.maybe import Empty
+    def _lookup_regular(self, TC: type, G: type) -> Optional[TypeClass]:
         if G.__name__ in self.instances:
-            return (
-                self.instances[G.__name__].instances
-                .find(lambda I: isinstance(I, TC))
-                .map(lambda a: a[1])
-            )
+            return next((b for a, b in self.instances[G.__name__].instances.items() if isinstance(b, TC)), None)
         else:
-            return Empty()
+            return None
 
-    def _lookup_pred(self, TC: type, G: type
-                     ) -> 'amino.maybe.Maybe[TypeClass]':
-        from amino.maybe import Empty
+    def _lookup_pred(self, TC: type, G: type) -> Optional[TypeClass]:
         if TC in self.pred_instances:
-            return (
-                self.pred_instances[TC]
-                .find(lambda a: a.pred(G))
-                .map(lambda a: a.tc)
-            )
-        return Empty()
+            return next((b.tc for a, b in self.pred_instances[TC].items() if b.pred(G)), None)
+        else:
+            return None
 
 Instances = AllInstances()  # type: AllInstances
 
