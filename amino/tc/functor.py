@@ -29,10 +29,10 @@ class Functor(Generic[F], TypeClass):
         splat = lambda v: f(**v)
         return self.map(fa, splat)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Callable:
         match = self._map_re.match(name)
         if match is None:
-            return super().__getattr__(name)
+            raise AttributeError(f''''Functor' object has no attribute '{name}' ''')
         else:
             return amino.func.F(self.map_n, int(match.group(1)))
 

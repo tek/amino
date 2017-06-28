@@ -1,11 +1,10 @@
 import abc
-from typing import Callable, TypeVar, Generic, Type, Union
+from typing import Callable, TypeVar, Generic, Union, cast
 
 from amino.logging import Logging
 from amino import List, Boolean, __, _, Either, Right, Maybe, Left, L, Map
 from amino.boolean import false, true
-from amino.tc.base import TypeClass, Implicits
-from amino.lazy import lazy
+from amino.tc.base import Implicits
 from amino.tc.flat_map import FlatMap
 from amino.func import call_by_name
 
@@ -21,10 +20,6 @@ Key = Union[str, int]
 
 
 class Node(Generic[Data], Logging, abc.ABC, Implicits, implicits=True, auto=True):
-
-    @abc.abstractproperty
-    def tpe(self) -> type:
-        ...
 
     def __init__(self, data: Data, parent: 'Node') -> None:
         self.data = data
@@ -61,8 +56,9 @@ class Node(Generic[Data], Logging, abc.ABC, Implicits, implicits=True, auto=True
     def contains(self, target: 'Node') -> Boolean:
         ...
 
+    @abc.abstractmethod
     def lift(self, key: Key) -> 'SubTree':
-        return Tree.fatal(self.tpe).sub(self, key)
+        ...
 
     def __getitem__(self, key: Key) -> 'SubTree':
         return self.lift(key)
@@ -77,11 +73,18 @@ class Node(Generic[Data], Logging, abc.ABC, Implicits, implicits=True, auto=True
 class SubTree:
 
     @staticmethod
-    def from_maybe(data: Maybe[Node], key: Key, err: str) -> 'SubTree':
-        return data.cata(
-            L(Tree.fatal(data.tpe)).sub(_, key),
-            SubTreeInvalid(key, err)
+    def cons(fa: Node, key: Key) -> 'SubTree':
+        return (
+            cast(SubTree, SubTreeList(fa, key))
+            if isinstance(fa, ListNode) else
+            SubTreeLeaf(fa, key)
+            if isinstance(fa, LeafNode) else
+            SubTreeMap(fa, key)
         )
+
+    @staticmethod
+    def from_maybe(data: Maybe[Node], key: Key, err: str) -> 'SubTree':
+        return data.cata(SubTree.cons, SubTreeInvalid(key, err))
 
     def __getattr__(self, key: Key) -> 'SubTree':
         return self._getattr(key)
@@ -167,6 +170,13 @@ class ListNode(Generic[Data], Inode[Data]):
     def __repr__(self) -> str:
         return str(self)
 
+    def lift(self, key: Key) -> SubTree:
+        return (
+            SubTreeInvalid(key, 'ListNode index must be int')
+            if isinstance(key, str) else
+            self._sub.lift(key) / L(SubTree.cons)(_, key) | (lambda: SubTreeInvalid(key, 'StrListNode index oob'))
+        )
+
 
 class MapNode(Generic[Data], Inode[Data]):
 
@@ -190,6 +200,13 @@ class MapNode(Generic[Data], Inode[Data]):
 
     def __repr__(self) -> str:
         return str(self)
+
+    def lift(self, key: Key) -> SubTree:
+        return (
+            self._sub.lift(key) /
+            L(SubTree.cons)(_, key) |
+            (lambda: SubTreeInvalid(key, 'MapListNode invalid index'))
+        )
 
 
 class LeafNode(Generic[Data], Node[Data]):
@@ -218,7 +235,7 @@ class LeafNode(Generic[Data], Node[Data]):
     def contains(self, target: Node) -> Boolean:
         return false
 
-    def lift_sub(self, key: Key) -> 'SubTree':
+    def lift(self, key: Key) -> 'SubTree':
         return SubTreeInvalid(key, 'LeafNode cannot be indexed')
 
     def __str__(self) -> str:
@@ -228,41 +245,21 @@ class LeafNode(Generic[Data], Node[Data]):
         return str(self)
 
 
-F = TypeVar('F')
+class TreeFlatMap(FlatMap, tpe=Node):
 
-
-class Tree(Generic[A], TypeClass):
-
-    @lazy
-    def fm(self) -> 'TreeFlatMap':
-        return TreeFlatMap()
-
-    @abc.abstractmethod
-    def leaf(self, a: B) -> LeafNode[B]:
-        ...
-
-    @abc.abstractmethod
-    def list_node(self, sub: List[Node[B]]) -> Node[B]:
-        ...
-
-    @abc.abstractmethod
-    def map_node(self, sub: Map[Key, Node[B]]) -> Node[B]:
-        ...
-
-    def inode(self, sub: F) -> Node[B]:
-        def err() -> Inode[B]:
-            raise Exception(f'invalid sub for `Tree.inode`: {sub}')
+    def map(self, fa: Node[A], f: Callable[[A], B]) -> Node[B]:
         return (
-            self.map_node(sub)
-            if isinstance(sub, Map) else
-            self.list_node(sub)
-            if isinstance(sub, List) else
-            err()
+            self.map_inode(fa, f)
+            if isinstance(fa, Inode) else
+            self.map_leaf(fa, f)
         )
 
-    @abc.abstractmethod
-    def sub(self, fa: Node[A], key: Key) -> SubTree:
-        ...
+    def flat_map(self, fa: Node[A], f: Callable[[A], Node[B]]) -> Node[B]:
+        return (
+            self.flat_map_inode(fa, f)
+            if isinstance(fa, Inode) else
+            self.flat_map_leaf(fa, f)
+        )
 
     def flat_map_inode(self, fa: Inode[A], f: Callable[[A], Node[B]]) -> Node[B]:
         def err() -> Inode[A]:
@@ -276,10 +273,10 @@ class Tree(Generic[A], TypeClass):
         )
 
     def flat_map_map(self, fa: MapNode[A], f: Callable[[A], Node[B]]) -> Node[B]:
-        return self.map_node(fa.sub.map(lambda a: self.fm.flat_map(a, f)))
+        return MapNode(fa.sub.map(lambda a: self.flat_map(a, f)))
 
     def flat_map_list(self, fa: ListNode[A], f: Callable[[A], Node[B]]) -> Node[B]:
-        return self.list_node(fa.sub.map(lambda a: self.fm.flat_map(a, f)))
+        return ListNode(fa.sub.map(lambda a: self.flat_map(a, f)))
 
     def flat_map_leaf(self, fa: LeafNode[A], f: Callable[[A], Node[B]]) -> Node[B]:
         return f(fa.value)
@@ -296,32 +293,13 @@ class Tree(Generic[A], TypeClass):
         )
 
     def map_map(self, fa: MapNode[A], f: Callable[[A], B]) -> Node[B]:
-        return self.map_node(fa._sub.valmap(lambda a: self.fm.map(a, f)))
+        return MapNode(fa._sub.valmap(lambda a: self.map(a, f)))
 
     def map_list(self, fa: ListNode[A], f: Callable[[A], B]) -> Node[B]:
-        return self.list_node(fa._sub.map(lambda a: self.fm.map(a, f)))
+        return ListNode(fa._sub.map(lambda a: self.map(a, f)))
 
     def map_leaf(self, fa: LeafNode[A], f: Callable[[A], B]) -> Node[B]:
-        return self.leaf(f(fa.value))
-
-
-class TreeFlatMap(FlatMap, tpe=Node):
-
-    def map(self, fa: Node[A], f: Callable[[A], B]) -> Node[B]:
-        t = Tree.fatal(fa.tpe)
-        return (
-            t.map_inode(fa, f)
-            if isinstance(fa, Inode) else
-            t.map_leaf(fa, f)
-        )
-
-    def flat_map(self, fa: Node[A], f: Callable[[A], Node[B]]) -> Node[B]:
-        t = Tree.fatal(fa.tpe)
-        return (
-            t.flat_map_inode(fa, f)
-            if isinstance(fa, Inode) else
-            t.flat_map_leaf(fa, f)
-        )
+        return LeafNode(f(fa.value))
 
 
 class SubTreeValid(Generic[A], SubTree):
