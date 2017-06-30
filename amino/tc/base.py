@@ -220,7 +220,7 @@ class Implicits(metaclass=ImplicitsMeta):
         imp = (self._set_implicit_attr(name) if Implicits.permanent else
                self._bound_implicit_attr(name))
         if imp is None:
-            err = '\'{}\' has no attribute \'{}\''.format(self, name)
+            err = '\'{}\' object has no attribute \'{}\''.format(self.__class__.__name__, name)
             raise AttributeError(err)
         else:
             return imp
