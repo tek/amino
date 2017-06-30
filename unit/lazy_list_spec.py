@@ -94,7 +94,7 @@ class LazyListSpec(Spec):
         l1 = LazyList((a, a, a, a), chunk_size=1)
         l2 = LazyList((b, b, b, b), chunk_size=1)
         l1[1]
-        z = l1 & l2
+        z = l1.zip(l2)
         z.strict.should.equal(List(ab, ab))
         z.drain.should.equal(List(ab, ab, ab, ab))
 
