@@ -2,14 +2,15 @@ import abc
 from typing import Callable, TypeVar, Generic, Union, cast
 
 from amino.logging import Logging
-from amino import List, Boolean, __, _, Either, Right, Maybe, Left, L, Map
+from amino import LazyList, Boolean, __, _, Either, Right, Maybe, Left, L, Map
 from amino.boolean import false, true
 from amino.tc.base import Implicits
 from amino.tc.flat_map import FlatMap
 from amino.func import call_by_name
+from amino.lazy_list import LazyLists
 
 
-def indent(strings: List[str]) -> List[str]:
+def indent(strings: LazyList[str]) -> LazyList[str]:
     return strings.map(' ' + _)
 
 
@@ -21,16 +22,12 @@ Key = Union[str, int]
 
 class Node(Generic[Data], Logging, abc.ABC, Implicits, implicits=True, auto=True):
 
-    def __init__(self, data: Data, parent: 'Node') -> None:
-        self.data = data
-        self.parent = parent
-
     @abc.abstractproperty
-    def sub(self) -> List['Node']:
+    def sub(self) -> LazyList['Node']:
         ...
 
     @abc.abstractproperty
-    def strings(self) -> List[str]:
+    def strings(self) -> LazyList[str]:
         ...
 
     @property
@@ -42,14 +39,14 @@ class Node(Generic[Data], Logging, abc.ABC, Implicits, implicits=True, auto=True
         ...
 
     @abc.abstractmethod
-    def filter(self, pred: Callable[['Node'], bool]) -> 'List[Node]':
+    def filter(self, pred: Callable[['Node'], bool]) -> 'LazyList[Node]':
         ...
 
-    def _filter(self, pred: Callable[['Node'], bool]) -> 'List[Node]':
+    def _filter(self, pred: Callable[['Node'], bool]) -> 'LazyList[Node]':
         return Boolean(pred(self)).maybe(self).to_list
 
     @abc.abstractproperty
-    def flatten(self) -> 'List[Node]':
+    def flatten(self) -> 'LazyList[Node]':
         ...
 
     @abc.abstractmethod
@@ -69,12 +66,16 @@ class Node(Generic[Data], Logging, abc.ABC, Implicits, implicits=True, auto=True
         except AttributeError:
             return self.lift(key)
 
+    @abc.abstractproperty
+    def empty(self) -> Boolean:
+        ...
 
-class SubTree:
+
+class SubTree(Implicits, implicits=True, auto=True):
 
     @staticmethod
     def cons(fa: Node, key: Key) -> 'SubTree':
-        return (
+        return (  # type: ignore
             cast(SubTree, SubTreeList(fa, key))
             if isinstance(fa, ListNode) else
             SubTreeLeaf(fa, key)
@@ -87,7 +88,10 @@ class SubTree:
         return data.cata(SubTree.cons, SubTreeInvalid(key, err))
 
     def __getattr__(self, key: Key) -> 'SubTree':
-        return self._getattr(key)
+        try:
+            return super().__getattr__(key)
+        except AttributeError:
+            return self._getattr(key)
 
     @abc.abstractmethod
     def _getattr(self, key: Key) -> 'SubTree':
@@ -115,22 +119,30 @@ class SubTree:
     def valid(self) -> Boolean:
         ...
 
+    @abc.abstractproperty
+    def strings(self) -> LazyList[str]:
+        ...
+
+    @abc.abstractproperty
+    def show(self) -> LazyList[str]:
+        ...
+
 
 class Inode(Generic[Data], Node[Data]):
 
     @abc.abstractproperty
-    def sub(self) -> List[Node]:
+    def sub(self) -> LazyList[Node]:
         ...
 
     def foreach(self, f: Callable[[Node], None]) -> None:
         f(self)
         self.sub.foreach(__.foreach(f))
 
-    def filter(self, pred: Callable[[Node], bool]) -> List[Node]:
+    def filter(self, pred: Callable[[Node], bool]) -> LazyList[Node]:
         return self._filter(pred) + self.sub.flat_map(__.filter(pred))
 
     @property
-    def flatten(self) -> List[Node]:
+    def flatten(self) -> LazyList[Node]:
         yield self
         for a in self.sub:
             yield from a.flatten
@@ -138,14 +150,18 @@ class Inode(Generic[Data], Node[Data]):
     def contains(self, target: Node) -> Boolean:
         return self.sub.contains(target)
 
+    @property
+    def empty(self) -> Boolean:
+        return self._sub.empty
+
 
 class ListNode(Generic[Data], Inode[Data]):
 
-    def __init__(self, sub: List[Node[Data]]) -> None:
+    def __init__(self, sub: LazyList[Node[Data]]) -> None:
         self._sub = sub
 
     @property
-    def sub(self) -> List[Node[Data]]:
+    def sub(self) -> LazyList[Node[Data]]:
         return self._sub
 
     @property
@@ -153,8 +169,8 @@ class ListNode(Generic[Data], Inode[Data]):
         return '[]'
 
     @property
-    def strings(self) -> List[str]:
-        return indent(self.sub // _.strings).cons(self._desc)
+    def strings(self) -> LazyList[str]:
+        return indent(self.sub // (lambda a: a.strings)).cons(self._desc)
 
     @property
     def head(self) -> 'SubTree':
@@ -165,7 +181,7 @@ class ListNode(Generic[Data], Inode[Data]):
         return self.lift(-1)
 
     def __str__(self) -> str:
-        return '{}({})'.format(self.__class__.__name__, self._sub.map(str).mk_string(','))
+        return '{}({})'.format(self.__class__.__name__, self.sub.map(str).mk_string(','))
 
     def __repr__(self) -> str:
         return str(self)
@@ -174,7 +190,7 @@ class ListNode(Generic[Data], Inode[Data]):
         return (
             SubTreeInvalid(key, 'ListNode index must be int')
             if isinstance(key, str) else
-            self._sub.lift(key) / L(SubTree.cons)(_, key) | (lambda: SubTreeInvalid(key, 'StrListNode index oob'))
+            self.sub.lift(key) / L(SubTree.cons)(_, key) | (lambda: SubTreeInvalid(key, 'StrListNode index oob'))
         )
 
 
@@ -184,7 +200,7 @@ class MapNode(Generic[Data], Inode[Data]):
         self._sub = sub
 
     @property
-    def sub(self) -> List[Node[Data]]:
+    def sub(self) -> LazyList[Node[Data]]:
         return self._sub.v
 
     @property
@@ -192,44 +208,47 @@ class MapNode(Generic[Data], Inode[Data]):
         return '{}'
 
     @property
-    def strings(self) -> List[str]:
-        return indent(self.sub // _.strings).cons(self._desc)
+    def strings(self) -> LazyList[str]:
+        return indent(self.sub // (lambda a: a.strings)).cons(self._desc)
 
     def __str__(self) -> str:
-        return '{}({})'.format(self.__class__.__name__, self._sub)
+        return '{}({})'.format(self.__class__.__name__, self.sub)
 
     def __repr__(self) -> str:
         return str(self)
 
     def lift(self, key: Key) -> SubTree:
+        def err() -> SubTree:
+            keys = ', '.join(self._sub.keys())
+            return SubTreeInvalid(key, f'MapNode invalid key ({keys})')
         return (
             self._sub.lift(key) /
             L(SubTree.cons)(_, key) |
-            (lambda: SubTreeInvalid(key, 'MapListNode invalid index'))
+            err
         )
 
 
 class LeafNode(Generic[Data], Node[Data]):
 
     def __init__(self, value: Data) -> None:
-        self.value = value
+        self._value = value
 
     @property
-    def strings(self) -> List[Data]:
-        return List(self.value)
+    def strings(self) -> LazyList[Data]:
+        return LazyLists.cons(self._value)
 
     @property
-    def sub(self) -> List[Node]:
-        return List()
+    def sub(self) -> LazyList[Node]:
+        return LazyList()
 
     def foreach(self, f: Callable[[Node], None]) -> None:
         f(self)
 
-    def filter(self, pred: Callable[[Node], bool]) -> List[Node]:
+    def filter(self, pred: Callable[[Node], bool]) -> LazyList[Node]:
         return self._filter(pred)
 
     @property
-    def flatten(self) -> List[Node]:
+    def flatten(self) -> LazyList[Node]:
         yield self
 
     def contains(self, target: Node) -> Boolean:
@@ -239,10 +258,14 @@ class LeafNode(Generic[Data], Node[Data]):
         return SubTreeInvalid(key, 'LeafNode cannot be indexed')
 
     def __str__(self) -> str:
-        return '{}({})'.format(self.__class__.__name__, self.value)
+        return '{}({})'.format(self.__class__.__name__, self._value)
 
     def __repr__(self) -> str:
         return str(self)
+
+    @property
+    def empty(self) -> Boolean:
+        return false
 
 
 class TreeFlatMap(FlatMap, tpe=Node):
@@ -279,7 +302,7 @@ class TreeFlatMap(FlatMap, tpe=Node):
         return ListNode(fa.sub.map(lambda a: self.flat_map(a, f)))
 
     def flat_map_leaf(self, fa: LeafNode[A], f: Callable[[A], Node[B]]) -> Node[B]:
-        return f(fa.value)
+        return f(fa._value)
 
     def map_inode(self, fa: Inode[A], f: Callable[[A], B]) -> Node[B]:
         def err() -> Inode[A]:
@@ -296,15 +319,15 @@ class TreeFlatMap(FlatMap, tpe=Node):
         return MapNode(fa._sub.valmap(lambda a: self.map(a, f)))
 
     def map_list(self, fa: ListNode[A], f: Callable[[A], B]) -> Node[B]:
-        return ListNode(fa._sub.map(lambda a: self.map(a, f)))
+        return ListNode(fa.sub.map(lambda a: self.map(a, f)))
 
     def map_leaf(self, fa: LeafNode[A], f: Callable[[A], B]) -> Node[B]:
-        return LeafNode(f(fa.value))
+        return LeafNode(f(fa._value))
 
 
-class SubTreeValid(Generic[A], SubTree):
+class SubTreeValid(SubTree):
 
-    def __init__(self, data: A, key: Key) -> None:
+    def __init__(self, data: Node, key: Key) -> None:
         self._data = data
         self._key = key
 
@@ -319,8 +342,16 @@ class SubTreeValid(Generic[A], SubTree):
     def valid(self) -> Boolean:
         return true
 
+    @property
+    def strings(self) -> LazyList[str]:
+        return self._data.strings
 
-class SubTreeList(SubTreeValid[ListNode]):
+    @property
+    def show(self) -> str:
+        return self._data.show
+
+
+class SubTreeList(SubTreeValid):
 
     @property
     def head(self) -> SubTree:
@@ -337,14 +368,14 @@ class SubTreeList(SubTreeValid[ListNode]):
         return self._data.lift(key)
 
     def __str__(self) -> str:
-        return '{}({})'.format(self.__class__.__name__, self._data._sub.join_comma)
+        return '{}({})'.format(self.__class__.__name__, self._data.sub.join_comma)
 
     @property
-    def _keys(self) -> List[str]:
+    def _keys(self) -> LazyList[str]:
         return self._data.k
 
 
-class SubTreeLeaf(SubTreeValid[LeafNode]):
+class SubTreeLeaf(SubTreeValid):
 
     def err(self, key: Key) -> SubTree:
         return SubTreeInvalid(key, 'cannot access attrs in SubTreeLeaf')
@@ -356,7 +387,7 @@ class SubTreeLeaf(SubTreeValid[LeafNode]):
         return self.err(key)
 
 
-class SubTreeMap(SubTreeValid[MapNode]):
+class SubTreeMap(SubTreeValid):
 
     def _getattr(self, key: Key) -> SubTree:
         return self._data.lift(key)
@@ -365,7 +396,7 @@ class SubTreeMap(SubTreeValid[MapNode]):
         return self._data.lift(key)
 
     @property
-    def _keys(self) -> List[str]:
+    def _keys(self) -> LazyList[str]:
         return self._data.k
 
 
@@ -378,6 +409,9 @@ class SubTreeInvalid(SubTree):
     def __str__(self) -> str:
         s = 'SubTreeInvalid({}, {})'
         return s.format(self.key, self.reason)
+
+    def __repr__(self) -> str:
+        return str(self)
 
     @property
     def valid(self) -> Boolean:
@@ -396,5 +430,13 @@ class SubTreeInvalid(SubTree):
     @property
     def e(self) -> Either[str, Node]:
         return Left(self._error)
+
+    @property
+    def strings(self) -> LazyList[str]:
+        return LazyList([])
+
+    @property
+    def show(self) -> LazyList[str]:
+        return str(self)
 
 __all__ = ('Node', 'Inode', 'LeafNode')
