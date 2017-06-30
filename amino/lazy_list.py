@@ -119,6 +119,12 @@ class LazyList(Generic[A], Implicits, implicits=True):
         return '{}({} {!r})'.format(self.__class__.__name__, strict,
                                     self.source)
 
+    def mk_string(self, sep: str='') -> str:
+        return sep.join(self / str)
+
+    def cons(self, a: A) -> 'LazyList[A]':
+        return self.copy(I, lambda s: s.cons(a))
+
 
 def lazy_list(f):
     @wraps(f)
@@ -129,5 +135,12 @@ def lazy_list(f):
 
 def lazy_list_prop(f):
     return property(lazy_list(f))
+
+
+class LazyLists:
+
+    @staticmethod
+    def cons(*a: A) -> LazyList[A]:
+        return LazyList(a)
 
 __all__ = ('LazyList', 'lazy_list')

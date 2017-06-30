@@ -46,7 +46,7 @@ class LazyListMonad(Monad):
         strict_m = fa.strict.map(f)
         lazy_m = map(f, b)
         mapped = itertools.chain(strict_m, lazy_m)
-        source = itertools.chain(*mapped)
+        source = itertools.chain.from_iterable(mapped)
         return LazyList(source, List(), fa._chunk_size)
 
 
