@@ -1,10 +1,11 @@
 from typing import TypeVar, Callable, Tuple
+import itertools
 
 from amino import Maybe, LazyList, _, L
 from amino.list import List
 from amino.func import F, curried
 from amino.anon import __
-from amino.tc.functor import Functor
+from amino.tc.monad import Monad
 from amino.tc.base import ImplicitInstances, tc_prop
 from amino.lazy import lazy
 from amino.tc.traverse import Traverse
@@ -23,7 +24,7 @@ class LazyListInstances(ImplicitInstances):
         from amino.map import Map
         return Map(
             {
-                Functor: LazyListFunctor(),
+                Monad: LazyListMonad(),
                 Traverse: LazyListTraverse(),
                 Foldable: LazyListFoldable(),
                 Zip: LazyListZip(),
@@ -31,13 +32,22 @@ class LazyListInstances(ImplicitInstances):
         )
 
 
-class LazyListFunctor(Functor):
+class LazyListMonad(Monad):
 
     def pure(self, a: A):
         return LazyList([], List(a))
 
     def map(self, fa: LazyList[A], f: Callable[[A], B]) -> LazyList[B]:
         return fa.copy(lambda a: map(f, a), __.map(f))
+
+    def flat_map(self, fa: LazyList[A], f: Callable[[A], LazyList[B]]) -> LazyList[B]:
+        a, b = itertools.tee(fa.source)
+        fa.source = a
+        strict_m = fa.strict.map(f)
+        lazy_m = map(f, b)
+        mapped = itertools.chain(strict_m, lazy_m)
+        source = itertools.chain(*mapped)
+        return LazyList(source, List(), fa._chunk_size)
 
 
 class LazyListTraverse(Traverse):

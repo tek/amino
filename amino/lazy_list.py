@@ -24,11 +24,10 @@ class LazyList(Generic[A], Implicits, implicits=True):
             return f(self, index)
         return wrapper
 
-    def __init__(self, source, init=List(), chunk_size=None, post=I) -> None:
+    def __init__(self, source, init=List(), chunk_size=None) -> None:
         self.source = iter(source)
         self.strict = init
         self._chunk_size = chunk_size or self._default_chunk_size
-        self._post = post
 
     @fetch
     def __getitem__(self, index):
@@ -64,11 +63,10 @@ class LazyList(Generic[A], Implicits, implicits=True):
         self._fetch(float('inf'))
         return self.strict
 
-    def copy(self, wrap_source, transstrict: Callable[[List[A]], List[A]]):
+    def copy(self, wrap_source, trans_strict: Callable[[List[A]], List[A]]):
         a, b = itertools.tee(self.source)
         self.source = a
-        return LazyList(wrap_source(b), transstrict(self.strict),
-                        self._chunk_size, self._post)
+        return LazyList(wrap_source(b), trans_strict(self.strict), self._chunk_size)
 
     @fetch
     def lift(self, index):

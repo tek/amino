@@ -1,7 +1,7 @@
 import itertools
 
 from amino.test.spec_spec import Spec
-from amino import LazyList, List, _, Just, Maybe, Task
+from amino import LazyList, List, _, Just, Maybe, Task, I
 
 
 class LazyListSpec(Spec):
@@ -102,5 +102,10 @@ class LazyListSpec(Spec):
         l[0]
         z = l.apzip(_ + 2)
         z.drain.should.equal(List((1, 3), (2, 4), (3, 5)))
+
+    def flat_map(self) -> None:
+        l = LazyList((LazyList((1, 2, 3)), LazyList((1, 2, 3)), LazyList((1, 2, 3))))
+        l.lift(1)
+        l.flat_map(I).drain.should.equal(List(1, 2, 3, 1, 2, 3, 1, 2, 3))
 
 __all__ = ('LazyListSpec',)
