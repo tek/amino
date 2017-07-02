@@ -8,6 +8,7 @@ from amino.tree import indent, Node
 
 Data = TypeVar('Data')
 A = TypeVar('A')
+B = TypeVar('B')
 
 
 class RoseTree(Generic[Data]):
@@ -36,7 +37,7 @@ class RoseTree(Generic[Data]):
         return indent(self.sub.flat_map(_.strings)).cons(str(self.data))
 
     def map(self, f: Callable[[Data], A]) -> 'RoseTree[A]':
-        return self.copy(f, I)
+        return self.copy(f, I)  # type: ignore
 
     def copy(self, f: Callable[[Data], A], g: Callable[[LazyList['RoseTree[Data]']], LazyList['RoseTree[A]']]
              ) -> 'RoseTree[A]':
@@ -85,9 +86,9 @@ def leaves(*data: Data) -> Callable[[RoseTree[Data]], LazyList[RoseTree[Data]]]:
     return lambda parent: LazyList(data).map(leaf).map(lambda f: f(parent))
 
 
-def from_tree(tree: Node[Data, Any]) -> RoseTree[Data]:
-    def sub(node: Node[Data, Any]) -> Callable[[RoseTree[Node[Data, Any]]], LazyList[RoseTree[Node[Data, Any]]]]:
-        return lambda parent: tree.sub_l.map(lambda a: BiRoseTree(a, parent, sub(a)))
-    return RoseTree(tree, sub(tree))
+def from_tree(tree: Node[A, Any], f: Callable[[Node[A, Any]], B]) -> RoseTree[B]:
+    def sub(node: Node[A, Any]) -> Callable[[RoseTree[Node[A, Any]]], LazyList[RoseTree[Node[A, Any]]]]:
+        return lambda parent: node.sub_l.map(lambda a: BiRoseTree(f(a), parent, sub(a)))
+    return RoseTree(f(tree), sub(tree))
 
 __all__ = ('BiRoseTree', 'RoseTree', 'node', 'leaf', 'leaves')
