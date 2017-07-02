@@ -122,7 +122,11 @@ class LazyList(Generic[A], Implicits, implicits=True):
                                     self.source)
 
     def mk_string(self, sep: str='') -> str:
-        return sep.join(self / str)
+        return sep.join((self / str).drain)
+
+    @property
+    def join_lines(self) -> str:
+        return self.mk_string('\n')
 
     def cons(self, a: A) -> 'LazyList[A]':
         return self.copy(I, lambda s: s.cons(a))
