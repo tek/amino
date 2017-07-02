@@ -1,5 +1,5 @@
 import abc
-from typing import Callable, TypeVar, Generic, Union, cast
+from typing import Callable, TypeVar, Generic, Union, cast, Any
 
 from amino.logging import Logging
 from amino import LazyList, Boolean, __, _, Either, Right, Maybe, Left, L, Map, curried
@@ -15,36 +15,53 @@ def indent(strings: LazyList[str]) -> LazyList[str]:
 
 
 Data = TypeVar('Data')
+Data1 = TypeVar('Data1')
+Sub = TypeVar('Sub')
+Sub1 = TypeVar('Sub1')
 A = TypeVar('A')
 B = TypeVar('B')
 Z = TypeVar('Z')
 Key = Union[str, int]
 
 
-class Node(Generic[Data], Logging, abc.ABC, Implicits, implicits=True, auto=True):
+class Node(Generic[Data, Sub], Logging, abc.ABC, Implicits, implicits=True, auto=True):
 
     @abc.abstractproperty
-    def sub(self) -> LazyList['Node']:
+    def sub(self) -> Sub:
         ...
 
     @abc.abstractproperty
-    def strings(self) -> LazyList[str]:
+    def sub_l(self) -> LazyList['Node[Data, Any]']:
+        ...
+
+    @abc.abstractmethod
+    def _strings(self) -> LazyList[str]:
         ...
 
     @property
+    def strings(self) -> LazyList[str]:
+        return self._strings()
+
+    def _show(self) -> str:
+        return self._strings().mk_string('\n')
+
+    @property
     def show(self) -> str:
-        return self.strings.mk_string('\n')
+        return self._show()
 
     @abc.abstractmethod
     def foreach(self, f: Callable[['Node'], None]) -> None:
         ...
 
     @abc.abstractmethod
-    def filter(self, pred: Callable[['Node'], bool]) -> 'LazyList[Node]':
+    def filter(self, pred: Callable[['Node'], bool]) -> 'LazyList[Any]':
         ...
 
+    def filter_not(self, pred: Callable[['Node'], bool]) -> 'LazyList[Any]':
+        return self.filter(lambda a: not pred(a))
+
     @abc.abstractproperty
-    def flatten(self) -> 'LazyList[Node]':
+    def flatten(self) -> 'LazyList[Any]':
         ...
 
     @abc.abstractmethod
@@ -58,11 +75,9 @@ class Node(Generic[Data], Logging, abc.ABC, Implicits, implicits=True, auto=True
     def __getitem__(self, key: Key) -> 'SubTree':
         return self.lift(key)
 
-    def __getattr__(self, key: Key) -> 'SubTree':
-        try:
-            return super().__getattr__(key)
-        except AttributeError:
-            return self.lift(key)
+    @abc.abstractproperty
+    def s(self) -> 'SubTree':
+        ...
 
     @abc.abstractproperty
     def empty(self) -> Boolean:
@@ -71,7 +86,251 @@ class Node(Generic[Data], Logging, abc.ABC, Implicits, implicits=True, auto=True
     @curried
     def fold_left(self, z: Z, f: Callable[[Z, 'Node'], Z]) -> Z:
         z1 = f(z, self)
-        return self.sub.fold_left(z1)(lambda z2, a: a.fold_left(z2)(f))
+        return self.sub_l.fold_left(z1)(lambda z2, a: a.fold_left(z2)(f))
+
+    @abc.abstractmethod
+    def replace(self, data: LazyList['Node[Data1, Sub1]']) -> 'Node[Data1, Sub1]':
+        ...
+
+
+class Inode(Generic[Data, Sub], Node[Data, Sub]):
+
+    @abc.abstractproperty
+    def sub(self) -> LazyList[Any]:
+        ...
+
+    def foreach(self, f: Callable[[Node], None]) -> None:
+        f(self)
+        self.sub_l.foreach(__.foreach(f))
+
+    @property
+    def flatten(self) -> LazyList[Any]:
+        return self.sub_l.flat_map(_.flatten).cons(self)
+
+    def contains(self, target: Node) -> Boolean:
+        return self.sub_l.contains(target)
+
+    @property
+    def empty(self) -> Boolean:
+        return self.data.empty
+
+
+class ListNode(Generic[Data], Inode[Data, LazyList[Node[Data, Any]]]):
+
+    def __init__(self, sub: LazyList[Node[Data, Any]]) -> None:
+        self.data = sub
+
+    @property
+    def sub(self) -> LazyList[Node[Data, Any]]:
+        return self.data
+
+    @property
+    def sub_l(self) -> LazyList[Node[Data, Any]]:
+        return self.sub
+
+    @property
+    def _desc(self) -> str:
+        return '[]'
+
+    def _strings(self) -> LazyList[str]:
+        return indent(self.sub // (lambda a: a._strings())).cons(self._desc)
+
+    @property
+    def head(self) -> 'SubTree':
+        return self.lift(0)
+
+    @property
+    def last(self) -> 'SubTree':
+        return self.lift(-1)
+
+    def __str__(self) -> str:
+        return '{}({})'.format(self.__class__.__name__, self.sub.map(str).mk_string(','))
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def lift(self, key: Key) -> 'SubTree':
+        return (
+            SubTreeInvalid(key, 'ListNode index must be int')
+            if isinstance(key, str) else
+            self.sub.lift(key) / L(SubTree.cons)(_, key) | (lambda: SubTreeInvalid(key, 'StrListNode index oob'))
+        )
+
+    def replace(self, sub: LazyList[Any]) -> Node:
+        return ListNode(sub)
+
+    def filter(self, pred: Callable[[Node], bool]) -> Node:
+        def filt(n: Node) -> bool:
+            return (
+                pred(n)
+                if isinstance(n, LeafNode) else
+                not n.empty
+            )
+        return self.replace(self.sub.map(__.filter(pred)).filter(filt))
+
+    @property
+    def s(self) -> 'SubTree':
+        return SubTreeList(self, 'root')
+
+
+class MapNode(Generic[Data], Inode[Data, Map[str, Node[Data, Any]]]):
+
+    def __init__(self, sub: Map[str, Node[Data, Any]]) -> None:
+        self.data = sub
+
+    @property
+    def sub(self) -> Map[str, Node[Data, Any]]:
+        return self.data
+
+    @property
+    def sub_l(self) -> LazyList[Node[Data, Any]]:
+        return LazyList(self.data.v)
+
+    @property
+    def _desc(self) -> str:
+        return '{}'
+
+    def _strings(self) -> LazyList[str]:
+        return indent(self.sub_l // (lambda a: a._strings())).cons(self._desc)
+
+    def __str__(self) -> str:
+        return '{}({})'.format(self.__class__.__name__, self.sub_l)
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def lift(self, key: Key) -> 'SubTree':
+        def err() -> 'SubTree':
+            keys = ', '.join(self.data.keys())
+            return SubTreeInvalid(key, f'MapNode invalid key ({keys})')
+        return (
+            self.data.lift(key) /
+            L(SubTree.cons)(_, key) |
+            err
+        )
+
+    def replace(self, sub: Map[str, Node]) -> Node:
+        return MapNode(sub)
+
+    def filter(self, pred: Callable[[Node], bool]) -> Node:
+        def filt(n: Node) -> bool:
+            return (
+                pred(n)
+                if isinstance(n, LeafNode) else
+                not n.empty
+            )
+        return self.replace(self.data.valmap(__.filter(pred)).valfilter(filt))
+
+    @property
+    def s(self) -> 'SubTree':
+        return SubTreeMap(self, 'root')
+
+
+class LeafNode(Generic[Data], Node[Data, None]):
+
+    def __init__(self, data: Data) -> None:
+        self.data = data
+
+    def _strings(self) -> LazyList[Data]:
+        return LazyLists.cons(self.data)
+
+    @property
+    def sub(self) -> None:
+        pass
+
+    @property
+    def sub_l(self) -> LazyList[Node[Data, Any]]:
+        return LazyList([])
+
+    def foreach(self, f: Callable[[Node], None]) -> None:
+        f(self)
+
+    def filter(self, pred: Callable[[Node], bool]) -> Node:
+        return self
+
+    @property
+    def flatten(self) -> LazyList[Any]:
+        return LazyLists.cons(self)
+
+    def contains(self, target: Node) -> Boolean:
+        return false
+
+    def lift(self, key: Key) -> 'SubTree':
+        return SubTreeInvalid(key, 'LeafNode cannot be indexed')
+
+    def __str__(self) -> str:
+        return '{}({})'.format(self.__class__.__name__, self.data)
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    @property
+    def empty(self) -> Boolean:
+        return false
+
+    @property
+    def s(self) -> 'SubTree':
+        return SubTreeLeaf(self, 'root')
+
+    def replace(self, sub: Data) -> Node:
+        return LeafNode(sub)
+
+
+class TreeFlatMap(FlatMap, tpe=Node):
+
+    def map(self, fa: Node[A, Any], f: Callable[[A], B]) -> Node[B, Any]:
+        return (
+            self.map_inode(fa, f)
+            if isinstance(fa, Inode) else
+            self.map_leaf(fa, f)
+        )
+
+    def flat_map(self, fa: Node[A, Any], f: Callable[[A], Node[B, Any]]) -> Node[B, Any]:
+        return (
+            self.flat_map_inode(fa, f)
+            if isinstance(fa, Inode) else
+            self.flat_map_leaf(fa, f)
+        )
+
+    def flat_map_inode(self, fa: Inode[A, Any], f: Callable[[A], Node[B, Any]]) -> Node[B, Any]:
+        def err() -> Inode[A, Any]:
+            raise Exception(f'invalid sub for `Tree.flat_map_inode`: {fa}')
+        return (
+            self.flat_map_map(fa, f)
+            if isinstance(fa, MapNode) else
+            self.flat_map_list(fa, f)
+            if isinstance(fa, ListNode) else
+            err()
+        )
+
+    def flat_map_map(self, fa: MapNode[A], f: Callable[[A], Node[B, Any]]) -> Node[B, Any]:
+        return MapNode(fa.sub.valmap(lambda a: self.flat_map(a, f)))
+
+    def flat_map_list(self, fa: ListNode[A], f: Callable[[A], Node[B, Any]]) -> Node[B, Any]:
+        return ListNode(fa.sub.map(lambda a: self.flat_map(a, f)))
+
+    def flat_map_leaf(self, fa: LeafNode[A], f: Callable[[A], Node[B, Any]]) -> Node[B, Any]:
+        return f(fa.data)
+
+    def map_inode(self, fa: Inode[A, Any], f: Callable[[A], B]) -> Node[B, Any]:
+        def err() -> Inode[A, Any]:
+            raise Exception(f'invalid sub for `Tree.map_inode`: {fa}')
+        return (
+            self.map_map(fa, f)
+            if isinstance(fa, MapNode) else
+            self.map_list(fa, f)
+            if isinstance(fa, ListNode) else
+            err()
+        )
+
+    def map_map(self, fa: MapNode[A], f: Callable[[A], B]) -> Node[B, Any]:
+        return MapNode(fa.data.valmap(lambda a: self.map(a, f)))
+
+    def map_list(self, fa: ListNode[A], f: Callable[[A], B]) -> Node[B, Any]:
+        return ListNode(fa.sub.map(lambda a: self.map(a, f)))
+
+    def map_leaf(self, fa: LeafNode[A], f: Callable[[A], B]) -> Node[B, Any]:
+        return LeafNode(f(fa.data))
 
 
 class SubTree(Implicits, implicits=True, auto=True):
@@ -131,222 +390,6 @@ class SubTree(Implicits, implicits=True, auto=True):
         ...
 
 
-class Inode(Generic[Data], Node[Data]):
-
-    @abc.abstractproperty
-    def sub(self) -> LazyList[Node]:
-        ...
-
-    def foreach(self, f: Callable[[Node], None]) -> None:
-        f(self)
-        self.sub.foreach(__.foreach(f))
-
-    @property
-    def flatten(self) -> LazyList[Node]:
-        return self.sub.flat_map(_.flatten).cons(self)
-
-    def contains(self, target: Node) -> Boolean:
-        return self.sub.contains(target)
-
-    @property
-    def empty(self) -> Boolean:
-        return self.data.empty
-
-
-class ListNode(Generic[Data], Inode[Data]):
-
-    def __init__(self, sub: LazyList[Node[Data]]) -> None:
-        self.data = sub
-
-    @property
-    def sub(self) -> LazyList[Node[Data]]:
-        return self.data
-
-    @property
-    def _desc(self) -> str:
-        return '[]'
-
-    @property
-    def strings(self) -> LazyList[str]:
-        return indent(self.sub // (lambda a: a.strings)).cons(self._desc)
-
-    @property
-    def head(self) -> 'SubTree':
-        return self.lift(0)
-
-    @property
-    def last(self) -> 'SubTree':
-        return self.lift(-1)
-
-    def __str__(self) -> str:
-        return '{}({})'.format(self.__class__.__name__, self.sub.map(str).mk_string(','))
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def lift(self, key: Key) -> SubTree:
-        return (
-            SubTreeInvalid(key, 'ListNode index must be int')
-            if isinstance(key, str) else
-            self.sub.lift(key) / L(SubTree.cons)(_, key) | (lambda: SubTreeInvalid(key, 'StrListNode index oob'))
-        )
-
-    def copy(self, sub: LazyList[Node]) -> Node:
-        return ListNode(sub)
-
-    def filter(self, pred: Callable[[Node], bool]) -> Node:
-        def filt(n: Node) -> bool:
-            return (
-                pred(n)
-                if isinstance(n, LeafNode) else
-                not n.empty
-            )
-        return self.copy(self.sub.map(__.filter(pred)).filter(filt))
-
-
-class MapNode(Generic[Data], Inode[Data]):
-
-    def __init__(self, sub: Map[str, Node[Data]]) -> None:
-        self.data = sub
-
-    @property
-    def sub(self) -> LazyList[Node[Data]]:
-        return LazyList(self.data.v)
-
-    @property
-    def _desc(self) -> str:
-        return '{}'
-
-    @property
-    def strings(self) -> LazyList[str]:
-        return indent(self.sub // (lambda a: a.strings)).cons(self._desc)
-
-    def __str__(self) -> str:
-        return '{}({})'.format(self.__class__.__name__, self.sub)
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def lift(self, key: Key) -> SubTree:
-        def err() -> SubTree:
-            keys = ', '.join(self.data.keys())
-            return SubTreeInvalid(key, f'MapNode invalid key ({keys})')
-        return (
-            self.data.lift(key) /
-            L(SubTree.cons)(_, key) |
-            err
-        )
-
-    def copy(self, sub: Map[str, Node]) -> Node:
-        return MapNode(sub)
-
-    def filter(self, pred: Callable[[Node], bool]) -> Node:
-        def filt(n: Node) -> bool:
-            return (
-                pred(n)
-                if isinstance(n, LeafNode) else
-                not n.empty
-            )
-        return self.copy(self.data.valmap(__.filter(pred)).valfilter(filt))
-
-
-class LeafNode(Generic[Data], Node[Data]):
-
-    def __init__(self, value: Data) -> None:
-        self.data = value
-
-    @property
-    def strings(self) -> LazyList[Data]:
-        return LazyLists.cons(self.data)
-
-    @property
-    def sub(self) -> LazyList[Node]:
-        return LazyList([])
-
-    def foreach(self, f: Callable[[Node], None]) -> None:
-        f(self)
-
-    def filter(self, pred: Callable[[Node], bool]) -> Node:
-        return self
-
-    @property
-    def flatten(self) -> LazyList[Node]:
-        return LazyLists.cons(self)
-
-    def contains(self, target: Node) -> Boolean:
-        return false
-
-    def lift(self, key: Key) -> 'SubTree':
-        return SubTreeInvalid(key, 'LeafNode cannot be indexed')
-
-    def __str__(self) -> str:
-        return '{}({})'.format(self.__class__.__name__, self.data)
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    @property
-    def empty(self) -> Boolean:
-        return false
-
-
-class TreeFlatMap(FlatMap, tpe=Node):
-
-    def map(self, fa: Node[A], f: Callable[[A], B]) -> Node[B]:
-        return (
-            self.map_inode(fa, f)
-            if isinstance(fa, Inode) else
-            self.map_leaf(fa, f)
-        )
-
-    def flat_map(self, fa: Node[A], f: Callable[[A], Node[B]]) -> Node[B]:
-        return (
-            self.flat_map_inode(fa, f)
-            if isinstance(fa, Inode) else
-            self.flat_map_leaf(fa, f)
-        )
-
-    def flat_map_inode(self, fa: Inode[A], f: Callable[[A], Node[B]]) -> Node[B]:
-        def err() -> Inode[A]:
-            raise Exception(f'invalid sub for `Tree.flat_map_inode`: {fa}')
-        return (
-            self.flat_map_map(fa, f)
-            if isinstance(fa, MapNode) else
-            self.flat_map_list(fa, f)
-            if isinstance(fa, ListNode) else
-            err()
-        )
-
-    def flat_map_map(self, fa: MapNode[A], f: Callable[[A], Node[B]]) -> Node[B]:
-        return MapNode(fa.sub.map(lambda a: self.flat_map(a, f)))
-
-    def flat_map_list(self, fa: ListNode[A], f: Callable[[A], Node[B]]) -> Node[B]:
-        return ListNode(fa.sub.map(lambda a: self.flat_map(a, f)))
-
-    def flat_map_leaf(self, fa: LeafNode[A], f: Callable[[A], Node[B]]) -> Node[B]:
-        return f(fa.data)
-
-    def map_inode(self, fa: Inode[A], f: Callable[[A], B]) -> Node[B]:
-        def err() -> Inode[A]:
-            raise Exception(f'invalid sub for `Tree.map_inode`: {fa}')
-        return (
-            self.map_map(fa, f)
-            if isinstance(fa, MapNode) else
-            self.map_list(fa, f)
-            if isinstance(fa, ListNode) else
-            err()
-        )
-
-    def map_map(self, fa: MapNode[A], f: Callable[[A], B]) -> Node[B]:
-        return MapNode(fa.data.valmap(lambda a: self.map(a, f)))
-
-    def map_list(self, fa: ListNode[A], f: Callable[[A], B]) -> Node[B]:
-        return ListNode(fa.sub.map(lambda a: self.map(a, f)))
-
-    def map_leaf(self, fa: LeafNode[A], f: Callable[[A], B]) -> Node[B]:
-        return LeafNode(f(fa.data))
-
-
 class SubTreeValid(SubTree):
 
     def __init__(self, data: Node, key: Key) -> None:
@@ -390,7 +433,7 @@ class SubTreeList(SubTreeValid):
         return self.data.lift(key)
 
     def __str__(self) -> str:
-        return '{}({})'.format(self.__class__.__name__, self.data.sub.drain.join_comma)
+        return '{}({})'.format(self.__class__.__name__, self.data.sub_l.drain.join_comma)
 
     @property
     def _keys(self) -> LazyList[str]:

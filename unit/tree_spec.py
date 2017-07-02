@@ -1,22 +1,27 @@
+from typing import Generic, TypeVar, Any
+
 from amino.test.spec_spec import Spec
 from amino.tree import ListNode, LeafNode, Node, MapNode
-from amino import List, _, Map
+from amino import _, Map, LazyList
 from amino.lazy_list import LazyLists
 
 
-class StrNode(Node[str]):
+Sub = TypeVar('Sub')
+
+
+class StrNode(Generic[Sub], Node[str, Sub]):
     pass
 
 
-class StrLeaf(LeafNode[str], StrNode):
+class StrLeaf(LeafNode[str], StrNode[None]):
     pass
 
 
-class StrListNode(ListNode[str], StrNode):
+class StrListNode(ListNode[str], StrNode[LazyList[Node[str, Any]]]):
     pass
 
 
-class StrMapNode(MapNode[str], StrNode):
+class StrMapNode(MapNode[str], StrNode[Map[str, Node[str, Any]]]):
     pass
 
 

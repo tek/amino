@@ -1,9 +1,9 @@
-from typing import Generic, TypeVar, Callable, Tuple
+from typing import Generic, TypeVar, Callable, Tuple, Any
 
 from amino import LazyList, _, Maybe, I
 from amino.lazy import lazy
 from amino.lazy_list import LazyLists
-from amino.tree import indent
+from amino.tree import indent, Node
 
 
 Data = TypeVar('Data')
@@ -83,5 +83,11 @@ def leaf(data: Data) -> Callable[[RoseTree[Data]], RoseTree[Data]]:
 
 def leaves(*data: Data) -> Callable[[RoseTree[Data]], LazyList[RoseTree[Data]]]:
     return lambda parent: LazyList(data).map(leaf).map(lambda f: f(parent))
+
+
+def from_tree(tree: Node[Data, Any]) -> RoseTree[Data]:
+    def sub(node: Node[Data, Any]) -> Callable[[RoseTree[Node[Data, Any]]], LazyList[RoseTree[Node[Data, Any]]]]:
+        return lambda parent: tree.sub_l.map(lambda a: BiRoseTree(a, parent, sub(a)))
+    return RoseTree(tree, sub(tree))
 
 __all__ = ('BiRoseTree', 'RoseTree', 'node', 'leaf', 'leaves')
