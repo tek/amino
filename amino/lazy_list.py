@@ -149,4 +149,8 @@ class LazyLists:
     def cons(*a: A) -> LazyList[A]:
         return LazyList(a)
 
-__all__ = ('LazyList', 'lazy_list')
+    @staticmethod
+    def empty() -> LazyList[A]:
+        return LazyLists.cons()
+
+__all__ = ('LazyList', 'lazy_list', 'LazyLists')
