@@ -128,6 +128,10 @@ class LazyList(Generic[A], Implicits, implicits=True):
     def join_lines(self) -> str:
         return self.mk_string('\n')
 
+    @property
+    def join_comma(self) -> str:
+        return self.mk_string(',')
+
     def cons(self, a: A) -> 'LazyList[A]':
         return self.copy(I, lambda s: s.cons(a))
 
