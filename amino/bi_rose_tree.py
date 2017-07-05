@@ -58,6 +58,9 @@ class RoseTree(Generic[Data]):
     def filter(self, f: Callable[[Data], bool]) -> 'RoseTree[Data]':
         return self.copy(I, lambda a: a.filter(lambda n: f(n.data)))
 
+    def _drain(self) -> None:
+        self.sub._drain().foreach(lambda a: a._drain())
+
 
 class BiRoseTree(Generic[Data], RoseTree[Data]):
 
