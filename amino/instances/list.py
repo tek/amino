@@ -8,7 +8,7 @@ from amino.tc.monad import Monad
 from amino.tc.base import ImplicitInstances, tc_prop
 from amino.tc.traverse import Traverse
 from amino.tc.applicative import Applicative
-from amino.tc.foldable import Foldable
+from amino.tc.foldable import Foldable, FoldableABC
 from amino.list import flatten
 from amino.tc.zip import Zip
 from amino.tc.monoid import Monoid
@@ -49,6 +49,9 @@ class ListTraverse(Traverse):
         def folder(z, a):
             return monad.map2(z.product(f(a)), lambda l, b: l.cat(b))
         return fa.fold_left(monad.pure(List()))(folder)
+
+
+FoldableABC.register(List)
 
 
 class ListFoldable(Foldable):
