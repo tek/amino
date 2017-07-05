@@ -94,8 +94,7 @@ def call_by_name(b: CallByName):
     return b() if callable(b) else b
 
 
-def dispatch(obj: Any, tpes: typing.List[type], prefix: str,
-             default: Callable=None) -> Any:
+def dispatch(obj: Any, tpes: typing.List[type], prefix: str, default: Callable=None) -> Any:
     @singledispatch
     def main(o, *a, **kw):
         if default is None:

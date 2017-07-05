@@ -46,7 +46,7 @@ class Node(Generic[Data, Sub], Logging, abc.ABC, Implicits, implicits=True, auto
         return self._strings().mk_string('\n')
 
     @property
-    def show(self) -> str:
+    def draw(self) -> str:
         return self._show()
 
     @abc.abstractmethod
@@ -90,6 +90,10 @@ class Node(Generic[Data, Sub], Logging, abc.ABC, Implicits, implicits=True, auto
 
     @abc.abstractmethod
     def replace(self, data: LazyList['Node[Data1, Sub1]']) -> 'Node[Data1, Sub1]':
+        ...
+
+    @abc.abstractmethod
+    def map_nodes(self, f: Callable[['Node[Data, Sub]'], 'Node[Data, Sub]']) -> 'Node[Data, Sub]':
         ...
 
 
@@ -172,11 +176,14 @@ class ListNode(Generic[Data], Inode[Data, LazyList[Node[Data, Any]]]):
     def s(self) -> 'SubTree':
         return SubTreeList(self, 'root')
 
+    def map_nodes(self, f: Callable[['Node[Data, Sub]'], 'Node[Data, Sub]']) -> 'Node[Data, Sub]':
+        return f(ListNode(self.sub.map(lambda a: a.map_nodes(f))))
+
 
 class MapNode(Generic[Data], Inode[Data, Map[str, Node[Data, Any]]]):
 
-    def __init__(self, sub: Map[str, Node[Data, Any]]) -> None:
-        self.data = sub
+    def __init__(self, data: Map[str, Node[Data, Any]]) -> None:
+        self.data = data
 
     @property
     def sub(self) -> Map[str, Node[Data, Any]]:
@@ -224,6 +231,9 @@ class MapNode(Generic[Data], Inode[Data, Map[str, Node[Data, Any]]]):
     @property
     def s(self) -> 'SubTree':
         return SubTreeMap(self, 'root')
+
+    def map_nodes(self, f: Callable[['Node[Data, Sub]'], 'Node[Data, Sub]']) -> 'Node[Data, Sub]':
+        return f(MapNode(self.sub.valmap(lambda a: a.map_nodes(f))))
 
 
 class LeafNode(Generic[Data], Node[Data, None]):
@@ -275,15 +285,11 @@ class LeafNode(Generic[Data], Node[Data, None]):
     def replace(self, sub: Data) -> Node:
         return LeafNode(sub)
 
+    def map_nodes(self, f: Callable[['Node[Data, Sub]'], 'Node[Data, Sub]']) -> 'Node[Data, Sub]':
+        return f(self)
+
 
 class TreeFlatMap(FlatMap, tpe=Node):
-
-    def map(self, fa: Node[A, Any], f: Callable[[A], B]) -> Node[B, Any]:
-        return (
-            self.map_inode(fa, f)
-            if isinstance(fa, Inode) else
-            self.map_leaf(fa, f)
-        )
 
     def flat_map(self, fa: Node[A, Any], f: Callable[[A], Node[B, Any]]) -> Node[B, Any]:
         return (
@@ -294,7 +300,7 @@ class TreeFlatMap(FlatMap, tpe=Node):
 
     def flat_map_inode(self, fa: Inode[A, Any], f: Callable[[A], Node[B, Any]]) -> Node[B, Any]:
         def err() -> Inode[A, Any]:
-            raise Exception(f'invalid sub for `Tree.flat_map_inode`: {fa}')
+            raise Exception(f'invalid sub for `TreeFlatMap.flat_map_inode`: {fa}')
         return (
             self.flat_map_map(fa, f)
             if isinstance(fa, MapNode) else
@@ -312,9 +318,16 @@ class TreeFlatMap(FlatMap, tpe=Node):
     def flat_map_leaf(self, fa: LeafNode[A], f: Callable[[A], Node[B, Any]]) -> Node[B, Any]:
         return f(fa.data)
 
+    def map(self, fa: Node[A, Any], f: Callable[[A], B]) -> Node[B, Any]:
+        return (
+            self.map_inode(fa, f)
+            if isinstance(fa, Inode) else
+            self.map_leaf(fa, f)
+        )
+
     def map_inode(self, fa: Inode[A, Any], f: Callable[[A], B]) -> Node[B, Any]:
         def err() -> Inode[A, Any]:
-            raise Exception(f'invalid sub for `Tree.map_inode`: {fa}')
+            raise Exception(f'invalid sub for `TreeFlatMap.map_inode`: {fa}')
         return (
             self.map_map(fa, f)
             if isinstance(fa, MapNode) else
@@ -386,7 +399,7 @@ class SubTree(Implicits, implicits=True, auto=True):
         ...
 
     @abc.abstractproperty
-    def show(self) -> LazyList[str]:
+    def draw(self) -> LazyList[str]:
         ...
 
 
@@ -412,7 +425,7 @@ class SubTreeValid(SubTree):
         return self.data.strings
 
     @property
-    def show(self) -> str:
+    def draw(self) -> str:
         return self.data.show
 
 
@@ -501,7 +514,7 @@ class SubTreeInvalid(SubTree):
         return LazyList([])
 
     @property
-    def show(self) -> LazyList[str]:
+    def draw(self) -> LazyList[str]:
         return str(self)
 
 __all__ = ('Node', 'Inode', 'LeafNode')
