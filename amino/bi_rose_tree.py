@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar, Callable, Tuple, Any
 
-from amino import LazyList, _, Maybe, I
+from amino import LazyList, Maybe, I, Empty, Just
 from amino.lazy import lazy
 from amino.lazy_list import LazyLists
 from amino.tree import indent, Node
@@ -22,22 +22,25 @@ class RoseTree(Generic[Data]):
         return self._sub_cons(self)
 
     def __str__(self) -> str:
-        num = self.sub.drain.length
+        num = self.sub._drain().length
         return f'{self.__class__.__name__}({self.data}, {num} children)'
 
     def __repr__(self) -> str:
-        return str(self)
+        return f'{self.__class__.__name__}({self.data})'
 
     @property
     def show(self) -> str:
-        return self.strings.drain.mk_string('\n')
+        return self.strings._drain().mk_string('\n')
 
     @property
     def strings(self) -> LazyList[str]:
-        return indent(self.sub.flat_map(_.strings)).cons(str(self.data))
+        return self._strings()
+
+    def _strings(self) -> LazyList[str]:
+        return indent(self.sub.flat_map(lambda a: a._strings())).cons(str(self.data))
 
     def map(self, f: Callable[[Data], A]) -> 'RoseTree[A]':
-        return self.copy(f, I)  # type: ignore
+        return self.copy(f, I)
 
     def copy(self, f: Callable[[Data], A], g: Callable[[LazyList['RoseTree[Data]']], LazyList['RoseTree[A]']]
              ) -> 'RoseTree[A]':
