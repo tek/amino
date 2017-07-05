@@ -92,9 +92,23 @@ def leaves(*data: Data) -> Callable[[RoseTree[Data]], LazyList[RoseTree[Data]]]:
     return lambda parent: LazyList(data).map(leaf).map(lambda f: f(parent))
 
 
-def from_tree(tree: Node[A, Any], f: Callable[[Node[A, Any]], B]) -> RoseTree[B]:
-    def sub(node: Node[A, Any]) -> Callable[[RoseTree[Node[A, Any]]], LazyList[RoseTree[Node[A, Any]]]]:
-        return lambda parent: node.sub_l.map(lambda a: BiRoseTree(f(a), parent, sub(a)))
-    return RoseTree(f(tree), sub(tree))
+def from_tree(
+        tree: Node[A, Any],
+        f: Callable[[Node[A, Any], Maybe[RoseTree[B]]], B],
+        cons_root: Callable[[B, Callable[[RoseTree[Node[A, Any]]], LazyList[RoseTree[Node[A, Any]]]]], RoseTree[B]],
+        cons_node: Callable[
+            [B, RoseTree[Node[A, Any]], Callable[[RoseTree[Node[A, Any]]], LazyList[RoseTree[Node[A, Any]]]]],
+            RoseTree[B]
+        ]
+) -> RoseTree[B]:
+    def sub(node: Node[A, Any]) -> Callable[[RoseTree[Node[B, Any]]], LazyList[RoseTree[Node[B, Any]]]]:
+        def cons_sub(parent: RoseTree[Node[B, Any]], a: A) -> RoseTree[B]:
+            return cons_node(f(a, Just(parent)), parent, sub(a))
+        return lambda parent: node.sub_l.map(lambda a: cons_sub(parent, a))
+    return cons_root(f(tree, Empty()), sub(tree))
 
-__all__ = ('BiRoseTree', 'RoseTree', 'node', 'leaf', 'leaves')
+
+def from_tree_default(tree: Node[A, Any], f: Callable[[Node[A, Any], Maybe[RoseTree[B]]], B]) -> RoseTree[B]:
+    return from_tree(tree, f, RoseTree, BiRoseTree)
+
+__all__ = ('BiRoseTree', 'RoseTree', 'node', 'leaf', 'leaves', 'from_tree')
