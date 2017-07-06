@@ -52,18 +52,22 @@ _stdout_logging_initialized = False
 _level_env_var = 'AMINO_LOG_LEVEL'
 
 
-def init_loglevel(handler: logging.Handler, level: int=None):
-    if level is not None:
-        handler.setLevel(level)
-    elif _level_env_var in os.environ:
-        handler.setLevel(os.environ[_level_env_var])
-    elif amino.development:
-        handler.setLevel(VERBOSE)
+def env_log_level() -> int:
+    return amino.env[_level_env_var]
+
+
+def init_loglevel(handler: logging.Handler, level: int=None) -> None:
+    (
+        amino.Maybe.check(level)
+        .o(env_log_level)
+        .o(amino.Boolean(amino.development).flat_m(VERBOSE)) %
+        handler.setLevel
+    )
 
 amino_stdout_handler = logging.StreamHandler(stream=sys.stdout)
 
 
-def amino_stdout_logging(level: int=None):
+def amino_stdout_logging(level: int=None) -> None:
     global _stdout_logging_initialized
     if not _stdout_logging_initialized:
         amino_root_logger.addHandler(amino_stdout_handler)
