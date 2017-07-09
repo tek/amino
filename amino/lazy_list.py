@@ -86,6 +86,10 @@ class LazyList(Generic[A], Implicits, implicits=True):
     def head(self) -> Maybe[A]:
         return self.lift(0)
 
+    @property
+    def last(self) -> Maybe[A]:
+        return self.lift(-1)
+
     def _drain_find(self, abort: Callable[[A], bool]) -> Maybe[A]:
         culprit = Empty()
         def gen() -> Generator:
