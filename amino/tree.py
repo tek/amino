@@ -54,10 +54,10 @@ class Node(Generic[Data, Sub], Logging, abc.ABC, Implicits, implicits=True, auto
         ...
 
     @abc.abstractmethod
-    def filter(self, pred: Callable[['Node'], bool]) -> 'LazyList[Any]':
+    def filter(self, pred: Callable[['Node'], bool]) -> 'Node':
         ...
 
-    def filter_not(self, pred: Callable[['Node'], bool]) -> 'LazyList[Any]':
+    def filter_not(self, pred: Callable[['Node'], bool]) -> 'Node':
         return self.filter(lambda a: not pred(a))
 
     @abc.abstractproperty
@@ -157,7 +157,7 @@ class ListNode(Generic[Data], Inode[Data, LazyList[Node[Data, Any]]]):
         return (
             SubTreeInvalid(key, 'ListNode index must be int')
             if isinstance(key, str) else
-            self.sub.lift(key) / L(SubTree.cons)(_, key) | (lambda: SubTreeInvalid(key, 'StrListNode index oob'))
+            self.sub.lift(key) / L(SubTree.cons)(_, key) | (lambda: SubTreeInvalid(key, 'ListNode index oob'))
         )
 
     def replace(self, sub: LazyList[Any]) -> Node:
@@ -206,10 +206,11 @@ class MapNode(Generic[Data], Inode[Data, Map[str, Node[Data, Any]]]):
     def __repr__(self) -> str:
         return str(self)
 
+    # TODO allow int indexes into sub_l
     def lift(self, key: Key) -> 'SubTree':
         def err() -> 'SubTree':
             keys = ', '.join(self.data.keys())
-            return SubTreeInvalid(key, f'MapNode invalid key ({keys})')
+            return SubTreeInvalid(key, f'MapNode({self.rule}) invalid key ({keys})')
         return (
             self.data.lift(key) /
             L(SubTree.cons)(_, key) |
@@ -401,6 +402,10 @@ class SubTree(Implicits, implicits=True, auto=True):
     @abc.abstractproperty
     def draw(self) -> LazyList[str]:
         ...
+
+    @property
+    def rule(self) -> Either[str, str]:
+        return self.e.map(_.rule)
 
 
 class SubTreeValid(SubTree):
