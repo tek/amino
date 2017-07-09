@@ -96,10 +96,14 @@ class Either(Generic[A, B], Implicits, implicits=True):
         return Left(f(self.value)) if self.is_left else self  # type: ignore
 
     @property
-    def get_or_raise(self):
-        def fail(err):
+    def get_or_raise(self) -> B:
+        def fail(err: Any) -> None:
             raise err if isinstance(err, Exception) else Exception(err)
         return self.cata(fail, I)
+
+    @property
+    def fatal(self) -> B:
+        return self.get_or_raise
 
     def __iter__(self):
         return iter(self.to_list)
