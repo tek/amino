@@ -58,8 +58,8 @@ class TreeSpec(Spec):
         def f(n: str) -> Node:
             return f"changed: {n}"
         t1 = mtree.map(f)
-        t1.first.head.e.map(_.data).should.contain('changed: leaf1')
-        t1.second.e.map(_.data).should.contain('changed: leaf2')
+        t1.s.first.head.e.map(_.data).should.contain('changed: leaf1')
+        t1.s.second.e.map(_.data).should.contain('changed: leaf2')
 
     def show(self) -> None:
         tree.show.should.equal(show_target)
@@ -77,6 +77,6 @@ class TreeSpec(Spec):
         target = 'sub1'
         def filt(node: StrNode) -> bool:
             return isinstance(node, StrLeaf) and node.data == target
-        mtree.filter(filt).first.head.head.e.map(_.data).should.contain(target)
+        mtree.filter(filt).s.first.head.head.e.map(_.data).should.contain(target)
 
 __all__ = ('TreeSpec',)
