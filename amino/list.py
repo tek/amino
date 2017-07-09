@@ -3,49 +3,42 @@ import typing
 import random
 import string
 from functools import reduce
-from typing import TypeVar, Callable, Generic, Iterable, Any
+from typing import TypeVar, Callable, Generic, Iterable, Any, Union, Tuple
 
 from toolz.itertoolz import cons, groupby
 
 from amino import maybe, boolean
-from amino.logging import log
 from amino.tc.base import ImplicitsMeta, Implicits
-from amino.func import curried, I
+from amino.func import curried, I, call_by_name
 from amino.util.string import safe_string
 
-A = TypeVar('A', covariant=True)
+A = TypeVar('A')
 B = TypeVar('B')
 
 
 def flatten(l: Iterable[Iterable[A]]) -> Iterable[A]:
-    return list(itertools.chain.from_iterable(l))  # type: ignore
+    return list(itertools.chain.from_iterable(l))
 
 
 class ListMeta(ImplicitsMeta):
 
-    def __instancecheck__(self, instance):
+    def __instancecheck__(self, instance: Any) -> bool:
         if type(instance) is list:
             return False
         else:
             return super().__instancecheck__(instance)
 
-    # def __subclasscheck__(self, subclass):
-    #     if subclass is list:
-    #         return False
-    #     return super().__subclasscheck__(subclass)
 
-
-def _rand_str(chars, num: int=10):
+def _rand_str(chars: str, num: int=10) -> str:
     return ''.join(random.choice(chars) for i in range(num))
 
 
-class List(typing.List[A], Generic[A], Implicits, implicits=True,
-           metaclass=ListMeta):
+class List(typing.List[A], Generic[A], Implicits, implicits=True, metaclass=ListMeta):
 
-    def __init__(self, *elements):
+    def __init__(self, *elements: A) -> None:
         typing.List.__init__(self, elements)
 
-    def __getitem__(self, arg):
+    def __getitem__(self, arg):  # type: ignore
         s = super().__getitem__(arg)
         return List.wrap(s) if isinstance(arg, slice) else s
 
@@ -54,25 +47,25 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         return List(*list(l))
 
     @staticmethod
-    def range(*a):
+    def range(*a: int) -> 'List[int]':
         return List.wrap(range(*a))
 
     @staticmethod
-    def random_string(num: int=10):
+    def random_string(num: int=10) -> str:
         chars = string.ascii_letters + string.digits
         return _rand_str(chars, num)
 
     @staticmethod
-    def random_alpha(num: int=10):
+    def random_alpha(num: int=10) -> str:
         chars = string.ascii_letters
         return _rand_str(chars, num)
 
     @staticmethod
-    def gen(num: int, f: Callable[[], A]):
+    def gen(num: int, f: Callable[[], A]) -> 'List[A]':
         return List.range(num) // (lambda a: f())
 
     @staticmethod
-    def lines(data: str):
+    def lines(data: str) -> 'List[str]':
         return List.wrap(data.splitlines())
 
     def lift(self, index: int) -> 'maybe.Maybe[A]':
@@ -82,9 +75,9 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
             (maybe.Just(self[index]) if len(self) >= -index else maybe.Empty())
         )
 
-    def lift_all(self, index, *indexes):
+    def lift_all(self, index: int, *indexes: int) -> 'List[A]':
         from amino.anon import _
-        def folder(z, n):
+        def folder(z: maybe.Maybe[List[A]], n: List[maybe.Maybe[A]]) -> maybe.Maybe[List[A]]:
             return n.ap(z / _.cat)
         els = List.wrap(indexes) / self.lift
         init = self.lift(index) / List
@@ -103,14 +96,14 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def forall(self, f: Callable[[A], bool]) -> boolean.Boolean:
         return boolean.Boolean(all(f(el) for el in self))
 
-    def contains(self, value):
-        return value in self
+    def contains(self, value: A) -> boolean.Boolean:
+        return boolean.Boolean(value in self)
 
     def exists(self, f: Callable[[A], bool]) -> bool:
         return self.find(f).is_just
 
     @property
-    def is_empty(self):
+    def is_empty(self) -> boolean.Boolean:
         return boolean.Boolean(self.length == 0)
 
     empty = is_empty
@@ -120,31 +113,31 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
         return not self.empty
 
     @property
-    def length(self):
+    def length(self) -> int:
         return len(self)
 
     @property
-    def head(self):
+    def head(self) -> maybe.Maybe[A]:
         return self.lift(0)
 
     @property
-    def last(self):
+    def last(self) -> maybe.Maybe[A]:
         return self.lift(-1)
 
     @property
-    def init(self):
+    def init(self) -> maybe.Maybe['List[A]']:
         return maybe.Empty() if self.empty else maybe.Just(self[:-1])
 
     @property
-    def tail(self):
+    def tail(self) -> maybe.Maybe['List[A]']:
         return maybe.Empty() if self.empty else maybe.Just(self[1:])
 
     @property
-    def detach_head(self):
+    def detach_head(self) -> maybe.Maybe[Tuple[A, 'List[A]']]:
         return self.head.product(self.tail)
 
     @property
-    def detach_last(self):
+    def detach_last(self) -> maybe.Maybe[Tuple[A, 'List[A]']]:
         return self.last.product(self.init)
 
     @property
@@ -153,9 +146,13 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
 
     def distinct_by(self, f: Callable[[A], bool]) -> 'List[A]':
         seen = set()  # type: set
-        def pred(a):
+        def pred(a: A) -> bool:
             v = f(a)
-            return v in seen or seen.add(v)
+            if v in seen:
+                return True
+            else:
+                seen.add(v)
+                return False
         return List.wrap(x for x in self if not pred(x))
 
     def add(self, other: typing.List[A]) -> 'List[A]':
@@ -163,34 +160,29 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
 
     __add__ = add
 
-    def without(self, el) -> 'List[A]':
+    def without(self, el: A) -> 'List[A]':
         from amino.anon import _
         return self.filter(_ != el)
 
     __sub__ = without
 
-    def split(self, f: Callable[[A], bool]):
-        def splitter(z, e):
+    def split(self, f: Callable[[A], bool]) -> Tuple['List[A]', 'List[A]']:
+        def splitter(z: Tuple[Tuple, Tuple], e: A) -> Tuple[Tuple, Tuple]:
             l, r = z
             return (l + (e,), r) if f(e) else (l, r + (e,))
-        l, r = reduce(splitter, self, ((), (),))
+        l, r = reduce(splitter, self, ((), (),))  # type: ignore
         return List.wrap(l), List.wrap(r)
 
-    def split_type(self, tpe: type):
+    def split_type(self, tpe: type) -> Tuple['List[A]', 'List[A]']:
         return self.split(lambda a: isinstance(a, tpe))
 
-    def debug(self, prefix=None):
-        prefix = '' if prefix is None else prefix + ' '
-        log.debug(prefix + str(self))
-        return self
-
-    def index_of(self, target: Any):
+    def index_of(self, target: Any) -> maybe.Maybe[int]:
         from amino.anon import _
         return self.index_where(_ == target)
 
     @property
-    def reversed(self):
-        return List.wrap(reversed(self))
+    def reversed(self) -> 'List[A]':
+        return Lists.wrap(reversed(self))  # type: ignore
 
     def mk_string(self, sep: str='') -> str:
         return sep.join(self / str)
@@ -211,26 +203,26 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def join_dot(self) -> str:
         return self.mk_string('.')
 
-    def cons(self, item):
+    def cons(self, item: A) -> 'List[A]':
         return List.wrap(cons(item, self))
 
-    def cat(self, item):
+    def cat(self, item: A) -> 'List[A]':
         return self + List(item)
 
-    def cat_m(self, item: maybe.Maybe):
+    def cat_m(self, item: maybe.Maybe) -> 'List[A]':
         return item / self.cat | self
 
     @property
-    def transpose(self):
-        return List.wrap(map(List.wrap, zip(*self)))
+    def transpose(self) -> 'List[List[A]]':
+        return List.wrap(map(List.wrap, zip(*self)))  # type: ignore
 
     def drop(self, n: int) -> 'List[A]':
         return self[n:]
 
-    def take(self, n: int):
+    def take(self, n: int) -> 'List[A]':
         return self[:n]
 
-    def drop_while(self, pred: Callable[[A], bool]):
+    def drop_while(self, pred: Callable[[A], bool]) -> 'List[A]':
         index = self.index_where(lambda a: not pred(a))
         return index / (lambda a: self[a:]) | self
 
@@ -240,33 +232,32 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
     def remove_all(self, els: 'List[A]') -> 'List[A]':
         return self.filter_not(els.contains)
 
-    def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__,
-                               ', '.join(map(repr, self)))
+    def __repr__(self) -> str:
+        return '{}({})'.format(self.__class__.__name__, ', '.join(map(repr, self)))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '[{}]'.format(', '.join(map(safe_string, self)))
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(tuple(self))
 
-    def sort_by(self, f: Callable[[A], bool], reverse=False):
+    def sort_by(self, f: Callable[[A], bool], reverse: bool=False) -> 'List[A]':
         return List.wrap(sorted(self, key=f, reverse=reverse))
 
-    def sort(self, reverse=False):
+    def sort(self, reverse: bool=False) -> 'List[A]':  # type: ignore
         return self.sort_by(I, reverse)
 
-    def replace_item(self, a, b) -> 'List[A]':
+    def replace_item(self, a: A, b: A) -> 'List[A]':
         return self.map(lambda c: b if c == a else c)
 
     @curried
-    def replace_where(self, a, pred: Callable):
+    def replace_where(self, a: A, pred: Callable) -> 'List[A]':
         return self.map(lambda b: a if pred(b) else b)
 
-    def __mul__(self, other):
-        return List.wrap(super().__mul__(other))
+    def __mul__(self, count: int) -> 'List[A]':
+        return List.wrap(super().__mul__(count))
 
-    def group_by(self, f):
+    def group_by(self, f: Callable[[A], Any]) -> dict:
         from amino import Map
         return Map(groupby(f, self)).valmap(List.wrap)
 
@@ -275,7 +266,6 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True,
 
 
 class Lists:
-
     wrap = List.wrap
     range = List.range
     random_string = List.random_string
