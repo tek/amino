@@ -171,4 +171,8 @@ class LazyLists:
     def empty() -> LazyList[A]:
         return LazyLists.cons()
 
+    @staticmethod
+    def range(*rng: int) -> LazyList[int]:
+        return LazyList(range(*rng))
+
 __all__ = ('LazyList', 'lazy_list', 'LazyLists')
