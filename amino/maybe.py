@@ -142,14 +142,14 @@ class Maybe(Generic[A], Implicits, implicits=True):
         return self.cata(I, lambda: None)
 
 
-class Just(Maybe):
+class Just(Generic[A], Maybe[A]):
 
     __slots__ = 'x',
 
-    def __new__(tp, value: A, *args, **kwargs):
+    def __new__(tp: type, value: A, *args: Any, **kwargs: Any) -> 'Just[A]':
         return object.__new__(tp)
 
-    def __init__(self, value):
+    def __init__(self, value: A) -> None:
         self.x = value
 
     @property
@@ -171,11 +171,11 @@ class Just(Maybe):
         return hash(self._get)
 
 
-class Empty(Maybe):
+class Empty(Generic[A], Maybe[A]):
 
     __object = None  # type: Empty
 
-    def __new__(tp, *args, **kwargs):
+    def __new__(tp: type, *args: Any, **kwargs: Any) -> 'Empty[A]':
         if Empty.__object is None:
             Empty.__object = object.__new__(tp)
         return Empty.__object
