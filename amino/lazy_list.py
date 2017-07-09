@@ -37,6 +37,10 @@ class LazyList(Generic[A], Implicits, implicits=True):
         return self.strict.__getitem__(index)
 
     def __len__(self) -> int:
+        return self.length
+
+    @property
+    def length(self) -> int:
         return self.drain.length
 
     @property
