@@ -146,6 +146,9 @@ class LazyList(Generic[A], Implicits, implicits=True):
     def cons(self, a: A) -> 'LazyList[A]':
         return self.copy(I, lambda s: s.cons(a))
 
+    def cat(self, a: A) -> 'LazyList[A]':
+        return self.copy(lambda xs: itertools.chain(xs, (a,)), I)
+
 
 def lazy_list(f: Callable) -> Callable:
     @wraps(f)
