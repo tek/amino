@@ -12,6 +12,7 @@ from amino.boolean import Boolean
 from amino import _
 from amino.tc.monoid import Monoid
 from amino.tc.monad import Monad
+
 G = TypeVar('G')
 A = TypeVar('A')
 B = TypeVar('B')
@@ -22,8 +23,6 @@ class FoldableABC(Generic[A], abc.ABC):
     pass
 
 F = FoldableABC
-
-F0 = TypeVar('F0', bound=FoldableABC)
 
 
 class Foldable(TypeClass):
