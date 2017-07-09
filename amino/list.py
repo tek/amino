@@ -291,4 +291,14 @@ class Lists:
     def rsplit(data: str, splitter: str, maxsplit: int=-1) -> List[str]:
         return List.wrap(data.rsplit(splitter, maxsplit))
 
+    @staticmethod
+    @curried
+    def iff(cond: bool, a: Union[A, Callable[[], A]]) -> List[A]:
+        return List(call_by_name(a)) if cond else List()
+
+    @staticmethod
+    @curried
+    def iff_l(cond: bool, a: Union[A, Callable[[], A]]) -> List[A]:
+        return call_by_name(a) if cond else List()
+
 __all__ = ('List',)
