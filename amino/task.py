@@ -174,6 +174,10 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
     def unsafe_perform_sync(self):
         return self.attempt
 
+    @property
+    def fatal(self) -> A:
+        return self.attempt.get_or_raise
+
     def and_then(self, nxt: 'Task[B]'):
         fs = 'and_then({})'.format(nxt.string)
         return self.flat_map(lambda a: nxt, fs=Just(fs))
