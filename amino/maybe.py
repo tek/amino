@@ -1,5 +1,4 @@
-from typing import TypeVar, Generic, Callable, Union, Any
-from typing import Tuple  # NOQA
+from typing import TypeVar, Generic, Callable, Union, Any, cast
 from functools import wraps, partial
 from operator import eq, is_not
 import inspect
@@ -7,7 +6,7 @@ import traceback
 
 from amino import boolean
 from amino.tc.base import Implicits
-from amino.func import call_by_name, I
+from amino.func import call_by_name, I, curried
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -49,6 +48,16 @@ class Maybe(Generic[A], Implicits, implicits=True):
     @staticmethod
     def getattr(obj, attr):
         return Maybe.check(getattr(obj, attr, None))
+
+    @staticmethod
+    @curried
+    def iff(cond: bool, a: Union[A, Callable[[], A]]) -> 'Maybe[A]':
+        return cast(Maybe, Just(call_by_name(a))) if cond else Empty()
+
+    @staticmethod
+    @curried
+    def iff_m(cond: bool, a: Union[A, Callable[[], 'Maybe[A]']]) -> 'Maybe[A]':
+        return cast(Maybe, call_by_name(a)) if cond else Empty()
 
     @property
     def _get(self) -> Union[A, None]:
