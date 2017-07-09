@@ -20,7 +20,10 @@ class LazyList(Generic[A], Implicits, implicits=True):
     def fetch(f: Callable) -> Callable:
         @wraps(f)
         def wrapper(self: 'LazyList', index: int) -> Any:
-            self._fetch(index)
+            if index >= 0:
+                self._fetch(index)
+            else:
+                self._drain()
             return f(self, index)
         return wrapper
 
