@@ -46,7 +46,7 @@ class Node(Generic[Data, Sub], Logging, abc.ABC, Implicits, implicits=True, auto
         return self._strings().mk_string('\n')
 
     @property
-    def draw(self) -> str:
+    def show(self) -> str:
         return self._show()
 
     @abc.abstractmethod
@@ -400,7 +400,7 @@ class SubTree(Implicits, implicits=True, auto=True):
         ...
 
     @abc.abstractproperty
-    def draw(self) -> LazyList[str]:
+    def show(self) -> LazyList[str]:
         ...
 
     @property
@@ -430,7 +430,7 @@ class SubTreeValid(SubTree):
         return self.data.strings
 
     @property
-    def draw(self) -> str:
+    def show(self) -> str:
         return self.data.show
 
 
@@ -519,7 +519,7 @@ class SubTreeInvalid(SubTree):
         return LazyList([])
 
     @property
-    def draw(self) -> LazyList[str]:
+    def show(self) -> LazyList[str]:
         return str(self)
 
 __all__ = ('Node', 'Inode', 'LeafNode')
