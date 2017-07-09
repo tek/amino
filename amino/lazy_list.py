@@ -19,11 +19,11 @@ class LazyList(Generic[A], Implicits, implicits=True):
 
     def fetch(f: Callable) -> Callable:
         @wraps(f)
-        def wrapper(self: 'LazyList', index: int) -> Any:
-            if index >= 0:
-                self._fetch(index)
-            else:
+        def wrapper(self: 'LazyList', index: Union[slice, int]) -> Any:
+            if isinstance(index, int) and index < 0:
                 self._drain()
+            else:
+                self._fetch(index)
             return f(self, index)
         return wrapper
 
