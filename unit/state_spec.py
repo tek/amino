@@ -1,6 +1,6 @@
 from amino.state import MaybeState, EitherState, EvalState
 from amino.test.spec_spec import Spec
-from amino import Just, Left, List
+from amino import Just, Left, List, Either, Right, I
 
 
 class StateSpec(Spec):
@@ -27,5 +27,12 @@ class StateSpec(Spec):
 
     def zip(self) -> None:
         EvalState.pure(1).zip(EvalState.pure(2)).run_a(None)._value().should.equal(List(1, 2))
+
+    def eff(self) -> None:
+        def f(a: int) -> EvalState[int, Either[str, int]]:
+            return EvalState.pure(Right(2))
+        s0 = EvalState.pure(Right(1))
+        s0.eff(Either).flat_map(f).value.run(1)._value().should.equal((1, Right(2)))
+        (s0 // EvalState.modify(I).replace).eff(Either).flat_map(f).value.run(1)._value().should.equal((1, Right(2)))
 
 __all__ = ('StateSpec',)
