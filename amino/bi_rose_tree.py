@@ -21,9 +21,13 @@ class RoseTree(Generic[Data]):
     def sub(self) -> LazyList['RoseTree[Data]']:
         return self._sub_cons(self)
 
-    def __str__(self) -> str:
+    @property
+    def desc(self) -> str:
         num = self.sub._drain().length
-        return f'{self.__class__.__name__}({self.data}, {num} children)'
+        return f'{self.data}, {num} children'
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}({self.desc})'
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.data})'
