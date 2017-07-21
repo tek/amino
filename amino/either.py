@@ -72,7 +72,10 @@ class Either(Generic[A, B], Implicits, implicits=True):
     def recover_with(self, f: Callable[[A], 'Either[A, B]']):
         return self.cata(f, Right)
 
-    def right_or_map(self, f: Callable[[A], Any]):
+    def right_or_map(self, f: Callable[[A], B]) -> B:
+        return self.cata(f, I)
+
+    def value_or(self, f: Callable[[A], B]) -> B:
         return self.cata(f, I)
 
     def left_or_map(self, f: Callable[[B], Any]):
