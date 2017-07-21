@@ -10,8 +10,9 @@ from amino.either import Right, Either, Left
 from amino.map import Map
 from amino.tc.applicative import Applicative
 from amino.tc.foldable import Foldable
-from amino import curried, Maybe, Boolean
+from amino import curried, Maybe, Boolean, List
 from amino.tc.zip import Zip
+from amino.instances.list import ListTraverse
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -96,7 +97,6 @@ class EitherFoldable(Foldable):
 class EitherZip(Zip):
 
     def zip(self, fa: Either[A, B], fb: Either[C, D], *fs: Either) -> Either:
-        f = lambda a: EitherMonad().map(fb, lambda b: (a, b))
-        return EitherMonad().flat_map(fa, f)
+        return ListTraverse().sequence(List(fa, fb, *fs), Either)
 
 __all__ = ('EitherInstances',)

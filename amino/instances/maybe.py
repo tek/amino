@@ -4,13 +4,14 @@ from typing import Tuple  # NOQA
 from amino.tc.base import tc_prop, ImplicitInstances
 from amino.tc.monad import Monad
 from amino.tc.optional import Optional
-from amino import either, Just, Empty, Maybe, curried
+from amino import either, Just, Empty, Maybe, curried, List
 from amino.lazy import lazy
 from amino.maybe import call_by_name
 from amino.tc.applicative import Applicative
 from amino.tc.traverse import Traverse
 from amino.tc.foldable import Foldable
 from amino.tc.zip import Zip
+from amino.instances.list import ListTraverse
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -90,8 +91,7 @@ class MaybeFoldable(Foldable):
 
 class MaybeZip(Zip):
 
-    def zip(self, fa: Maybe[A], fb: Maybe[B], *fs) -> Maybe:
-        f = lambda a: MaybeMonad().map(fb, lambda b: (a, b))
-        return MaybeMonad().flat_map(fa, f)
+    def zip(self, fa: Maybe[A], fb: Maybe[B], *fs: Maybe) -> Maybe:
+        return ListTraverse().sequence(List(fa, fb, *fs), Maybe)
 
 __all__ = ('MaybeInstances',)
