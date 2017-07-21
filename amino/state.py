@@ -1,88 +1,90 @@
-from typing import Generic, TypeVar, Callable, Tuple
+import abc
+from typing import Generic, TypeVar, Callable, Tuple, GenericMeta
 
-from amino.tc.applicative import Applicative
 from amino.tc.base import Implicits
-from amino.lazy import lazy
-from amino.tc.flat_map import FlatMap
 from amino.tc.monad import Monad
+from amino.tc.zip import Zip
+from amino.instances.list import ListTraverse
+from amino import List
 
 S = TypeVar('S')
 A = TypeVar('A')
 B = TypeVar('B')
 
 
-class StateF(Generic[A], Implicits, auto=True):
-
-    def __init__(self, a: A) -> None:
-        self.a = a
-
-F = StateF
+class StateTMeta(GenericMeta):
+    pass
 
 
-class StateFMonad(Monad, tpe=F):
+def StateT(tpe: type) -> type:
+    class F(Generic[A], Implicits, abc.ABC):
+        pass
+    F.register(tpe)
+    monad = Monad.fatal(tpe)
+    class State(Generic[S, A], Implicits, implicits=True, auto=True):
 
-    def pure(a: A) -> StateF[A]:
-        return StateF(a)
+        @staticmethod
+        def apply(f: Callable[[S], F[Tuple[S, A]]]) -> 'State[S, A]':
+            return State(monad.pure(f))
 
-    def flat_map(self, fa: F[A], f: Callable[[A], F[B]]) -> F[B]:
-        return f(fa.a)
+        @staticmethod
+        def applyF(run_f: F[Callable[[S], F[Tuple[S, A]]]]) -> 'State[S, A]':
+            return State(run_f)
 
+        @staticmethod
+        def inspect(f: Callable[[S], A]) -> 'State[S, A]':
+            def g(s: S) -> F[Tuple[S, A]]:
+                return monad.pure((s, f(s)))
+            return State.apply(g)
 
-class StateFunctions:
+        @staticmethod
+        def pure(a: A) -> 'State[S, A]':
+            return State(monad.pure(lambda s: monad.pure((s, a))))
 
-    @staticmethod
-    def apply(f: Callable[[S], F[Tuple[S, A]]], tpe: type) -> 'State[S, A]':
-        return State(Applicative.fatal(tpe).pure(f))
+        @staticmethod
+        def modify(f: Callable[[S], S]) -> 'State[S, A]':
+            return State.apply(lambda s: monad.pure((f(s), None)))
 
-    @staticmethod
-    def applyF(run_f: F[Callable[[S], F[Tuple[S, A]]]]) -> 'State[S, A]':
-        return State(run_f)
+        def __init__(self, run_f: F[Callable[[S], F[Tuple[S, A]]]]) -> None:
+            self.run_f = run_f
 
-    @staticmethod
-    def inspect(f: Callable[[S], A], tpe: type) -> 'State[S, A]':
-        def g(s: S) -> F[Tuple[S, A]]:
-            return Applicative.fatal(tpe).pure((s, f(s)))
-        return State.apply(g, tpe)
+        def run(self, s: S) -> F[Tuple[S, A]]:
+            return self.run_f.flat_map(lambda f: f(s))
 
-    @staticmethod
-    def pure(a: A, tpe: type) -> 'State[S, A]':
-        app = Applicative.fatal(tpe)
-        return State(app.pure(lambda s: app.pure((s, a))))
+        def run_s(self, s: S) -> F[S]:
+            return self.run(s).map(lambda a: a[0])
 
-    @staticmethod
-    def modify(f: Callable[[S], S], tpe: type) -> 'State[S, A]':
-        return State.apply(lambda s: Applicative.fatal(tpe).pure((f(s), None)), tpe)
+        def run_a(self, s: S) -> F[S]:
+            return self.run(s).map(lambda a: a[1])
 
+        def __str__(self) -> str:
+            return f'State({self.run_f})'
 
-class State(Generic[S, A], Implicits, StateFunctions, implicits=True):
+        def flat_map_f(self, f: Callable[[A], F[B]]) -> 'State[S, B]':
+            def h(s: S, a: A) -> F[Tuple[S, B]]:
+                return f(a).map(lambda b: (s, b))
+            def g(fsa: F[Tuple[S, A]]) -> F[Tuple[S, B]]:
+                return fsa.flat_map2(h)
+            run_f1 = self.run_f.map(lambda sfsa: lambda a: g(sfsa(a)))
+            return State.applyF(run_f1)
+    class StateMonad(Monad, tpe=State):
 
-    def __init__(self, run_f: F[Callable[[S], F[Tuple[S, A]]]]) -> None:
-        self.tpe = type(run_f)
-        self.run_f = run_f
+        def pure(self, a: A) -> State[S, A]:
+            return State.pure(a)
 
-    @lazy
-    def _applicative(self) -> Applicative[F]:
-        return Applicative.fatal(self.tpe)
+        def flat_map(self, fa: State[S, A], f: Callable[[A], State[S, B]]) -> State[S, B]:
+            def h(s: S, a: A) -> F[Tuple[S, B]]:
+                return f(a).run(s)
+            def g(fsa: F[Tuple[S, A]]) -> F[Tuple[S, B]]:
+                return fsa.flat_map2(h)
+            def i(sfsa: Callable[[S], F[Tuple[S, A]]]) -> Callable[[S], F[Tuple[S, B]]]:
+                return lambda a: g(sfsa(a))
+            run_f1 = fa.run_f.map(i)
+            return State.applyF(run_f1)
+    class StateZip(Zip, tpe=State):
 
-    @lazy
-    def _flat_map(self) -> Applicative[F]:
-        return FlatMap.fatal(self.tpe)
+        def zip(self, fa: State[S, A], fb: State[S, B], *fs: State) -> State[S, List[A]]:
+            return ListTraverse().sequence(List(fa, fb, *fs), State)
+    return type(f'State_{tpe.__name__}', (State,), {})
 
-    def run(self, s: S) -> F[Tuple[S, A]]:
-        return self.run_f.flat_map(lambda f: f(s))
-
-    def run_s(self, s: S) -> F[S]:
-        return self.run(s).map(lambda a: a[0])
-
-    def __str__(self) -> str:
-        return f'State({self.run_f})'
-
-    def flat_map_f(self, f: Callable[[A], F[B]]) -> 'State[S, B]':
-        def h(s: S, a: A) -> F[Tuple[S, B]]:
-            return f(a).map(lambda b: (s, b))
-        def g(fsa: F[Tuple[S, A]]) -> F[Tuple[S, B]]:
-            return fsa.flat_map2(h)
-        run_f1 = self.run_f.map(lambda sfsa: lambda a: g(sfsa(a)))
-        return State.applyF(run_f1)
-
-__all__ = ('State',)
+__all__ = ('StateT',)

@@ -14,10 +14,9 @@ from amino.logging import amino_root_logger
 
 class TypeClassMeta(GenericMeta):
 
-    def __new__(cls: type, name: str, bases: tuple, namespace: dict,
-                tpe: type=None, pred: Callable=None, **kw: dict) -> type:
-        inst = super().__new__(cls, name, bases, namespace,  # type: ignore
-                               **kw)
+    def __new__(cls: type, name: str, bases: tuple, namespace: dict, tpe: type=None, pred: Callable=None, **kw: dict
+                ) -> type:
+        inst = super().__new__(cls, name, bases, namespace, **kw)  # type: ignore
         if name != 'TypeClass':
             if tpe is not None:
                 Instances.add_auto(tpe, inst())
