@@ -1,12 +1,6 @@
-from amino.state import StateT
+from amino.state import MaybeState, EitherState, EvalState
 from amino.test.spec_spec import Spec
-from amino import Maybe, Just, Either, Left, Eval, List
-from amino.eval import Now
-
-
-MaybeState = StateT(Maybe)
-EitherState = StateT(Either)
-EvalState = StateT(Eval)
+from amino import Just, Left, List
 
 
 class StateSpec(Spec):

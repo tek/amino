@@ -1,27 +1,27 @@
 import abc
-from typing import Generic, TypeVar, Callable, Tuple, GenericMeta
+from typing import Generic, TypeVar, Callable, Tuple
 
 from amino.tc.base import Implicits
 from amino.tc.monad import Monad
 from amino.tc.zip import Zip
 from amino.instances.list import ListTraverse
-from amino import List
+from amino import List, Maybe, Either, Eval
 
 S = TypeVar('S')
 A = TypeVar('A')
 B = TypeVar('B')
 
 
-class StateTMeta(GenericMeta):
+class StateT(Generic[S, A]):
     pass
 
 
-def StateT(tpe: type) -> type:
+def state_t(tpe: type) -> type:
     class F(Generic[A], Implicits, abc.ABC):
         pass
     F.register(tpe)
     monad = Monad.fatal(tpe)
-    class State(Generic[S, A], Implicits, implicits=True, auto=True):
+    class State(Generic[S, A], StateT[S, A], Implicits, implicits=True, auto=True):
 
         @staticmethod
         def apply(f: Callable[[S], F[Tuple[S, A]]]) -> 'State[S, A]':
@@ -44,6 +44,10 @@ def StateT(tpe: type) -> type:
         @staticmethod
         def modify(f: Callable[[S], S]) -> 'State[S, A]':
             return State.apply(lambda s: monad.pure((f(s), None)))
+
+        @property
+        def tpe(self) -> type:
+            return tpe
 
         def __init__(self, run_f: F[Callable[[S], F[Tuple[S, A]]]]) -> None:
             self.run_f = run_f
@@ -85,6 +89,11 @@ def StateT(tpe: type) -> type:
 
         def zip(self, fa: State[S, A], fb: State[S, B], *fs: State) -> State[S, List[A]]:
             return ListTraverse().sequence(List(fa, fb, *fs), State)
-    return type(f'State_{tpe.__name__}', (State,), {})
+    return type(f'State_{tpe.__name__}', (Generic[S, A], State,), dict())
 
-__all__ = ('StateT',)
+
+MaybeState = state_t(Maybe)
+EitherState = state_t(Either)
+EvalState = state_t(Eval)
+
+__all__ = ('StateT', 'state_t')
