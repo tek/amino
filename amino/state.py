@@ -45,6 +45,10 @@ def state_t(tpe: type) -> type:
         def modify(f: Callable[[S], S]) -> 'State[S, A]':
             return State.apply(lambda s: monad.pure((f(s), None)))
 
+        @staticmethod
+        def modify_f(f: Callable[[S], F[S]]) -> 'State[S, A]':
+            return State.apply(lambda s: (f(s).map(lambda a: (a, None))))
+
         @property
         def tpe(self) -> type:
             return tpe

@@ -18,6 +18,9 @@ class StateSpec(Spec):
     def modify(self) -> None:
         MaybeState.modify((lambda s: s + ' updated')).run_s('state').should.equal(Just('state updated'))
 
+    def modify_f(self) -> None:
+        MaybeState.modify_f((lambda s: Just(s + ' updated'))).run_s('state').should.equal(Just('state updated'))
+
     def flat_map_f(self) -> None:
         l = Left('boing')
         EitherState.pure(1).flat_map_f(lambda a: l).run('start').should.equal(l)
