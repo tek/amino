@@ -1,16 +1,24 @@
-from typing import Callable
+from typing import Callable, Generic, TypeVar
 
 from amino import List, I, __, L, _
 from amino.lazy import lazy
+from amino.tc.base import Implicits
+from amino.tc.flat_map import FlatMap
+
+A = TypeVar('A')
+B = TypeVar('B')
 
 
-class Eff:
+class F(Generic[A]):
+    pass
+
+
+class Eff(Generic[A], Implicits, implicits=True, auto=True):
     ''' An effect stack transformer.
     Wraps arbitrarily nested effects, like Task[List[Maybe[A]]].
     '''
 
-    def __init__(self, value, effects: List[type]=List(), depth: int=1
-                 ) -> None:
+    def __init__(self, value: F[A], effects: List[type]=List(), depth: int=1) -> None:
         self.value = value
         self.effects = effects
         self.depth = depth
@@ -70,5 +78,14 @@ class Eff:
 
     def flat_map_inner(self, f: Callable):
         return self.copy(self.value.map(__.flat_map(f)))
+
+
+class EffFlatMap(FlatMap, tpe=Eff):
+
+    def map(self, fa: Eff[A], f: Callable[[A], B]) -> Eff[B]:
+        return Eff.map(fa, f)
+
+    def flat_map(self, fa: Eff[A], f: Callable[[A], Eff[B]]) -> Eff[B]:
+        return Eff.flat_map(fa, f)
 
 __all__ = ('Eff',)
