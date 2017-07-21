@@ -1,5 +1,9 @@
 import re
-from functools import singledispatch  # type: ignore
+import abc
+from typing import Any
+from functools import singledispatch
+
+import amino
 
 
 def snake_case(name: str) -> str:
@@ -8,39 +12,35 @@ def snake_case(name: str) -> str:
 
 
 @singledispatch
-def decode(value):
+def decode(value: Any) -> Any:
     return value
 
 
 @decode.register(bytes)
-def decode_bytes(value):
+def decode_bytes(value: bytes) -> str:
     return value.decode()
 
 
 @decode.register(list)
-def decode_list(value):
-    from amino import List
-    return List.wrap(value).map(decode)
+def decode_list(value: list) -> 'amino.List[str]':
+    return amino.List.wrap(value).map(decode)
 
 
 @decode.register(dict)
-def decode_dict(value):
-    from amino import Map
-    return Map.wrap(value)\
-        .keymap(decode)\
-        .valmap(decode)
+def decode_dict(value: dict) -> 'amino.Map[str, str]':
+    return amino.Map.wrap(value).keymap(decode).valmap(decode)
 
 
 @decode.register(Exception)
-def decode_exc(value):
+def decode_exc(value: Exception) -> str:
     return decode_list(value.args).head | str(value)
 
 
-def camelcaseify(name, sep='', splitter='_'):
+def camelcaseify(name: str, sep: str='', splitter: str='_') -> str:
     return sep.join([n.capitalize() for n in re.split(splitter, name)])
 
 
-def safe_string(value):
+def safe_string(value: Any) -> str:
     try:
         return str(value)
     except Exception:
@@ -48,5 +48,19 @@ def safe_string(value):
             return repr(value)
         except Exception:
             return 'invalid'
+
+
+class ToStr(abc.ABC):
+
+    @abc.abstractproperty
+    def _arg_desc(self) -> 'amino.List[str]':
+        ...
+
+    def __str__(self) -> str:
+        args = self._arg_desc.join_comma
+        return f'{self.__class__.__name__}({args})'
+
+    def __repr__(self) -> str:
+        return str(self)
 
 __all__ = ('snake_case', 'decode', 'camelcaseify')
