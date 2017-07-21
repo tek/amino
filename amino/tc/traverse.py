@@ -10,11 +10,11 @@ B = TypeVar('B')
 Z = TypeVar('Z')
 
 
-class TraverseF(Generic[A], abc.ABC):
+class TraverseF(Generic[A]):
     pass
 
 
-class TraverseG(Generic[A], abc.ABC):
+class TraverseG(Generic[A]):
     pass
 
 F = TraverseF

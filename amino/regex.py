@@ -30,7 +30,7 @@ class Regex:
             L(Match)(self, _, data)
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'Regex({})'.format(self.spec)
 
 
