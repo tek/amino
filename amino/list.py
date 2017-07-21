@@ -216,11 +216,15 @@ class List(typing.List[A], Generic[A], Implicits, implicits=True, metaclass=List
     def transpose(self) -> 'List[List[A]]':
         return List.wrap(map(List.wrap, zip(*self)))  # type: ignore
 
-    def drop(self, n: int) -> 'List[A]':
-        return self[n:]
-
     def take(self, n: int) -> 'List[A]':
         return self[:n]
+
+    def take_while(self, pred: Callable[[A], bool]) -> 'List[A]':
+        index = self.index_where(lambda a: not pred(a))
+        return index / (lambda a: self[:a]) | self
+
+    def drop(self, n: int) -> 'List[A]':
+        return self[n:]
 
     def drop_while(self, pred: Callable[[A], bool]) -> 'List[A]':
         index = self.index_where(lambda a: not pred(a))
