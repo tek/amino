@@ -75,6 +75,12 @@ def state_t(tpe: type) -> type:
                 return fsa.flat_map2(h)
             run_f1 = self.run_f.map(lambda sfsa: lambda a: g(sfsa(a)))
             return State.applyF(run_f1)
+
+        def transform(self, f: Callable[[Tuple[S, A]], Tuple[S, B]]) -> 'State[S, B]':
+            def g(fsa: F[Tuple[S, A]]) -> F[Tuple[S, B]]:
+                return fsa.map2(f)
+            run_f1 = self.run_f.mmap(lambda sfsa: lambda a: g(sfsa(a)))
+            return State.applyF(run_f1)
     class StateMonad(Monad, tpe=State):
 
         def pure(self, a: A) -> State[S, A]:
