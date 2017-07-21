@@ -1,6 +1,6 @@
-import os
 import re
 import logging
+from logging import LogRecord
 import operator
 from typing import Callable, Any
 import sys
@@ -9,12 +9,32 @@ from pathlib import Path
 from amino.lazy import lazy
 
 import amino
-from amino.func import call_by_name
 
 VERBOSE = 15
 DDEBUG = 5
 logging.addLevelName(VERBOSE, 'VERBOSE')
 logging.addLevelName(DDEBUG, 'DDEBUG')
+
+
+class LazyRecord(logging.LogRecord):
+
+    def __init__(self, name, level, pathname, lineno, msg, args, exc_info, func=None, sinfo=None,  # type: ignore
+                 **kwargs) -> None:
+        super().__init__(name, level, pathname, lineno, msg, args, exc_info, func=func, sinfo=sinfo)
+        self._data = msg
+        self._args = args
+
+    @lazy
+    def _cons_message(self) -> str:
+        return (
+            self._data(*self._args)
+            if callable(self._data) else self._data.join_lines
+            if isinstance(self._data, amino.List) else
+            str(self._data)
+        )
+
+    def getMessage(self) -> str:
+        return self._cons_message if self.levelname == 'DDEBUG' else super().getMessage()
 
 
 class Logger(logging.Logger):
@@ -23,28 +43,34 @@ class Logger(logging.Logger):
         if self.isEnabledFor(VERBOSE):
             self._log(VERBOSE, message, args, **kws)
 
-    def ddebug(self, message, *args, **kws) -> None:
+    def ddebug(self, f: Callable[..., str], *args: Any) -> None:
         if self.isEnabledFor(DDEBUG):
-            self._log(DDEBUG, call_by_name(message), args, **kws)
+            self._log(DDEBUG, f, args)  # type: ignore
 
-    def caught_exception(self, when, exc, *a, **kw):
+    def caught_exception(self, when: str, exc: Exception, *a: Any, **kw: Any) -> None:
         headline = 'caught exception while {}:'.format(when)
         self.exception(headline, exc_info=(type(exc), exc, exc.__traceback__))
 
+    def makeRecord(self, name: str, level: int, fn: str, lno: int, msg: Any, args: Any, exc_info: Any, func: Any=None,
+                   extra: Any=None, sinfo: Any=None) -> LogRecord:
+        return LazyRecord(name, level, fn, lno, msg, args, exc_info, func, sinfo)
 
-logging.Logger.verbose = Logger.verbose  # type: ignore
-logging.Logger.ddebug = Logger.ddebug  # type: ignore
-logging.Logger.caught_exception = Logger.caught_exception  # type: ignore
+
+# logging.Logger.verbose = Logger.verbose  # type: ignore
+# logging.Logger.ddebug = Logger.ddebug  # type: ignore
+# logging.Logger.caught_exception = Logger.caught_exception  # type: ignore
 
 log = amino_root_logger = logging.getLogger('amino')
 log.setLevel(DDEBUG)
 
 
-def install_logger_class():
+def install_logger_class() -> None:
     logging.setLoggerClass(Logger)
 
+install_logger_class()
 
-def amino_logger(name: str):
+
+def amino_logger(name: str) -> logging.Logger:
     return amino_root_logger.getChild(name)
 
 _stdout_logging_initialized = False
