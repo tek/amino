@@ -268,6 +268,10 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
     def slice(self, start: int, end: int) -> 'List[A]':
         return self[start:end]
 
+    def indent(self, count: int) -> 'List[str]':
+        ws = ' ' * count
+        return self.map(lambda a: f'{ws}{a}')
+
 
 class Lists:
     wrap = List.wrap
