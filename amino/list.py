@@ -33,7 +33,7 @@ def _rand_str(chars: str, num: int=10) -> str:
     return ''.join(random.choice(chars) for i in range(num))
 
 
-class List(typing.List[A], Generic[A], Implicits, implicits=True, metaclass=ListMeta):
+class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=ListMeta):
 
     def __init__(self, *elements: A) -> None:
         typing.List.__init__(self, elements)

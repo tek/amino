@@ -7,10 +7,10 @@ _attr_fmt = '_{}__value'
 
 class LazyMeta(type):
 
-    def __new__(mcs: type, name: str, bases: list, dct: dict) -> None:
+    def __new__(mcs: type, name: str, bases: tuple, dct: dict) -> type:
         lazies = [k for k, v in dct.items() if isinstance(v, lazy)]
         attrs = tuple(map('_{}__value'.format, lazies))
-        inst = super().__new__(mcs, name, bases, dct)  # type: ignore
+        inst = super().__new__(mcs, name, bases, dct)
         inst.__slots__ = attrs
         return inst
 

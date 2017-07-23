@@ -1,75 +1,74 @@
 import operator
 
 from amino.test.spec_spec import Spec
-
 from amino import Maybe, Empty, Just, Left, Right, _, L
 from amino.tc.monad import Monad
 
 
 class Maybe_(Spec):
 
-    def none(self):
+    def none(self) -> None:
         Maybe(None).is_just.should_not.be.ok
 
-    def just(self):
+    def just(self) -> None:
         Maybe('value').is_just.should.be.ok
 
-    def map(self):
+    def map(self) -> None:
         a = 'start'
         b = 'end'
         Maybe(a).map(_ + b)._get.should.equal(a + b)
         (Maybe(a) / (_ + b))._get.should.equal(a + b)
 
-    def flat_map(self):
+    def flat_map(self) -> None:
         a = 'start'
         b = 'end'
         Maybe(a).flat_map(lambda v: Maybe(v + b)).should.contain(a + b)
-        f = L(Maybe)(_).flat_map(lambda c: Monad[Maybe].pure(c + b))
+        f = L(Maybe)(_).flat_map(lambda c: Monad.fatal(Maybe).pure(c + b))
         f(a).should.contain(a + b)
 
-    def join(self):
+    def join(self) -> None:
         Just(Just(1)).join.should.equal(Just(1))
 
-    def contains(self):
+    def contains(self) -> None:
         a = 'start'
         Maybe(a).contains(a).should.be.ok
         Maybe(a + a).contains(a).should_not.be.ok
         Empty().contains(a).should_not.be.ok
 
-    def get_or_else(self):
+    def get_or_else(self) -> None:
         e = Empty()
         a = 1
         e.get_or_else(a).should.equal(a)
         (e | a).should.equal(a)
 
-    def get_or_else_call(self):
+    def get_or_else_call(self) -> None:
         e = Empty()
         a = 5
         ac = lambda: a
         e.get_or_else(ac).should.equal(a)
         (e | ac).should.equal(a)
 
-    def or_else(self):
+    def or_else(self) -> None:
         e = Empty()
         a = Just(1)
         e.or_else(a).should.equal(a)
 
-    def or_else_call(self):
+    def or_else_call(self) -> None:
         e = Empty()
         a = Just(5)
         ac = lambda: a
         e.or_else(ac).should.equal(a)
 
-    def foreach(self):
+    def foreach(self) -> None:
         a = 1
         b = 6
-        def setter(c):
+        def setter(c: int) -> None:
             nonlocal a
             a = c + 1
         (Just(b) % setter).should.contain(b)
         a.should.equal(b + 1)
 
-    def ap2(self):
+    def ap2(self) -> None:
         a = 17
         b = 13
         ja = Just(a)
@@ -77,7 +76,7 @@ class Maybe_(Spec):
         ja.product(jb).smap(operator.add).should.contain(a + b)
         ja.ap2(jb, operator.add).should.contain(a + b)
 
-    def optional(self):
+    def optional(self) -> None:
         a = 'a'
         b = 'b'
         Maybe(a).to_maybe.should.just_contain(a)
@@ -86,17 +85,17 @@ class Maybe_(Spec):
         Empty().to_either(b).should.equal(Left(b))
         Empty().to_either(lambda: b).should.equal(Left(b))
 
-    def map_n(self):
+    def map_n(self) -> None:
         m = Just((1, 2, 3, 4))
         m.map4(lambda a, b, c, d: b + d).should.contain(6)
         m.map5.when.called_with(lambda a: a).should.throw(TypeError)
 
-    def flat_map_n(self):
+    def flat_map_n(self) -> None:
         m = Just((1, 2, 3, 4))
         m.flat_map4(lambda a, b, c, d: Just(b + d)).should.contain(6)
         m.flat_map5.when.called_with(lambda a: a).should.throw(TypeError)
 
-    def product_n(self):
+    def product_n(self) -> None:
         m = Just(1).product3(Just(2), Just(3), Just(4))
         m.flat_map4(lambda a, b, c, d: Just(b + d)).should.contain(6)
         e = Just(1).product3(Just(2), Empty(), Just(4))

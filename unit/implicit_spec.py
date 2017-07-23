@@ -91,18 +91,18 @@ class ImplicitSpec(Spec):
         Just(1).map.__wrapped__.__self__.should.be.a(MaybeMonad)
 
     def manual(self) -> None:
-        Monoid[A].should.be.a(AMonoid)
-        Monoid[List].should.be.a(ListMonoid)
-        Functor[B].should.be.a(BFunctor)
+        Monoid.fatal(A).should.be.a(AMonoid)
+        Monoid.fatal(List).should.be.a(ListMonoid)
+        Functor.fatal(B).should.be.a(BFunctor)
 
     def auto_type_class(self) -> None:
-        Monoid[C].should.be.a(CMonoid)
-        Functor[C].should.be.a(CFunctor)
+        Monoid.fatal(C).should.be.a(CMonoid)
+        Functor.fatal(C).should.be.a(CFunctor)
 
     def pred_type_class(self) -> None:
-        Functor[list].should.be.a(DFunctor)
-        Functor[str].should.be.a(DFunctor)
-        Functor[str].should.be.a(DFunctor)
+        Functor.fatal(list).should.be.a(DFunctor)
+        Functor.fatal(str).should.be.a(DFunctor)
+        Functor.fatal(str).should.be.a(DFunctor)
         Functor.m(int).should.be.empty
 
 __all__ = ('ImplicitSpec',)

@@ -11,6 +11,8 @@ from amino.tc.show import Show
 
 from amino.logging import amino_root_logger
 
+A = TypeVar('A')
+
 
 class TypeClassMeta(GenericMeta):
 
@@ -30,9 +32,6 @@ class TypeClassMeta(GenericMeta):
     def fatal_for(self, a: Any) -> 'amino.maybe.Maybe[TypeClass]':
         return self.fatal(type(a))
 
-    def __getitem__(self, tpe: type) -> 'TypeClass':
-        return self.fatal(tpe)
-
     def m(self, tpe: type) -> 'amino.maybe.Maybe[TypeClass]':
         return amino.maybe.Maybe.check(Instances.lookup(self, tpe))
 
@@ -40,17 +39,12 @@ class TypeClassMeta(GenericMeta):
         return self.m(type(a))
 
     def exists_instance(self, tpe: type) -> bool:
-        try:
-            self[tpe]
-        except ImplicitNotFound:
-            return False
-        else:
-            return True
+        return self.m(tpe).present
 
     exists = exists_instance
 
 
-class TypeClass(metaclass=TypeClassMeta):
+class TypeClass(Generic[A], metaclass=TypeClassMeta):
     pass
 
 

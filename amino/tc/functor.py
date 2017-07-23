@@ -29,14 +29,13 @@ class Functor(Generic[F], TypeClass):
         splat = lambda v: f(**v)
         return self.map(fa, splat)
 
-    def __getattr__(self, name: str) -> Callable:
+    def __getattr__(self, name: str) -> Any:
         match = self._map_re.match(name)
         if match is None:
-            raise AttributeError(f''''Functor' object has no attribute '{name}' ''')
-        else:
-            return amino.func.F(self.map_n, int(match.group(1)))
+            raise AttributeError(f'''`Functor` object has no attribute `{name}`''')
+        return amino.func.F(self.map_n, int(match.group(1)))
 
-    def map_n(self, num, fa: F, f: Callable[..., B]) -> F:
+    def map_n(self, num: int, fa: F, f: Callable[..., B]) -> F:
         def wrapper(args):
             if len(args) != num:
                 msg = 'passed {} args to {}.map{}'
@@ -49,7 +48,7 @@ class Functor(Generic[F], TypeClass):
         return self.map(fa, ReplaceVal(b))
 
     def foreach(self, fa: F, f: Callable[[A], Any]) -> F:
-        def effect(a: A) -> None:
+        def effect(a: A) -> A:
             f(a)
             return a
         return self.map(fa, effect)

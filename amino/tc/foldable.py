@@ -59,7 +59,7 @@ class Foldable(TypeClass):
         using the supplied initial element `z` and operation `g`,
         defaulting to addition for the latter.
         '''
-        mapped = Functor[type(fa)].map(fa, f)
+        mapped = Functor.fatal(type(fa)).map(fa, f)
         return self.fold_left(mapped)(z)(g)
 
     @curried
@@ -70,7 +70,7 @@ class Foldable(TypeClass):
         return self.fold_left(fa)(z)(folder)
 
     def fold(self, fa: F[A], tpe: type) -> A:
-        mono = Monoid[tpe]
+        mono = Monoid.fatal(tpe)
         return self.fold_left(fa)(mono.empty)(mono.combine)
 
     @abc.abstractmethod

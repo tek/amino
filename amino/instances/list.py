@@ -45,7 +45,7 @@ class ListMonad(Monad):
 class ListTraverse(Traverse):
 
     def traverse(self, fa: List[A], f: Callable, tpe: type):
-        monad = Applicative[tpe]
+        monad = Applicative.fatal(tpe)
         def folder(z, a):
             return monad.map2(z.product(f(a)), lambda l, b: l.cat(b))
         return fa.fold_left(monad.pure(List()))(folder)

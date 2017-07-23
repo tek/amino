@@ -67,7 +67,7 @@ class LazyListFoldable(Foldable):
 
     @curried
     def fold_left(self, fa: LazyList[A], z: B, f: Callable[[B, A], B]) -> B:
-        return Foldable[List].fold_left(fa.drain, z, f)
+        return Foldable.fatal(List).fold_left(fa.drain, z, f)
 
     def find(self, fa: List[A], f: Callable[[A], bool]) -> Maybe[A]:
         return fa.strict.find(f).o(fa._drain_find(f))

@@ -61,7 +61,7 @@ class MaybeOptional(Optional):
 class MaybeTraverse(Traverse):
 
     def traverse(self, fa: Maybe[A], f: Callable, tpe: type):
-        monad = Applicative[tpe]
+        monad = Applicative.fatal(tpe)
         r = lambda a: monad.map(f(a), Just)
         return fa.cata(r, monad.pure(Empty()))
 

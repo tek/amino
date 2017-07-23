@@ -63,7 +63,7 @@ class EitherOptional(Optional):
 class EitherTraverse(Traverse):
 
     def traverse(self, fa: Either[A, B], f: Callable, tpe: type) -> Any:
-        monad = Applicative[tpe]
+        monad = Applicative.fatal(tpe)
         r = lambda a: monad.map(f(a), Right)
         return fa.cata(lambda a: monad.pure(Left(a)), r)
 

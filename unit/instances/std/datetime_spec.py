@@ -9,12 +9,12 @@ from amino import List
 class TimedeltaSpec(Spec):
 
     def empty(self) -> None:
-        Monoid[timedelta].empty.should.equal(timedelta(seconds=0))
+        Monoid.fatal(timedelta).empty.should.equal(timedelta(seconds=0))
 
     def combine(self) -> None:
         a = timedelta(seconds=5)
         b = timedelta(seconds=12)
-        Monoid[timedelta].combine(a, b).should.equal(a + b)
+        Monoid.fatal(timedelta).combine(a, b).should.equal(a + b)
 
     def fold(self) -> None:
         secs = List(4, 23, 45, 71)

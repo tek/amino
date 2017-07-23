@@ -22,17 +22,17 @@ class Zip(Generic[F], TypeClass):
         return self.zip(fa, fb)
 
     def apzip(self, fa: F, f: Callable[[A], B]) -> F:
-        return self.zip(fa, Functor[type(fa)].map(fa, f))
+        return self.zip(fa, Functor.fatal(type(fa)).map(fa, f))
 
     def flat_apzip(self, fa: F, f: Callable[[A], F]) -> F:
-        return self.zip(fa, Functor[type(fa)].flat_map(fa, f))
+        return self.zip(fa, Functor.fatal(type(fa)).flat_map(fa, f))
 
     @tc_prop
     def unzip(self, fa: F) -> Tuple[F, F]:
         tpe = type(fa)
-        f = Foldable[tpe]
-        m = Monoid[tpe]
-        a = Applicative[tpe]
+        f = Foldable.fatal(tpe)
+        m = Monoid.fatal(tpe)
+        a = Applicative.fatal(tpe)
         def folder(z, b):
             l, r = z
             x, y = b
