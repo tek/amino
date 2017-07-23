@@ -21,7 +21,7 @@ class Maybe(Generic[A], Implicits, implicits=True):
 
     @staticmethod
     def check(value: A, checker=partial(is_not, None)):
-        return Just(value) if checker(value) else Empty()
+        return Just(value) if checker(value) else Nothing
 
     @staticmethod
     def from_call(f: Callable[..., A], *args, **kwargs):
@@ -35,7 +35,7 @@ class Maybe(Generic[A], Implicits, implicits=True):
                 stack = traceback.format_stack(frame)
                 log.exception('Maybe.from_call:')
                 log.error(''.join(stack))
-            return Empty()
+            return Nothing
 
     @staticmethod
     def typed(value: A, tpe: type):
@@ -43,7 +43,7 @@ class Maybe(Generic[A], Implicits, implicits=True):
 
     @staticmethod
     def wrap(mb: Union['Maybe[A]', None]):
-        return mb if mb is not None and isinstance(mb, Just) else Empty()
+        return mb if mb is not None and isinstance(mb, Just) else Nothing
 
     @staticmethod
     def getattr(obj, attr):
@@ -52,12 +52,12 @@ class Maybe(Generic[A], Implicits, implicits=True):
     @staticmethod
     @curried
     def iff(cond: bool, a: Union[A, Callable[[], A]]) -> 'Maybe[A]':
-        return cast(Maybe, Just(call_by_name(a))) if cond else Empty()
+        return cast(Maybe, Just(call_by_name(a))) if cond else Nothing
 
     @staticmethod
     @curried
     def iff_m(cond: bool, a: Union[A, Callable[[], 'Maybe[A]']]) -> 'Maybe[A]':
-        return cast(Maybe, call_by_name(a)) if cond else Empty()
+        return cast(Maybe, call_by_name(a)) if cond else Nothing
 
     @property
     def _get(self) -> Union[A, None]:
@@ -65,13 +65,13 @@ class Maybe(Generic[A], Implicits, implicits=True):
 
     def cata(self, f: Callable[[A], B], b: Union[B, Callable[[], B]]) -> B:
         return (
-            f(self._get)  # type: ignore
+            f(cast(A, self._get))
             if self.is_just
             else call_by_name(b)
         )
 
     def filter(self, f: Callable[[A], B]):
-        l = lambda a: self if f(a) else Empty()
+        l = lambda a: self if f(a) else Nothing
         return self.flat_map(l)
 
     def get_or_else(self, a: Union[A, Callable[[], A]]):
@@ -171,25 +171,28 @@ class Just(Generic[A], Maybe[A]):
         return hash(self._get)
 
 
-class Empty(Generic[A], Maybe[A]):
+class _Nothing(Generic[A], Maybe[A]):
 
-    __object = None  # type: Empty
+    __object = None  # type: _Nothing
 
-    def __new__(tp: type, *args: Any, **kwargs: Any) -> 'Empty[A]':
-        if Empty.__object is None:
-            Empty.__object = object.__new__(tp)
-        return Empty.__object
+    def __new__(tp: type, *args: Any, **kwargs: Any) -> '_Nothing[A]':
+        if _Nothing.__object is None:
+            _Nothing.__object = object.__new__(tp)
+        return _Nothing.__object
 
     def __str__(self):
-        return 'Empty()'
+        return 'Nothing'
 
     __repr__ = __str__
 
     def __eq__(self, other):
-        return isinstance(other, Empty)
+        return isinstance(other, _Nothing)
 
     def __hash__(self):
-        return hash('Empty')
+        return hash('Nothing')
+
+Empty = _Nothing
+Nothing: Maybe = _Nothing()
 
 
 def may(f):
@@ -206,4 +209,4 @@ def flat_may(f):
         return res if isinstance(res, Maybe) else Maybe(res)
     return wrapper
 
-__all__ = ('Maybe', 'Just', 'Empty', 'may')
+__all__ = ('Maybe', 'Just', 'may', 'Empty', 'Nothing')

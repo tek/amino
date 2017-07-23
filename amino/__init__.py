@@ -1,6 +1,6 @@
 import pathlib
 
-from amino.maybe import Maybe, Just, Empty, may, flat_may
+from amino.maybe import Maybe, Just, Empty, may, flat_may, Nothing
 from amino.list import List
 from amino.lazy_list import LazyList
 from amino.map import Map
@@ -23,4 +23,4 @@ Path = pathlib.Path
 
 __all__ = ('Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future', 'Boolean', 'development', 'flat_may',
            'curried', '__', 'F', 'Left', 'Right', 'Either', 'env', 'Try', 'LazyList', 'Logger', 'log', 'I', 'L', 'Eff',
-           'Task', 'Eval', 'Regex')
+           'Task', 'Eval', 'Regex', 'Nothing')
