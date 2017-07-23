@@ -1,19 +1,24 @@
 import re
-import logging
-from logging import LogRecord
-import operator
-from typing import Callable, Any
 import sys
+import logging
+import operator
 from pathlib import Path
+from logging import LogRecord
+from typing import Callable, Any, Union, cast
 
 from amino.lazy import lazy
 
 import amino
+import amino.maybe
 
 VERBOSE = 15
 DDEBUG = 5
 logging.addLevelName(VERBOSE, 'VERBOSE')
 logging.addLevelName(DDEBUG, 'DDEBUG')
+
+
+def seq_to_str(data: Union[str, 'amino.List', Any]) -> str:
+    return cast(amino.List, data).join_lines if isinstance(data, amino.List) else str(data)
 
 
 class LazyRecord(logging.LogRecord):
@@ -26,12 +31,8 @@ class LazyRecord(logging.LogRecord):
 
     @lazy
     def _cons_message(self) -> str:
-        return (
-            self._data(*self._args)
-            if callable(self._data) else self._data.join_lines
-            if isinstance(self._data, amino.List) else
-            str(self._data)
-        )
+        data = self._data(*self._args) if callable(self._data) else self._data
+        return seq_to_str(data)
 
     def getMessage(self) -> str:
         return self._cons_message if self.levelname == 'DDEBUG' else super().getMessage()
@@ -56,18 +57,13 @@ class Logger(logging.Logger):
         return LazyRecord(name, level, fn, lno, msg, args, exc_info, func, sinfo)
 
 
-# logging.Logger.verbose = Logger.verbose  # type: ignore
-# logging.Logger.ddebug = Logger.ddebug  # type: ignore
-# logging.Logger.caught_exception = Logger.caught_exception  # type: ignore
-
-log = amino_root_logger = logging.getLogger('amino')
-log.setLevel(DDEBUG)
-
-
 def install_logger_class() -> None:
     logging.setLoggerClass(Logger)
 
 install_logger_class()
+
+log = amino_root_logger = logging.getLogger('amino')
+log.setLevel(DDEBUG)
 
 
 def amino_logger(name: str) -> logging.Logger:
@@ -78,7 +74,7 @@ _stdout_logging_initialized = False
 _level_env_var = 'AMINO_LOG_LEVEL'
 
 
-def env_log_level() -> int:
+def env_log_level() -> 'amino.maybe.Maybe[int]':
     return amino.env[_level_env_var]
 
 
@@ -159,7 +155,7 @@ def logger_tree(root):
 
 def indent(strings, level, width=1):
     ws = ' ' * level * width
-    return strings.map(ws.__add__)
+    return strings.map(str).map(ws.__add__)
 
 
 def format_logger_tree(tree, fmt_logger, level=0):
