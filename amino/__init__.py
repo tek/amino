@@ -1,5 +1,8 @@
 import pathlib
 
+from amino.typecheck import boot
+boot()
+
 from amino.maybe import Maybe, Just, Empty, may, flat_may, Nothing
 from amino.list import List
 from amino.lazy_list import LazyList
