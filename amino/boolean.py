@@ -83,6 +83,9 @@ class Boolean(object):
     def __or__(self, other: 'Boolean') -> 'Boolean':
         return Boolean(self or other)
 
+    def __invert__(self) -> 'Boolean':
+        return Boolean(not self.value)
+
     @property
     def no(self):
         return Boolean(not self.value)
