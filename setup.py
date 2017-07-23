@@ -1,10 +1,9 @@
 from setuptools import setup, find_packages
 
-version_parts = (9, 10, 1)
+version_parts = (9, 11, 0)
 version = '.'.join(map(str, version_parts))
 
-gh_lenses =\
-    'git+https://github.com/ingolemo/python-lenses.git#egg=lenses'
+gh_lenses = 'git+https://github.com/ingolemo/python-lenses.git#egg=lenses'
 
 setup(
     name='amino',
@@ -19,6 +18,9 @@ setup(
         'fn',
         'toolz',
         'lenses',
+    ],
+    tests_require=[
+        'kallikrein',
     ],
     dependency_links=[
         gh_lenses,
