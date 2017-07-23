@@ -1,4 +1,4 @@
-from typing import TypeVar, Callable, Tuple
+from typing import TypeVar, Callable, Tuple, Optional, cast
 from functools import reduce
 
 from amino import maybe, List, Maybe
@@ -54,6 +54,10 @@ class ListTraverse(Traverse):
 FoldableABC.register(List)
 
 
+def _find(fa: List[A], f: Callable[[A], bool]) -> Optional[A]:
+    return next(filter(f, fa), None)
+
+
 class ListFoldable(Foldable):
 
     @tc_prop
@@ -68,7 +72,7 @@ class ListFoldable(Foldable):
         return reduce(f, fa, z)
 
     def find(self, fa: List[A], f: Callable[[A], bool]):
-        return Maybe(next(filter(f, fa), None))  # type: ignore
+        return Maybe(_find(fa, f))
 
     def find_map(self, fa: List[A], f: Callable[[A], Maybe[B]]) -> Maybe[B]:
         for el in fa:

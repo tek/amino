@@ -1,13 +1,11 @@
 import importlib
 import abc
-from typing import Dict, Tuple, Any, Callable, Union, Optional, GenericMeta
-from typing import List  # NOQA
+from typing import Dict, Tuple, Any, Callable, Union, Optional, GenericMeta, TypeVar, Generic
 from functools import partial, wraps
 
-import amino  # NOQA
+import amino
 from amino.util.string import snake_case
 from amino.lazy import lazy
-from amino.tc.show import Show
 
 from amino.logging import amino_root_logger
 
@@ -128,10 +126,9 @@ class InstancesMetadata:
                                        self.mod, self.cls)
 
     @property
-    def instances(self) -> Dict[str, TypeClass]:
+    def instances(self) -> Dict[type, TypeClass]:
         if self._instances is None:
-            self._instances = lookup_implicit_instances(self.name, self.mod,
-                                                        self.cls)
+            self._instances = lookup_implicit_instances(self.name, self.mod, self.cls)
         return self._instances.instances
 
 
@@ -153,7 +150,7 @@ class ImplicitsMeta(GenericMeta):
             setattr(inst, op, ImplicitsMeta._mk_operator(op))
 
     def __new__(cls: type, name: str, bases: tuple, namespace: dict, imp_mod: str=None, imp_cls: str=None,
-                implicits: bool=False, auto: bool=False, **kw: dict) -> type:
+                implicits: bool=False, auto: bool=False, **kw: Any) -> type:
         inst = super().__new__(cls, name, bases, namespace, **kw)  # type: ignore
         inst.auto = auto or getattr(inst, 'auto', False)
         if not implicits:
@@ -245,6 +242,7 @@ class GlobalTypeClasses(TypeClasses):
     def instances(self) -> Dict[type, TypeClass]:
         from amino.map import Map
         from amino.tc.tap import Tap
+        from amino.tc.show import Show
         return Map({Show: Show(), Tap: Tap()})
 
 
