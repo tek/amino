@@ -1,9 +1,11 @@
+import abc
 from typing import Generic, TypeVar, Callable, Tuple, Any
 
-from amino import LazyList, Maybe, I, Empty, Just
+from amino import LazyList, Maybe, I, Empty, Just, Boolean
 from amino.lazy import lazy
 from amino.lazy_list import LazyLists
 from amino.tree import indent, Node
+from amino.boolean import true, false
 
 
 Data = TypeVar('Data')
@@ -12,6 +14,14 @@ B = TypeVar('B')
 
 
 class RoseTree(Generic[Data]):
+
+    @abc.abstractproperty
+    def parent(self) -> 'RoseTree':
+        ...
+
+    @abc.abstractproperty
+    def is_root(self) -> Boolean:
+        ...
 
     def __init__(self, data: Data, sub_cons: Callable[['RoseTree[Data]'], LazyList['RoseTree[Data]']]) -> None:
         self.data = data
@@ -48,7 +58,7 @@ class RoseTree(Generic[Data]):
 
     def copy(self, f: Callable[[Data], A], g: Callable[[LazyList['RoseTree[Data]']], LazyList['RoseTree[A]']]
              ) -> 'RoseTree[A]':
-        return RoseTree(f(self.data), self._copy_sub(f, g))
+        return RoseTreeRoot(f(self.data), self._copy_sub(f, g))
 
     def _copy_sub(self, f: Callable[[Data], A], g: Callable[[LazyList['RoseTree[Data]']], LazyList['RoseTree[A]']]
                   ) -> Callable[['RoseTree[A]'], LazyList['RoseTree[A]']]:
@@ -66,6 +76,17 @@ class RoseTree(Generic[Data]):
         self.sub._drain().foreach(lambda a: a._drain())
 
 
+class RoseTreeRoot(Generic[Data], RoseTree[Data]):
+
+    @property
+    def parent(self) -> RoseTree[Data]:
+        return self
+
+    @property
+    def is_root(self) -> Boolean:
+        return true
+
+
 class BiRoseTree(Generic[Data], RoseTree[Data]):
 
     def __init__(
@@ -75,7 +96,15 @@ class BiRoseTree(Generic[Data], RoseTree[Data]):
             sub_cons: Callable[[RoseTree[Data]], LazyList[RoseTree[Data]]]
     ) -> None:
         super().__init__(data, sub_cons)
-        self.parent = parent
+        self._parent = parent
+
+    @property
+    def parent(self) -> RoseTree[Data]:
+        return self._parent
+
+    @property
+    def is_root(self) -> Boolean:
+        return false
 
 
 def node(data: Data, sub_cons: Callable[[RoseTree[Data]], LazyList[RoseTree[Data]]]
@@ -113,6 +142,6 @@ def from_tree(
 
 
 def from_tree_default(tree: Node[A, Any], f: Callable[[Node[A, Any], Maybe[RoseTree[B]]], B]) -> RoseTree[B]:
-    return from_tree(tree, f, RoseTree, BiRoseTree)
+    return from_tree(tree, f, RoseTreeRoot, BiRoseTree)
 
 __all__ = ('BiRoseTree', 'RoseTree', 'node', 'leaf', 'leaves', 'from_tree')

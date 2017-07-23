@@ -1,14 +1,14 @@
 from typing import Any
 
 from amino.test.spec_spec import Spec
-from amino.bi_rose_tree import RoseTree, nodes, leaves, from_tree_default
+from amino.bi_rose_tree import nodes, leaves, from_tree_default, RoseTreeRoot
 from amino import _, __, List
 from amino.tree import Node, LeafNode
 
 from unit.tree_spec import mtree
 
 
-simple_tree = RoseTree(1, nodes((2, leaves(3, 4))))
+simple_tree = RoseTreeRoot(1, nodes((2, leaves(3, 4))))
 
 
 class BiRoseTreeSpec(Spec):
