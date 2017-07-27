@@ -62,7 +62,8 @@ def install_logger_class() -> None:
 
 install_logger_class()
 
-log = amino_root_logger = logging.getLogger('amino')
+log = logging.getLogger('amino')
+amino_root_logger = log
 log.setLevel(DDEBUG)
 
 

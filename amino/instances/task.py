@@ -5,7 +5,7 @@ from amino.tc.monad import Monad
 from amino.tc.base import ImplicitInstances
 from amino.lazy import lazy
 from amino.task import Task
-from amino.anon import lambda_str
+from amino.util.fun import lambda_str
 
 A = TypeVar('A')
 B = TypeVar('B')

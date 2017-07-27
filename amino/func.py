@@ -31,7 +31,7 @@ class F(fn.F):
         return isinstance(self.f, partial)
 
     def __str__(self):
-        from amino.anon import format_funcall
+        from amino.util.fun import format_funcall
         rep = (format_funcall(self.name, self.f.args, self.f.keywords)
                if self._is_partial
                else '{}()'.format(self.name))
@@ -56,6 +56,9 @@ def curried(func):
 
 
 class Identity:
+
+    def __init__(self) -> None:
+        self.__name__ = 'identity'
 
     def __call__(self, a):
         return a

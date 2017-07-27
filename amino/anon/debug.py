@@ -1,33 +1,12 @@
 import abc
 import operator
-from types import FunctionType, MethodType
 
 from toolz import merge
 
 from amino import List, Boolean
-
-
-class AnonError(Exception):
-    pass
-
-
-def lambda_str(f) -> str:
-    if isinstance(f, MethodType):
-        return '{}.{}'.format(f.__self__.__class__.__name__, f.__name__)
-    elif isinstance(f, FunctionType):
-        return f.__name__
-    elif isinstance(f, str):
-        return f
-    else:
-        return str(f)
-
-
-def format_funcall(fun, args, kwargs) -> str:
-    from amino import Map
-    kw = Map(kwargs).map2('{}={!r}'.format)
-    a = list(map(repr, args)) + list(kw)
-    args_fmt = ', '.join(a)
-    return '{}({})'.format(lambda_str(fun), args_fmt)
+from amino.util.fun import format_funcall
+from amino.anon.error import AnonError
+from amino.list import Lists
 
 
 class Anon(metaclass=abc.ABCMeta):
@@ -86,8 +65,7 @@ class AnonGetter(AnonMemberCallable):
     def __call_pre(self, obj, a):
         pre, rest = self.__pre.__call_as_pre__(obj, *a)
         if not hasattr(pre, self.__name):
-            raise AttributeError('{!r} has no method \'{}\' -> {!r}'.format(
-                pre, self.__name, self))
+            raise AttributeError('{!r} has no method \'{}\' -> {!r}'.format(pre, self.__name, self))
         return pre, rest
 
     def __call(self, obj, a):
@@ -221,6 +199,7 @@ class MethodLambda:
     def __getitem__(self, key):
         return AnonFunc(IdAnonFunc(), '__getitem__', [key], {})
 
+
 __ = MethodLambda()
 
 
@@ -253,7 +232,7 @@ class ComplexLambda(AnonFunctionCallable, HasArgs):
         self.__func = func
         self.__args = List.wrap(a)
         self.__kwargs = kw
-        self.__qualname__ = self._func.__name__
+        self.__qualname__ = self.__func.__name__
         self.__annotations__ = {}
 
     def __call__(self, *a, **kw):
@@ -398,6 +377,9 @@ class RootAttrLambda(Opers):
         return '_'
 
 
+_ = RootAttrLambda()
+
+
 class AttrLambda(Opers, AnonGetter, AnonCallable):
 
     def __init__(self, pre: 'AttrLambda', name: str) -> None:
@@ -430,6 +412,10 @@ class OperatorLambda(AttrLambda):
         a, b = (self.__strict, pre) if self.__right else (pre, self.__strict)
         return self.__op(a, b)
 
+    def __call_as_pre__(self, *a, **kw):
+        a0, rest = Lists.wrap(a).detach_head.get_or_fail('no arguments passed to OperatorLambda')
+        return self.__call__(a0), rest
+
     def __repr__(self):
         a, b = (
             (self.__strict, self._AnonGetter__pre)
@@ -438,6 +424,4 @@ class OperatorLambda(AttrLambda):
         )
         return '({!r} {} {!r})'.format(a, self._AnonGetter__name, b)
 
-_ = RootAttrLambda()
-
-__all__ = ('__', 'L', '_')
+__all__ = ('L', 'RootAttrLambda', 'MethodLambda', '_', '__')

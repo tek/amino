@@ -1,10 +1,11 @@
 import importlib
-from typing import TypeVar, Generic, Callable, Union, Any
-from typing import Tuple  # NOQA
+from typing import TypeVar, Generic, Callable, Union, Any, cast, Iterator
 
+import amino  # noqa
 from amino import boolean
 from amino.func import I
 from amino.tc.base import Implicits
+from amino.util.mod import unsafe_import_name
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -17,19 +18,16 @@ class Either(Generic[A, B], Implicits, implicits=True):
         self.value = value
 
     @staticmethod
-    def import_name(modname, name):
+    def import_name(mod: str, name: str) -> Any:
         try:
-            mod = importlib.import_module(modname)
+            value = unsafe_import_name(mod, name)
         except ImportError as e:
             return Left(e)
         else:
-            if hasattr(mod, name):
-                return Right(getattr(mod, name))
-            else:
-                return Left('{} has no attribute {}'.format(mod, name))
+            return Left('{} has no attribute {}'.format(mod, name)) if value is None else Right(value)
 
     @staticmethod
-    def import_path(path):
+    def import_path(path: str) -> Any:
         from amino.list import List
         return (
             List.wrap(path.rsplit('.', 1))
@@ -39,7 +37,7 @@ class Either(Generic[A, B], Implicits, implicits=True):
         )
 
     @staticmethod
-    def import_module(modname):
+    def import_module(modname: str) -> Any:
         try:
             mod = importlib.import_module(modname)
         except ImportError as e:
@@ -48,16 +46,24 @@ class Either(Generic[A, B], Implicits, implicits=True):
             return Right(mod)
 
     @property
-    def is_right(self):
+    def is_right(self) -> 'amino.Boolean':
         return boolean.Boolean(isinstance(self, Right))
 
     @property
-    def is_left(self):
+    def is_left(self) -> 'amino.Boolean':
         return boolean.Boolean(isinstance(self, Left))
 
-    def leffect(self, f):
+    @property
+    def __left_value(self) -> A:
+        return cast(A, self.value)
+
+    @property
+    def __right_value(self) -> B:
+        return cast(B, self.value)
+
+    def leffect(self, f: Callable[[A], Any]) -> 'Either[A, B]':
         if self.is_left:
-            f(self.value)
+            f(self.__left_value)
         return self
 
     def bieffect(self, l: Callable[[A], Any],
@@ -65,42 +71,44 @@ class Either(Generic[A, B], Implicits, implicits=True):
         self.cata(l, r)
         return self
 
-    def cata(self, fl: Callable[[A], Any], fr: Callable[[B], Any]):
-        f = fl if self.is_left else fr
-        return f(self.value)  # type: ignore
+    def cata(self, fl: Callable[[A], C], fr: Callable[[B], C]) -> C:
+        return fl(self.__left_value) if self.is_left else fr(self.__right_value)
 
-    def recover_with(self, f: Callable[[A], 'Either[A, B]']):
+    def recover_with(self, f: Callable[[A], 'Either[C, B]']) -> 'Either[C, B]':
         return self.cata(f, Right)
 
-    def right_or_map(self, f: Callable[[A], B]) -> B:
+    def right_or_map(self, f: Callable[[A], C]) -> C:
         return self.cata(f, I)
 
     def value_or(self, f: Callable[[A], B]) -> B:
         return self.cata(f, I)
 
-    def left_or_map(self, f: Callable[[B], Any]):
+    def left_or(self, f: Callable[[B], A]) -> A:
+        return self.cata(I, f)
+
+    def left_or_map(self, f: Callable[[B], A]) -> A:
         return self.cata(I, f)
 
     @property
-    def ljoin(self):
+    def ljoin(self) -> 'Either[A, C]':
         return self.right_or_map(Left)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '{}({})'.format(self.__class__.__name__, self.value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '{}({!r})'.format(self.__class__.__name__, self.value)
 
     @property
-    def to_list(self):
+    def to_list(self) -> 'amino.List[B]':
         return self.to_maybe.to_list
 
-    def lmap(self, f: Callable[[A], Any]):
-        return Left(f(self.value)) if self.is_left else self  # type: ignore
+    def lmap(self, f: Callable[[A], C]) -> 'Either[C, B]':
+        return cast(Either, Left(f(self.__left_value))) if self.is_left else cast(Either, Right(self.__right_value))
 
     @property
     def get_or_raise(self) -> B:
-        def fail(err: Any) -> None:
+        def fail(err: A) -> B:
             raise err if isinstance(err, Exception) else Exception(err)
         return self.cata(fail, I)
 
@@ -108,7 +116,7 @@ class Either(Generic[A, B], Implicits, implicits=True):
     def fatal(self) -> B:
         return self.get_or_raise
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[B]:
         return iter(self.to_list)
 
     @property
@@ -116,19 +124,19 @@ class Either(Generic[A, B], Implicits, implicits=True):
         return self.cata(Right, Left)
 
     @property
-    def json(self):
+    def json(self) -> B:
         return self.to_maybe.json
 
 
 class Right(Either):
 
-    def __eq__(self, other):
-        return isinstance(other, Right) and self.value == other.value
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Right) and self._Either__right_value == other._Either__right_value
 
 
 class Left(Either):
 
-    def __eq__(self, other):
-        return isinstance(other, Left) and self.value == other.value
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Left) and self._Either__left_value == other._Either__left_value
 
 __all__ = ('Either', 'Left', 'Right')

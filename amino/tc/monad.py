@@ -2,7 +2,7 @@ from typing import TypeVar, Callable
 
 from amino.tc.flat_map import FlatMap
 from amino.tc.applicative import Applicative
-from amino import List, L, _
+from amino import List
 
 F = TypeVar('F')
 A = TypeVar('A')
@@ -22,8 +22,8 @@ class Monad(FlatMap, Applicative):
     def effs(self, fa: F, *args):
         from amino.eff import Eff
         types = List.wrap(args)
-        c = L(Eff)(fa, _, depth=_)
-        with_depth = lambda d, t: c(t, depth=d)
+        c = lambda a, b: Eff(fa, a, depth=b)
+        with_depth = lambda d, t: c(t, d)
         types_only = lambda: c(types, depth=len(types))
         def try_depth(h, t):
             return with_depth(int(h), t) if isinstance(h, int) else types_only()

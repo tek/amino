@@ -8,8 +8,9 @@ from fn.recur import tco
 
 from amino import Either, Right, Left, Maybe, List, Empty, __, Just, env, _
 from amino.tc.base import Implicits, ImplicitsMeta
-from amino.anon import format_funcall, lambda_str, L
+from amino.anon import L
 from amino.logging import log
+from amino.util.fun import lambda_str, format_funcall
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -235,9 +236,7 @@ class BindSuspend(Generic[A], Task[A]):
         return '{}({})'.format(self._name, self.string)
 
     def _flat_map(self, f: Callable[[A], 'Task[B]'], ts, fs) -> 'Task[B]':
-        bs = L(BindSuspend)(self.thunk,
-                            L(self.f)(_).flat_map(f, Just(ts), Just(fs)), ts,
-                            fs)
+        bs = L(BindSuspend)(self.thunk, lambda a: self.f(a).flat_map(f, Just(ts), Just(fs)), ts, fs)
         return Suspend(bs, '{}.{}'.format(ts, fs))
 
     @property

@@ -1,6 +1,6 @@
 from typing import Callable, Generic, TypeVar
 
-from amino import List, I, __, L, _
+from amino import List, I, _
 from amino.lazy import lazy
 from amino.tc.base import Implicits
 from amino.tc.flat_map import FlatMap
@@ -34,11 +34,11 @@ class Eff(Generic[A], Implicits, implicits=True, auto=True):
         return self.effects.cons(type(self.value))
 
     def _map(self, f: Callable):
-        g = List.wrap(range(self.depth)).fold_left(f)(lambda z, i: __.map(z))
+        g = List.wrap(range(self.depth)).fold_left(f)(lambda z, i: lambda a: a.map(z))
         return g(self.value)
 
     def map(self, f: Callable):
-        return self.copy(self._map(__.map(f)))
+        return self.copy(self._map(lambda a: a.map(f)))
 
     __truediv__ = map
 
@@ -56,14 +56,14 @@ class Eff(Generic[A], Implicits, implicits=True, auto=True):
         Note: Task works only as outermost effect, as it cannot sequence
         '''
         index = List.range(self.depth + 1)
-        g = index.fold_left(f)(lambda z, i: __.map(z))
+        g = index.fold_left(f)(lambda z, i: lambda a: a.map(z))
         nested = g(self.value)
         def sequence_level(z, depth, tpe):
-            nesting = lambda z, i: __.map(z).sequence(tpe)
+            nesting = lambda z, i: lambda a: a.map(z).sequence(tpe)
             lifter = List.range(depth).fold_left(I)(nesting)
             return z // lifter
         def sequence_type(z, data):
-            return L(sequence_level)(_, *data).map(z)
+            return lambda a: sequence_level(a, *data).map(z)
         h = self.all_effects.reversed.with_index.fold_left(I)(sequence_type)
         return h(nested)
 
@@ -77,7 +77,7 @@ class Eff(Generic[A], Implicits, implicits=True, auto=True):
     __floordiv__ = flat_map
 
     def flat_map_inner(self, f: Callable):
-        return self.copy(self.value.map(__.flat_map(f)))
+        return self.copy(self.value.map(lambda a: a.flat_map(f)))
 
 
 class EffFlatMap(FlatMap, tpe=Eff):

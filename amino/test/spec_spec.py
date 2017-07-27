@@ -1,3 +1,4 @@
+import abc
 import time
 from datetime import datetime
 
@@ -20,7 +21,11 @@ def later(ass, *a, timeout=None, intval=0.1, **kw):
     return ass(*a, **kw)
 
 
-class Spec(SureSpec, SpecBase, spec.Spec):
+class SpecMeta(spec.InnerClassParser, abc.ABCMeta):
+    pass
+
+
+class Spec(SureSpec, SpecBase, spec.Spec, abc.ABC, metaclass=SpecMeta):
 
     def setup(self) -> None:
         SureSpec.setup(self)

@@ -15,8 +15,7 @@ class TaskSpec(Spec):
         t.attempt.should.equal(Right((1, 2)))
 
     def trampoline(self):
-        t = (List.range(1000).fold_left(Task.now(1))(
-            lambda z, a: z.flat_map(Task.now, fs=Just('now'))))
+        t = (List.range(1000).fold_left(Task.now(1))(lambda z, a: z.flat_map(Task.now, fs=Just('now'))))
         t.attempt.should.contain(1)
 
     def now(self):
@@ -128,13 +127,13 @@ class TaskStringSpec(Spec):
 
     def now_map(self):
         t = Task.now(5) / (_ + 1)
-        target = 'Suspend(Now(5).map((_ + 1)))'
+        target = 'Suspend(Now(5).map(lambda a: (lambda b: a + b)(1)))'
         str(t).should.equal(target)
         str(t.step()).should.equal('Now(6)')
 
     def suspend_map(self):
         t = Task.suspend(Task.now, 5) / (_ + 1)
-        target = 'Suspend(Now(5).map((_ + 1)))'
+        target = 'Suspend(Now(5).map(lambda a: (lambda b: a + b)(1)))'
         str(t.step()).should.equal(target)
 
 __all__ = ('TaskSpec', 'TaskStringSpec')

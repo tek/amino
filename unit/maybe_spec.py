@@ -5,7 +5,7 @@ from amino import Maybe, Empty, Just, Left, Right, _, L
 from amino.tc.monad import Monad
 
 
-class Maybe_(Spec):
+class MaybeSpec(Spec):
 
     def none(self) -> None:
         Maybe(None).is_just.should_not.be.ok
@@ -101,4 +101,4 @@ class Maybe_(Spec):
         e = Just(1).product3(Just(2), Empty(), Just(4))
         e.should.be.empty
 
-__all__ = ('Maybe_',)
+__all__ = ('MaybeSpec',)

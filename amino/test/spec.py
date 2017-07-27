@@ -73,8 +73,8 @@ def timed(f):
         import time
         start = time.time()
         v = f(*a, **kw)
-        from ribosome.logging import log
-        log.info('{}: {}'.format(f.__name__, time.time() - start))
+        from amino.logging import log
+        log.info('{}: {:.3}'.format(f.__name__, time.time() - start))
         return v
     return wrap
 
@@ -88,5 +88,4 @@ def timer(name='timer'):
     log.info('{}: {}'.format(name, time.time() - start))
     return v
 
-__all__ = ('Spec', 'IntegrationSpec', 'profiled', 'later', 'timed', 'timer',
-           'IntegrationSpecBase')
+__all__ = ('SpecBase', 'profiled', 'timed', 'timer', 'IntegrationSpecBase')
