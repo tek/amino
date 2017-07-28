@@ -33,7 +33,7 @@ class Functor(Generic[F], TypeClass):
         match = self._map_re.match(name)
         if match is None:
             raise AttributeError(f'''`Functor` object has no attribute `{name}`''')
-        return amino.func.F(self.map_n, int(match.group(1)))
+        return lambda *a: self.map_n(int(match.group(1)), *a)
 
     def map_n(self, num: int, fa: F, f: Callable[..., B]) -> F:
         def wrapper(args):

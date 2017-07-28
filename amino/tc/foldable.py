@@ -14,6 +14,7 @@ from amino.tc.monoid import Monoid
 from amino.tc.monad import Monad
 
 G = TypeVar('G')
+H = TypeVar('H')
 A = TypeVar('A')
 B = TypeVar('B')
 Z = TypeVar('Z')
@@ -25,7 +26,7 @@ class FoldableABC(Generic[A], abc.ABC):
 F = FoldableABC
 
 
-class Foldable(TypeClass):
+class Foldable(Generic[H], TypeClass[H]):
     # FIXME lens functions return index lenses, which is not a property of
     # Foldable
 

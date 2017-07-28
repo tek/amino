@@ -1,7 +1,9 @@
 import abc
+from typing import TypeVar
 
 from amino.tc.base import TypeClass
-from amino.tc.functor import F
+
+F = TypeVar('F')
 
 
 class Monoidal(TypeClass):

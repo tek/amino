@@ -3,39 +3,7 @@ from inspect import getfullargspec
 import typing
 from typing import Callable, Union, Any, Dict
 
-import fn
-
 from amino.util.string import snake_case
-
-
-class F(fn.F):
-
-    def __truediv__(self, f):
-        return self >> (lambda a: a / f)
-
-    def __floordiv__(self, f):
-        return self >> (lambda a: a // f)
-
-    @property
-    def name(self):
-        from amino.anon import AnonCallable
-        f = (
-            self.f.func
-            if isinstance(self.f.func, AnonCallable) else
-            self.f.func.__name__
-        ) if self._is_partial else self.f.__name__
-        return str(f)
-
-    @property
-    def _is_partial(self):
-        return isinstance(self.f, partial)
-
-    def __str__(self):
-        from amino.util.fun import format_funcall
-        rep = (format_funcall(self.name, self.f.args, self.f.keywords)
-               if self._is_partial
-               else '{}()'.format(self.name))
-        return 'F({})'.format(rep)
 
 
 def curried(func):
@@ -73,6 +41,7 @@ class Val:
 
     def __init__(self, value) -> None:
         self.value = value
+        self.__name__ = self.__class__.__name__
 
     def __call__(self):
         return self.value

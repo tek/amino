@@ -3,13 +3,13 @@ import itertools
 
 from amino import Maybe, LazyList, _, L
 from amino.list import List
-from amino.func import F, curried
+from amino.func import curried
 from amino.anon import __
 from amino.tc.monad import Monad
 from amino.tc.base import ImplicitInstances, tc_prop
 from amino.lazy import lazy
 from amino.tc.traverse import Traverse
-from amino.tc.foldable import Foldable
+from amino.tc.foldable import Foldable, FoldableABC
 from amino.tc.zip import Zip
 from amino.instances.list import ListZip
 
@@ -56,14 +56,17 @@ class LazyListTraverse(Traverse):
         return fa.drain.traverse(f, tpe) / LazyList
 
 
+FoldableABC.register(LazyList)
+
+
 class LazyListFoldable(Foldable):
 
     @tc_prop
     def with_index(self, fa: LazyList[A]) -> List[Tuple[int, A]]:
         return LazyList(enumerate(fa.source), fa.strict, fa._chunk_size)
 
-    def filter(self, fa: LazyList[A], f: Callable[[A], bool]):
-        return fa.copy(F(filter, f), __.filter(f))
+    def filter(self, fa: LazyList[A], f: Callable[[A], bool]) -> LazyList[A]:
+        return fa.copy(lambda l: filter(f, l), __.filter(f))
 
     @curried
     def fold_left(self, fa: LazyList[A], z: B, f: Callable[[B, A], B]) -> B:
