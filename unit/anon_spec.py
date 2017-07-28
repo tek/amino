@@ -211,11 +211,11 @@ class _AnonSpec(Spec, abc.ABC):
         g(Just('bbb')).should.equal('aaabbb')
 
     def _complex_kw_args(self) -> None:
-        def f(a: int, b: str) -> str:
-            return str(a) + b
-        l = self.L(f)(self._)
+        def f(a: int, b: str, c: str) -> str:
+            return str(a) + b + c
+        l = self.L(f)(self._, c='b')
         r = l(1, b='a')
-        r.should.equal('1a')
+        r.should.equal('1ab')
 
 
 class AnonDebugSpec(_AnonSpec):

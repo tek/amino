@@ -53,7 +53,7 @@ class ComplexLambda:
         self.__lambda_args, self.__rest, self.__repr, self.__lambda, self.__param_count = make_complex(self.__args)
 
     def __call__(self, *a, **kw):
-        return self.__lambda(self.__func)(*self.__lambda_args)(*a)(*self.__rest, **kw)
+        return self.__lambda(self.__func)(*self.__lambda_args)(*a)(*self.__rest, **self.__kwargs, **kw)
 
     def __str__(self) -> str:
         return self.__repr
