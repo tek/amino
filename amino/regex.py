@@ -1,29 +1,36 @@
 import re
-from typing import Any
+import typing
+from typing import Any, Union, Pattern
 
 from amino import L, _, Maybe, Map, List, Either
 
 
 class Regex:
 
-    def __init__(self, spec) -> None:
-        self.spec = spec
-        self.rex = re.compile(spec)
+    @staticmethod
+    def cons(pattern: Union[str, Pattern]) -> 'Regex':
+        spec = pattern.pattern if isinstance(pattern, Pattern) else pattern
+        rex = pattern if isinstance(pattern, Pattern) else re.compile(pattern)
+        return Regex(spec, rex)
 
-    def __getattr__(self, name):
+    def __init__(self, spec: str, rex: Union[None, Pattern]=None) -> None:
+        self.spec = spec
+        self.rex = re.compile(spec) if rex is None else rex
+
+    def __getattr__(self, name: str) -> Any:
         if hasattr(self.rex, name):
             return getattr(self.rex, name)
         else:
             raise AttributeError('Regex has no attribute \'{}\''.format(name))
 
-    def match(self, data, *a, **kw) -> Maybe['Match']:
+    def match(self, data: str, *a: Any, **kw: Any) -> Maybe['Match']:
         return (
             Maybe(self.rex.match(data, *a, **kw))
             .to_either('`{}` does not match `{}`'.format(data, self.spec)) /
             L(Match)(self, _, data)
         )
 
-    def search(self, data, *a, **kw) -> Maybe['Match']:
+    def search(self, data: str, *a: Any, **kw: Any) -> Maybe['Match']:
         return (
             Maybe(self.rex.search(data, *a, **kw))
             .to_either('`{}` does not contain `{}`'.format(data, self.spec)) /
@@ -36,7 +43,7 @@ class Regex:
 
 class Match:
 
-    def __init__(self, regex: Regex, internal: Any, data: str) -> None:
+    def __init__(self, regex: Regex, internal: typing.Match, data: str) -> None:
         self.regex = regex
         self.internal = internal
         self.data = data
@@ -71,7 +78,10 @@ class Match:
         return self.internal.group(0)
 
     def __str__(self) -> str:
-        return 'Match({}, {}, {})'.format(self.regex, self.data,
-                                          self.group_map)
+        return 'Match({}, {}, {})'.format(self.regex, self.data, self.group_map)
+
+    @property
+    def string(self) -> str:
+        return self.internal.string
 
 __all__ = ('Regex',)
