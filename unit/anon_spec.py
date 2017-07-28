@@ -17,7 +17,7 @@ class _Inner:
         self.z = z
 
     @property
-    def wrap(self):
+    def wrap(self) -> None:
         return _Inner(self.z * 2)
 
     def add(self, a, b):
@@ -42,7 +42,7 @@ class _Num:
 class _Att:
 
     @property
-    def att(self):
+    def att(self) -> None:
         return self
 
 
@@ -92,14 +92,14 @@ class _AnonSpec(Spec, abc.ABC):
         l = self.L(f)(self._).map(lambda a: a + 1).map(lambda a: a + 2)
         l(6).should.equal(Just(9))
 
-    def _complex_placeholders(self):
+    def _complex_placeholders(self) -> None:
         v1 = 13
         v2 = 29
         def f(a, b, c, d):
             return b * d
         Just((v1, v2)).map2(self.L(f)(2, self._, 4, self._)).should.contain(v1 * v2)
 
-    def _lambda_arg(self):
+    def _lambda_arg(self) -> None:
         v1 = _Num(13)
         v2 = 29
         v3 = 47
@@ -108,7 +108,7 @@ class _AnonSpec(Spec, abc.ABC):
         l = self.L(f)(2, self.__.plus(v3), 4, self._ + v4)
         l(v1, v2).should.equal((v1.a + v3) * (v2 + v4))
 
-    def _attr_lambda(self):
+    def _attr_lambda(self) -> None:
         a = _Att()
         l = self._.att.att
         l(a).should.equal(a)
@@ -117,18 +117,18 @@ class _AnonSpec(Spec, abc.ABC):
         (6 - self._ + 3)(2).should.equal(7)
         (6 - self._ + 3 - 2 + 13)(2).should.equal(18)
 
-    def _attr_lambda_2(self):
+    def _attr_lambda_2(self) -> None:
         (self._ % 3 == 2)(5).should.equal(True)
         (9 / self._)(3).should.equal(3.0)
 
-    def _call_root(self):
+    def _call_root(self) -> None:
         x = 5
         y = 4
         f = lambda a: a + y
         l = __(x)
         l(f).should.equal(x + y)
 
-    def _getitem(self):
+    def _getitem(self) -> None:
         f = __[1]
         a = 13
         f((1, a, 2)).should.equal(a)
@@ -141,7 +141,7 @@ class _AnonSpec(Spec, abc.ABC):
         l = 3
         i(Just(List(Lists.range(3)))).should.equal(l)
 
-    def _instantiate_type(self):
+    def _instantiate_type(self) -> None:
         a, b, c = 1, 2, 3
         class T:
             def __init__(self, a) -> None:
@@ -158,43 +158,43 @@ class _AnonSpec(Spec, abc.ABC):
         target = (v3 * v4 + v1) * (v2 + v5 + v3 + v6)
         f(a).should.equal(target)
 
-    def _method_lambda_with_placeholders(self):
+    def _method_lambda_with_placeholders(self) -> None:
         v1, v2, v3, v4, v5, v6 = 2, 3, 5, 7, 11, 13
         f = self.__.ma(self._, v1).mb(v2, self._, v3, self._)
         a = _Chain(v3)
         target = (v3 * v4 + v1) * (v2 + v5 + v3 + v6)
         f(a, v4, v5, v6).should.equal(target)
 
-    def _lambda_arg_method_ref(self):
+    def _lambda_arg_method_ref(self) -> None:
         values = List.range(5) / str
         s = values.mk_string(',')
         l = self.L(Try)(self.__.split, ',')
         (l(s) / List.wrap).should.contain(values)
 
-    def _bad_param_count(self):
+    def _bad_param_count(self) -> None:
         f = self.__.map(self._).map(self._)
         args = List(1), lambda a: a, lambda a: a, 5
         f.when.called_with(*args).should.throw(AnonError)
 
-    def _shift(self):
+    def _shift(self) -> None:
         f = self._ + 1
         g = self._ + 2
         l = self.L(f)(1) >> self.L(g)(self._)
         l().should.equal(4)
 
-    def _nest_method_lambda_shift(self):
+    def _nest_method_lambda_shift(self) -> None:
         class A(object):
-            def run(self):
+            def run(self) -> None:
                 pass
         l = self.L(self.__.run())(self._) >> self.L(I)(self._)
         l(A()).should.be.none
 
-    def _lazy_method(self):
+    def _lazy_method(self) -> None:
         values = List.range(5) / str
         s = values.mk_string(',')
         self.L(s).split(',')().should.equal(values)
 
-    def _lazy_method_nested(self):
+    def _lazy_method_nested(self) -> None:
         class A:
             def __init__(self, a) -> None:
                 self.a = a
@@ -209,6 +209,13 @@ class _AnonSpec(Spec, abc.ABC):
         f(Just('bbb')).should.equal('bbbaaa')
         g = 'aaa' + self._.x
         g(Just('bbb')).should.equal('aaabbb')
+
+    def _complex_kw_args(self) -> None:
+        def f(a: int, b: str) -> str:
+            return str(a) + b
+        l = self.L(f)(self._)
+        r = l(1, b='a')
+        r.should.equal('1a')
 
 
 class AnonDebugSpec(_AnonSpec):
@@ -225,62 +232,65 @@ class AnonDebugSpec(_AnonSpec):
     def L(self) -> Any:
         return debugL
 
-    def nested(self):
+    def nested(self) -> None:
         self._nested()
 
-    def complex(self):
+    def complex(self) -> None:
         self._complex()
 
-    def chain_complex(self):
+    def chain_complex(self) -> None:
         self._chain_complex()
 
-    def complex_placeholders(self):
+    def complex_placeholders(self) -> None:
         self._complex_placeholders()
 
-    def lambda_arg(self):
+    def lambda_arg(self) -> None:
         self._lambda_arg()
 
-    def attr_lambda(self):
+    def attr_lambda(self) -> None:
         self._attr_lambda()
 
-    def attr_lambda_2(self):
+    def attr_lambda_2(self) -> None:
         self._attr_lambda_2()
 
-    def call_root(self):
+    def call_root(self) -> None:
         self._call_root()
 
-    def getitem(self):
+    def getitem(self) -> None:
         self._getitem()
 
-    def instantiate_type(self):
+    def instantiate_type(self) -> None:
         self._instantiate_type()
 
-    def method_lambda_with_placeholders(self):
+    def method_lambda_with_placeholders(self) -> None:
         self._method_lambda_with_placeholders()
 
-    def chain_method_lambda(self):
+    def chain_method_lambda(self) -> None:
         self._chain_method_lambda()
 
-    def lambda_arg_method_ref(self):
+    def lambda_arg_method_ref(self) -> None:
         self._lambda_arg_method_ref()
 
-    def bad_param_count(self):
+    def bad_param_count(self) -> None:
         self._bad_param_count()
 
-    def shift(self):
+    def shift(self) -> None:
         self._shift()
 
-    def nest_method_lambda_shift(self):
+    def nest_method_lambda_shift(self) -> None:
         self._nest_method_lambda_shift()
 
-    def lazy_method(self):
+    def lazy_method(self) -> None:
         self._lazy_method()
 
-    def lazy_method_nested(self):
+    def lazy_method_nested(self) -> None:
         self._lazy_method_nested()
 
-    def nested_operator(self):
+    def nested_operator(self) -> None:
         self._nested_operator()
+
+    def complex_kw_args(self) -> None:
+        self._complex_kw_args()
 
 
 class AnonProdSpec(_AnonSpec):
@@ -297,56 +307,59 @@ class AnonProdSpec(_AnonSpec):
     def L(self) -> Any:
         return prodL
 
-    def nested(self):
+    def nested(self) -> None:
         self._nested()
 
-    def complex(self):
+    def complex(self) -> None:
         self._complex()
 
-    def chain_complex(self):
+    def chain_complex(self) -> None:
         self._chain_complex()
 
-    def complex_placeholders(self):
+    def complex_placeholders(self) -> None:
         self._complex_placeholders()
 
-    def lambda_arg(self):
+    def lambda_arg(self) -> None:
         self._lambda_arg()
 
-    def attr_lambda(self):
+    def attr_lambda(self) -> None:
         self._attr_lambda()
 
-    def attr_lambda_2(self):
+    def attr_lambda_2(self) -> None:
         self._attr_lambda_2()
 
-    def call_root(self):
+    def call_root(self) -> None:
         self._call_root()
 
-    def getitem(self):
+    def getitem(self) -> None:
         self._getitem()
 
-    def instantiate_type(self):
+    def instantiate_type(self) -> None:
         self._instantiate_type()
 
-    def chain_method_lambda(self):
+    def chain_method_lambda(self) -> None:
         self._chain_method_lambda()
 
-    def lambda_arg_method_ref(self):
+    def lambda_arg_method_ref(self) -> None:
         self._lambda_arg_method_ref()
 
-    def shift(self):
+    def shift(self) -> None:
         self._shift()
 
-    def nest_method_lambda_shift(self):
+    def nest_method_lambda_shift(self) -> None:
         self._nest_method_lambda_shift()
 
-    def lazy_method(self):
+    def lazy_method(self) -> None:
         self._lazy_method()
 
-    def lazy_method_nested(self):
+    def lazy_method_nested(self) -> None:
         self._lazy_method_nested()
 
-    def nested_operator(self):
+    def nested_operator(self) -> None:
         self._nested_operator()
+
+    def complex_kw_args(self) -> None:
+        self._complex_kw_args()
 
 
 class _B:

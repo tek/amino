@@ -1,10 +1,11 @@
-from typing import Callable, Tuple
+from typing import Callable, Tuple, Any
+from types import FunctionType
 
 from amino.anon.prod.attr import _
 from amino.anon.prod.method import Anon, MethodRef, __, MethodChain, AnonChain
 
 
-def make_complex(args: list) -> Tuple[tuple, tuple, int, int]:
+def make_complex(args: list) -> Tuple[list, list, int, Any, int]:
     i_strict, i_lambda, i_param = 0, 0, 0
     ordered = ''
     stricts = ''
@@ -32,7 +33,7 @@ def make_complex(args: list) -> Tuple[tuple, tuple, int, int]:
             ordered += arg
             stricts += arg
             rest.append(a)
-    rep = f'lambda f: lambda {lambdas}: lambda {params}: lambda {stricts}: f({ordered})'
+    rep = f'lambda f: lambda {lambdas}: lambda {params}: lambda {stricts}**kw: f({ordered}**kw)'
     return lambda_args, rest, rep, eval(rep), i_param
 
 
@@ -42,13 +43,17 @@ class ComplexLambda:
         self.__func = func
         self.__args = a
         self.__kwargs = kw
-        self.__qualname__ = self.__func.__name__
-        self.__name__ = self.__func.__name__
+        self.__name__ = (
+            self.__func.__name__
+            if isinstance(self.__func, FunctionType) else
+            self.__func.__class__.__name__
+        )
+        self.__qualname__ = self.__name__
         self.__annotations__ = {}
         self.__lambda_args, self.__rest, self.__repr, self.__lambda, self.__param_count = make_complex(self.__args)
 
     def __call__(self, *a, **kw):
-        return self.__lambda(self.__func)(*self.__lambda_args)(*a)(*self.__rest)
+        return self.__lambda(self.__func)(*self.__lambda_args)(*a)(*self.__rest, **kw)
 
     def __str__(self) -> str:
         return self.__repr
