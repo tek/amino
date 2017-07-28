@@ -1,6 +1,6 @@
 from typing import Any
 
-from amino.options import development
+from amino import options
 from amino.util.mod import unsafe_import_name
 
 _ = None
@@ -24,7 +24,7 @@ def set_debug() -> None:
 def set_prod() -> None:
     set('amino.anon.prod')
 
-if development:
+if options.anon_debug:
     set_debug()
 else:
     set_prod()
