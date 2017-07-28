@@ -56,9 +56,6 @@ class Boolean(object):
     def c(self, t, f):
         return call_by_name(t) if self.value else call_by_name(f)
 
-    def __nonzero__(self):
-        return self.value
-
     def __bool__(self):
         return self.value
 

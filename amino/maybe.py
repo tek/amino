@@ -113,9 +113,6 @@ class Maybe(Generic[A], Implicits, implicits=True):
 
     empty = is_empty
 
-    def __nonzero__(self):
-        return self.is_just
-
     @property
     def to_list(self):
         from amino.list import List

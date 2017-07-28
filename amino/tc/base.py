@@ -207,8 +207,7 @@ class Implicits(metaclass=ImplicitsMeta):
             return getattr(self, name)
 
     def __getattr__(self, name: str) -> Callable:
-        imp = (self._set_implicit_attr(name) if Implicits.permanent else
-               self._bound_implicit_attr(name))
+        imp = self._set_implicit_attr(name) if Implicits.permanent else self._bound_implicit_attr(name)
         if imp is None:
             err = '\'{}\' object has no attribute \'{}\''.format(self.__class__.__name__, name)
             raise AttributeError(err)
