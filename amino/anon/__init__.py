@@ -3,9 +3,9 @@ from typing import Any
 from amino.options import development
 from amino.util.mod import unsafe_import_name
 
-_: Any = None
-__: Any = None
-L: Any = None
+_ = None
+__ = None
+L = None
 
 
 def set(mod: str) -> None:

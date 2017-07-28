@@ -60,6 +60,23 @@ class Anon:
         return eval(repr(self))
 
 
+class AnonChain:
+
+    def __init__(self, pre, post, pre_count) -> None:
+        self.__pre = pre
+        self.__post = post
+        self.__pre_count = pre_count
+        self.__name__ = self.__pre.__name__
+
+    def __call__(self, *a, **kw):
+        pre_args, post_args = a[:self.__pre_count], a[self.__pre_count:]
+        pre_result = self.__pre(*pre_args)
+        return self.__post(pre_result, *post_args)
+
+    def __str__(self):
+        return '({} >> {})'.format(self.__pre, self.__post)
+
+
 class ChainedAnonMethodCall(Anon, Opers):
 
     def __init__(self, pre: 'AnonMethodCall', post: str, args: tuple, kw: dict) -> None:
@@ -79,6 +96,9 @@ class ChainedAnonMethodCall(Anon, Opers):
 
     def __rop__(self, op, s, a):
         return ChainedAnonMethodCall(self, f'(lambda b: b {s} a)', (a,), {})
+
+    def __getattr__(self, name: str) -> 'MethodChain':
+        return MethodChain(self, f'a.{name}')
 
 
 class MethodChain:

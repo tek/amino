@@ -1,7 +1,7 @@
 from typing import Callable, Tuple
 
 from amino.anon.prod.attr import _
-from amino.anon.prod.method import Anon, MethodRef, __, MethodChain
+from amino.anon.prod.method import Anon, MethodRef, __, MethodChain, AnonChain
 
 
 def make_complex(args: list) -> Tuple[tuple, tuple, int, int]:
@@ -34,23 +34,6 @@ def make_complex(args: list) -> Tuple[tuple, tuple, int, int]:
             rest.append(a)
     rep = f'lambda f: lambda {lambdas}: lambda {params}: lambda {stricts}: f({ordered})'
     return lambda_args, rest, rep, eval(rep), i_param
-
-
-class AnonChain:
-
-    def __init__(self, pre, post, pre_count) -> None:
-        self.__pre = pre
-        self.__post = post
-        self.__pre_count = pre_count
-        self.__name__ = self.__pre.__name__
-
-    def __call__(self, *a, **kw):
-        pre_args, post_args = a[:self.__pre_count], a[self.__pre_count:]
-        pre_result = self.__pre(*pre_args)
-        return self.__post(pre_result, *post_args)
-
-    def __str__(self):
-        return '({} >> {})'.format(self.__pre, self.__post)
 
 
 class ComplexLambda:

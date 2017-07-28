@@ -1,7 +1,7 @@
 import abc
 from typing import Any
 
-from amino import __, Just, List, I, Try
+from amino import __, Just, List, I, Try, Maybe
 from amino.anon.debug import AnonError
 from amino.logging import amino_root_logger
 from amino.list import Lists
@@ -72,7 +72,7 @@ class _AnonSpec(Spec, abc.ABC):
     def L(self) -> Any:
         ...
 
-    def _nested(self):
+    def _nested(self) -> None:
         z = 5
         a = 3
         b = 4
@@ -85,6 +85,12 @@ class _AnonSpec(Spec, abc.ABC):
             return a + b
         l = self.L(f)(3, 4)
         l().should.equal(7)
+
+    def _chain_complex(self) -> None:
+        def f(i: int) -> Maybe[int]:
+            return Just(i)
+        l = self.L(f)(self._).map(lambda a: a + 1).map(lambda a: a + 2)
+        l(6).should.equal(Just(9))
 
     def _complex_placeholders(self):
         v1 = 13
@@ -225,6 +231,9 @@ class AnonDebugSpec(_AnonSpec):
     def complex(self):
         self._complex()
 
+    def chain_complex(self):
+        self._chain_complex()
+
     def complex_placeholders(self):
         self._complex_placeholders()
 
@@ -293,6 +302,9 @@ class AnonProdSpec(_AnonSpec):
 
     def complex(self):
         self._complex()
+
+    def chain_complex(self):
+        self._chain_complex()
 
     def complex_placeholders(self):
         self._complex_placeholders()
