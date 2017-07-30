@@ -26,7 +26,7 @@ class SpecMeta(spec.InnerClassParser, abc.ABCMeta):
     pass
 
 
-class Spec(SureSpec, SpecBase, spec.Spec, abc.ABC, metaclass=SpecMeta):
+class Spec(SureSpec, SpecBase, spec.Spec, metaclass=SpecMeta):
 
     def setup(self) -> None:
         SureSpec.setup(self)
@@ -34,8 +34,7 @@ class Spec(SureSpec, SpecBase, spec.Spec, abc.ABC, metaclass=SpecMeta):
 
     def _wait_for(self, pred: Callable[[], bool], timeout: float=default_timeout, intval: float=0.1) -> None:
         start = datetime.now()
-        while (not pred() and
-               (datetime.now() - start).total_seconds() < timeout):
+        while (not pred() and (datetime.now() - start).total_seconds() < timeout):
             time.sleep(intval)
         pred().should.be.ok
 
@@ -43,4 +42,4 @@ class Spec(SureSpec, SpecBase, spec.Spec, abc.ABC, metaclass=SpecMeta):
 class IntegrationSpec(IntegrationSpecBase, Spec):
     pass
 
-__all__ = ('Spec',)
+__all__ = ('Spec', 'IntegrationSpec')

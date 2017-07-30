@@ -18,7 +18,7 @@ default_timeout = 20 if 'TRAVIS' in os.environ else 3
 
 class SpecBase(Logging):
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._warnings = True
 
     def setup(self) -> None:
@@ -41,7 +41,7 @@ class IntegrationSpecBase(SpecBase):
     def setup(self) -> None:
         os.environ['AMINO_INTEGRATION'] = '1'
         amino.integration_test = True
-        super().setup()
+        SpecBase.setup(self)
 
 
 def profiled(sort='time'):
