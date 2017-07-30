@@ -275,6 +275,18 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
         ws = ' ' * count
         return self.map(lambda a: f'{ws}{a}')
 
+    @property
+    def rstrip(self) -> 'List[str]':
+        return self / (lambda a: a.rstrip())
+
+    @property
+    def strip_newlines(self) -> 'List[str]':
+        return self / (lambda a: a.replace('\n', ''))
+
+    @property
+    def rstrip_newlines(self) -> 'List[str]':
+        return self / (lambda a: a.rstrip('\n'))
+
 
 class Lists:
     wrap = List.wrap
