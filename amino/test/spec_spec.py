@@ -1,5 +1,6 @@
 import abc
 import time
+from typing import Union, Any, Callable
 from datetime import datetime
 
 import spec
@@ -8,7 +9,7 @@ from amino.test.spec import SpecBase, IntegrationSpecBase, default_timeout
 from amino.test.sure import SureSpec
 
 
-def later(ass, *a, timeout=None, intval=0.1, **kw):
+def later(ass: Callable[..., bool], *a: Any, timeout: Union[float, None]=None, intval: float=0.1, **kw: Any) -> bool:
     timeout = default_timeout if timeout is None else timeout
     start = datetime.now()
     ok = False
@@ -31,7 +32,7 @@ class Spec(SureSpec, SpecBase, spec.Spec, abc.ABC, metaclass=SpecMeta):
         SureSpec.setup(self)
         SpecBase.setup(self)
 
-    def _wait_for(self, pred, timeout=default_timeout, intval=0.1):
+    def _wait_for(self, pred: Callable[[], bool], timeout: float=default_timeout, intval: float=0.1) -> None:
         start = datetime.now()
         while (not pred() and
                (datetime.now() - start).total_seconds() < timeout):
