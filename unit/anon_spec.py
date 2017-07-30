@@ -141,6 +141,11 @@ class _AnonSpec(Spec, abc.ABC):
         l = 3
         i(Just(List(Lists.range(3)))).should.equal(l)
 
+    def _getitem_str(self) -> None:
+        f = self.__['name']
+        d = dict(name=5)
+        f(d).should.equal(5)
+
     def _instantiate_type(self) -> None:
         a, b, c = 1, 2, 3
         class T:
@@ -259,6 +264,9 @@ class AnonDebugSpec(_AnonSpec):
     def getitem(self) -> None:
         self._getitem()
 
+    def getitem_str(self) -> None:
+        self._getitem_str()
+
     def instantiate_type(self) -> None:
         self._instantiate_type()
 
@@ -333,6 +341,9 @@ class AnonProdSpec(_AnonSpec):
 
     def getitem(self) -> None:
         self._getitem()
+
+    def getitem_str(self) -> None:
+        self._getitem_str()
 
     def instantiate_type(self) -> None:
         self._instantiate_type()
