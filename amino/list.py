@@ -83,12 +83,6 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
         init = self.lift(index) / List
         return els.fold_left(init)(folder)
 
-    def smap(self, f: Callable[..., B]) -> 'List[B]':
-        return List.wrap(list(itertools.starmap(f, self)))
-
-    def flat_smap(self, f: Callable[..., 'Iterable[B]']) -> 'List[B]':
-        return List.wrap(flatten(list(itertools.starmap(f, self))))
-
     def foreach(self, f: Callable[[A], B]) -> None:
         for el in self:
             f(el)

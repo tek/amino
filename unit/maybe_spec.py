@@ -73,7 +73,6 @@ class MaybeSpec(Spec):
         b = 13
         ja = Just(a)
         jb = Just(b)
-        ja.product(jb).smap(operator.add).should.contain(a + b)
         ja.ap2(jb, operator.add).should.contain(a + b)
 
     def optional(self) -> None:

@@ -25,10 +25,6 @@ class FlatMap(Apply):
     def flat_map(self, fa: F, f: Callable[[A], F]) -> F:
         ...
 
-    def flat_smap(self, fa: F, f: Callable[..., F]) -> F:
-        g = lambda v: f(*v)
-        return self.flat_map(fa, g)
-
     def __floordiv__(self, fa, f):
         return self.flat_map(fa, f)
 

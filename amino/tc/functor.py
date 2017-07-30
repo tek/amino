@@ -21,14 +21,6 @@ class Functor(Generic[F], TypeClass):
     def __truediv__(self, fa, f):
         return self.map(fa, f)
 
-    def smap(self, fa: F, f: Callable[..., B]) -> F:
-        splat = lambda v: f(*v)
-        return self.map(fa, splat)
-
-    def ssmap(self, fa: F, f: Callable[..., B]) -> F:
-        splat = lambda v: f(**v)
-        return self.map(fa, splat)
-
     def __getattr__(self, name: str) -> Any:
         match = self._map_re.match(name)
         if match is None:
