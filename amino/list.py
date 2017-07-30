@@ -61,7 +61,7 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
         return _rand_str(chars, num)
 
     @staticmethod
-    def gen(num: int, f: Callable[[], A]) -> 'List[A]':
+    def gen(num: int, f: Callable[[], 'List[A]']) -> 'List[A]':
         return List.range(num) // (lambda a: f())
 
     @staticmethod
@@ -205,6 +205,9 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
 
     def cons(self, item: A) -> 'List[A]':
         return List.wrap(cons(item, self))
+
+    def cons_m(self, item: maybe.Maybe[A]) -> 'List[A]':
+        return item / self.cons | self
 
     def cat(self, item: A) -> 'List[A]':
         return self + List(item)
