@@ -18,8 +18,8 @@ class BiRoseTreeSpec(Spec):
 
     def map(self) -> None:
         t1 = simple_tree.map(_ + 2)
-        t1[0].flat_map(_[1]).map(_.data).should.contain(6)
-        t1[0].flat_map(_[1]).map(_.parent.parent).should.contain(t1)
+        t1[0].flat_map(__[1]).map(_.data).should.contain(6)
+        t1[0].flat_map(__[1]).map(_.parent.parent).should.contain(t1)
 
     def filter(self) -> None:
         t1 = simple_tree.filter(_ <= 3)
@@ -29,7 +29,7 @@ class BiRoseTreeSpec(Spec):
         def trans(n: Node[str, Any], parent) -> int:
             return (len(n.data) if isinstance(n, LeafNode) else 0)
         t1 = from_tree_default(mtree, trans)
-        t1[0].flat_map(_.parent[0]).map(_.sub.drain.length).should.contain(2)
-        t1[0].flat_map(_[1]).flat_map(_[1]).map(_.data).should.contain(4)
+        t1[0].flat_map(lambda a: a.parent[0]).map(_.sub.drain.length).should.contain(2)
+        t1[0].flat_map(__[1]).flat_map(__[1]).map(_.data).should.contain(4)
 
 __all__ = ('BiRoseTreeSpec',)
