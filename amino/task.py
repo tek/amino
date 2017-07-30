@@ -6,7 +6,7 @@ from typing import Callable, TypeVar, Generic, Any
 
 from fn.recur import tco
 
-from amino import Either, Right, Left, Maybe, List, Empty, __, Just, env, _
+from amino import Either, Right, Left, Maybe, List, Empty, __, Just, env, _, Lists
 from amino.tc.base import Implicits, ImplicitsMeta
 from amino.anon import L
 from amino.logging import log
@@ -14,6 +14,10 @@ from amino.util.fun import lambda_str, format_funcall
 
 A = TypeVar('A')
 B = TypeVar('B')
+
+
+def sanitize_tb(tb: List[str]) -> List[str]:
+    return tb.flat_map(lambda a: Lists.wrap(a.splitlines()))
 
 
 class TaskException(Exception):
@@ -35,7 +39,7 @@ class TaskException(Exception):
         return stack.find(pred)
 
     @property
-    def format_stack(self):
+    def format_stack(self) -> List[str]:
         rev = self.stack.reversed
         def remove_recursion(i):
             pre = rev[:i + 1]
@@ -44,18 +48,25 @@ class TaskException(Exception):
         def remove_internal():
             start = rev.index_where(_.function == 'unsafe_perform_sync')
             return start / remove_recursion | rev
-        frames = (self.location.to_list if Task.stack_only_location else
-                  remove_internal())
+        frames = (self.location.to_list if Task.stack_only_location else remove_internal())
         data = frames / (lambda a: a[1:-2] + tuple(a[-2]))
-        return ''.join(traceback.format_list(list(data)))
+        return sanitize_tb(Lists.wrap(traceback.format_list(list(data))))
+
+    @property
+    def lines(self) -> List[str]:
+        from traceback import format_tb
+        cause_tb = sanitize_tb(Lists.wrap(format_tb(self.cause.__traceback__)))
+        suf1 = '' if self.stack.empty else ' at:'
+        tb1 = (List() if self.stack.empty else self.format_stack)
+        return tb1.cons(f'Task exception{suf1}').cat('Cause:') + cause_tb + List(
+            f'{self.cause.__class__.__name__}: {self.cause}',
+            '',
+            'Callback:',
+            f'  {self.f}'
+        )
 
     def __str__(self):
-        from traceback import format_tb
-        msg = 'Task exception{}\nCause:\n{}{}: {}\n\nCallback:\n{}'
-        ex = ''.join(format_tb(self.cause.__traceback__))
-        loc = ('' if self.stack.empty else ' at:\n{}'.format(self.format_stack))
-        return msg.format(loc, ex, self.cause.__class__.__name__, self.cause, self.f)
-
+        return self.lines.join_lines
 
 class TaskMeta(ImplicitsMeta):
 
