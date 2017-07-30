@@ -38,6 +38,9 @@ class ListMonad(Monad):
     def pure(self, b: B) -> List[B]:
         return List(b)
 
+    def map(self, fa: List[A], f: Callable[[A], B]) -> List[B]:
+        return List.wrap(map(f, fa))
+
     def flat_map(self, fa: List[A], f: Callable[[A], List[B]]) -> List[B]:
         return List.wrap(flatten(map(f, fa)))
 
