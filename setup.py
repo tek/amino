@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version_parts = (10, 1, 2)
+version_parts = (10, 2, 0)
 version = '.'.join(map(str, version_parts))
 
 gh_lenses = 'git+https://github.com/ingolemo/python-lenses.git#egg=lenses'
