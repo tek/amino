@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Any
 
 from amino import maybe
 from amino.either import Right, Left
@@ -74,14 +74,20 @@ class Boolean(object):
             False
         )
 
-    def __and__(self, other: 'Boolean') -> 'Boolean':
+    def __and__(self, other: Any) -> 'Boolean':
         return Boolean(self and other)
 
-    def __or__(self, other: 'Boolean') -> 'Boolean':
+    def __or__(self, other: Any) -> 'Boolean':
         return Boolean(self or other)
 
     def __invert__(self) -> 'Boolean':
         return Boolean(not self.value)
+
+    def __xor__(self, other: Any) -> 'Boolean':
+        return Boolean(bool(self.value ^ bool(other)))
+
+    def __rxor__(self, other: Any) -> 'Boolean':
+        return Boolean(bool(self.value ^ bool(other)))
 
     @property
     def no(self):
