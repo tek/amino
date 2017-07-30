@@ -1,5 +1,5 @@
 import abc
-from typing import Any
+from typing import Any, Callable
 
 from amino import __, Just, List, I, Try, Maybe
 from amino.anon.debug import AnonError
@@ -153,8 +153,8 @@ class _AnonSpec(Spec, abc.ABC):
                 self.a = a
             def __call__(self, a, b):
                 return self.a, a, b
-        l = Just(T) / __(a)
-        (l / __(b, c)).should.contain((a, b, c))
+        l = Just(T) / self.__(a)
+        (l / self.__(b, c)).should.contain((a, b, c))
 
     def _chain_method_lambda(self) -> None:
         v1, v2, v3, v4, v5, v6 = 2, 3, 5, 7, 11, 13
@@ -395,33 +395,42 @@ nums = Lists.wrap(_A(i) for i in range(10000))
 
 class _BenchSpec(Spec):
 
-    def _for_lambda_bench(self) -> None:
+    def _builtin_lambda_bench(self) -> None:
         amino_root_logger.info('')
+        l: Callable = lambda a: a.a.get()
         @timed
         def for_lambda() -> None:
-            [a.a.get() for a in nums]
+            [l(a) for a in nums]
+        @timed
+        def map_lambda() -> None:
+            nums.map(l)
+        @timed
+        def builtin_map_lambda() -> None:
+            list(map(lambda a: a.a.get(), nums))
         for_lambda()
+        builtin_map_lambda()
+        map_lambda()
 
     def _run_method_lambda_bench(self, __: Any) -> None:
         @timed
-        def map_method_lambda() -> None:
-            nums.map(__.a.get())
-        @timed
-        def map_lambda() -> None:
-            nums.map(lambda a: a.a.get())
-        @timed
         def for_method_lambda() -> None:
             [__.a.get()(a) for a in nums]
-        map_method_lambda()
-        map_lambda()
+        @timed
+        def builtin_map_method_lambda() -> None:
+            list(map(__.a.get(), nums))
+        @timed
+        def map_method_lambda() -> None:
+            nums.map(__.a.get())
         for_method_lambda()
+        builtin_map_method_lambda()
+        map_method_lambda()
 
     def method_lambda(self) -> None:
         f = prod__.a.add(5)
         f(_A(1)).should.equal(6)
 
     def _method_lambda_bench(self) -> None:
-        self._for_lambda_bench()
+        self._builtin_lambda_bench()
         amino_root_logger.info('')
         amino_root_logger.info('debug:')
         self._run_method_lambda_bench(debug__)

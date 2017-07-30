@@ -11,13 +11,13 @@ class AttrLambda(Opers, Anon):
     def __pre__(self) -> str:
         return self.__pre
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> 'AttrLambda':
         return AttrLambda(f'{self.__pre}.{name}')
 
-    def __getitem__(self, key):
-        return AttrLambda(f'{self.__pre}[{key}]')
+    def __getitem__(self, key: Any) -> AnonMethodCall:
+        return AnonMethodCall(f'{self.__pre}.__getitem__', (key,), {})
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'lambda a: {self.__pre}'
 
     def __call__(self, a: Any) -> Any:
@@ -26,10 +26,10 @@ class AttrLambda(Opers, Anon):
     def __substitute_object__(self, obj: Any) -> Callable:
         return self.__call__(obj)
 
-    def __lop__(self, op, s, a):
+    def __lop__(self, op: Callable, s: str, a: Any) -> AnonMethodCall:
         return AnonMethodCall(f'(lambda b: {self.__pre__()} {s} b)', (a,), {})
 
-    def __rop__(self, op, s, a):
+    def __rop__(self, op: Callable[[Any, Any], Any], s: str, a: Any) -> AnonMethodCall:
         return AnonMethodCall(f'(lambda b: b {s} {self.__pre__()})', (a,), {})
 
 _ = AttrLambda('a')
