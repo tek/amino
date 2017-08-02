@@ -76,9 +76,8 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
         )
 
     def lift_all(self, index: int, *indexes: int) -> 'List[A]':
-        from amino.anon import _
         def folder(z: maybe.Maybe[List[A]], n: List[maybe.Maybe[A]]) -> maybe.Maybe[List[A]]:
-            return n.ap(z / _.cat)
+            return n.ap(z / (lambda a: a.cat))
         els = List.wrap(indexes) / self.lift
         init = self.lift(index) / List
         return els.fold_left(init)(folder)
@@ -155,8 +154,7 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
     __add__ = add
 
     def without(self, el: A) -> 'List[A]':
-        from amino.anon import _
-        return self.filter(_ != el)
+        return self.filter(lambda a: a != el)
 
     __sub__ = without
 
@@ -171,8 +169,7 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
         return self.split(lambda a: isinstance(a, tpe))
 
     def index_of(self, target: Any) -> maybe.Maybe[int]:
-        from amino.anon import _
-        return self.index_where(_ == target)
+        return self.index_where(lambda a: a == target)
 
     @property
     def reversed(self) -> 'List[A]':
