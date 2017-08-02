@@ -74,6 +74,9 @@ class Either(Generic[A, B], Implicits, implicits=True):
     def cata(self, fl: Callable[[A], C], fr: Callable[[B], C]) -> C:
         return fl(self.__left_value) if self.is_left else fr(self.__right_value)
 
+    def bimap(self, fl: Callable[[A], 'Either[C, D]'], fr: Callable[[B], 'Either[C, D]']) -> 'Either[C, D]':
+        return Left(fl(self.__left_value)) if self.is_left else Right(fr(self.__right_value))
+
     def recover_with(self, f: Callable[[A], 'Either[C, B]']) -> 'Either[C, B]':
         return self.cata(f, Right)
 
