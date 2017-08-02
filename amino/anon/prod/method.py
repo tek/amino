@@ -175,7 +175,7 @@ class MethodLambda:
     def __getitem__(self, key: Any) -> MethodRef:
         return MethodRef('a.__getitem__')(key)
 
-__ = MethodLambda()
+MethodLambdaInst = MethodLambda()
 
 
-__all__ = ('__', 'Opers')
+__all__ = ('MethodLambdaInst', 'Opers')

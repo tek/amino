@@ -7,8 +7,8 @@ from amino.logging import amino_root_logger
 from amino.list import Lists
 from amino.test.spec_spec import Spec
 from amino.test.spec import timed
-from amino.anon.prod import __ as prod__, _ as prod_, L as prodL
-from amino.anon.debug import __ as debug__, _ as debug_, L as debugL
+from amino.anon.prod import MethodLambdaInst as prod__, AttrLambdaInst as prod_, ComplexLambdaInit as prodL
+from amino.anon.debug import MethodLambdaInst as debug__, AttrLambdaInst as debug_, ComplexLambdaInit as debugL
 
 
 class _Inner:

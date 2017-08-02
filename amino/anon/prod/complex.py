@@ -1,8 +1,8 @@
 from typing import Callable, Tuple, Any
 from types import FunctionType
 
-from amino.anon.prod.attr import _
-from amino.anon.prod.method import Anon, MethodRef, __, MethodChain, AnonChain
+from amino.anon.prod.attr import AttrLambdaInst
+from amino.anon.prod.method import Anon, MethodRef, MethodLambdaInst, MethodChain, AnonChain
 
 
 def make_complex(args: list) -> Tuple[list, list, int, Any, int]:
@@ -14,7 +14,7 @@ def make_complex(args: list) -> Tuple[list, list, int, Any, int]:
     rest = []
     lambda_args = []
     for a in args:
-        if a is _:
+        if a is AttrLambdaInst:
             i_param += 1
             arg = f'y{i_param},'
             ordered += arg
@@ -79,7 +79,7 @@ class LazyMethod(Anon):
         return LazyMethod(self.__obj, getattr(self.__attr, name))
 
 
-class L:
+class ComplexLambdaInit:
 
     def __init__(self, func) -> None:
         self.__func = func
@@ -88,6 +88,6 @@ class L:
         return ComplexLambda(self.__func, a, kw)
 
     def __getattr__(self, name):
-        return L(LazyMethod(self.__func, getattr(__, name)))
+        return ComplexLambdaInit(LazyMethod(self.__func, getattr(MethodLambdaInst, name)))
 
-__all__ = ('L',)
+__all__ = ('ComplexLambdaInit',)

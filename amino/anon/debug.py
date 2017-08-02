@@ -98,14 +98,14 @@ class HasArgs:
                 return (arg.__substitute_object__(value)
                         if isinstance(arg, AnonAttr) else value)
             def try_sub(new, rest):
-                is_lambda = Boolean(arg is _ or isinstance(arg, AnonAttr))
+                is_lambda = Boolean(arg is AttrLambdaInst or isinstance(arg, AnonAttr))
                 return is_lambda.m(lambda: (transform(new), rest))
             r, a = z
             new, rest = a.detach_head.flat_map2(try_sub) | (arg, a)
             return r.cat(new), rest
         subbed, rest = params.fold_left((List(), args))(go)
         # allow callables to remain in args, but not placeholders
-        if rest.empty and subbed.exists(lambda a: a is _):
+        if rest.empty and subbed.exists(lambda a: a is AttrLambdaInst):
             raise AnonError('too few arguments for {}: {}'.format(self, args))
         return subbed, rest
 
@@ -200,7 +200,7 @@ class MethodLambda:
         return AnonFunc(IdAnonFunc(), '__getitem__', [key], {})
 
 
-__ = MethodLambda()
+MethodLambdaInst = MethodLambda()
 
 
 class AnonFunctionCallable(AnonCallable):
@@ -292,7 +292,7 @@ class LazyMethod(Anon):
         return LazyMethod(self.__obj, getattr(self.__attr, name))
 
 
-class L:
+class ComplexLambdaInit:
 
     def __init__(self, func) -> None:
         self.__func = func
@@ -301,7 +301,7 @@ class L:
         return ComplexLambda(self.__func, *a, **kw)
 
     def __getattr__(self, name):
-        return L(LazyMethod(self.__func, MethodRef(IdAnonFunc(), name)))
+        return ComplexLambdaInit(LazyMethod(self.__func, MethodRef(IdAnonFunc(), name)))
 
 
 def lambda_op(op, s):
@@ -377,7 +377,7 @@ class RootAttrLambda(Opers):
         return '_'
 
 
-_ = RootAttrLambda()
+AttrLambdaInst = RootAttrLambda()
 
 
 class AttrLambda(Opers, AnonGetter, AnonCallable):
@@ -424,4 +424,4 @@ class OperatorLambda(AttrLambda):
         )
         return '({!r} {} {!r})'.format(a, self._AnonGetter__name, b)
 
-__all__ = ('L', 'RootAttrLambda', 'MethodLambda', '_', '__')
+__all__ = ('ComplexLambdaInit', 'RootAttrLambda', 'MethodLambda', 'AttrLambdaInst', 'MethodLambdaInst')

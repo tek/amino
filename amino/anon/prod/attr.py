@@ -32,6 +32,6 @@ class AttrLambda(Opers, Anon):
     def __rop__(self, op: Callable[[Any, Any], Any], s: str, a: Any) -> AnonMethodCall:
         return AnonMethodCall(f'(lambda b: b {s} {self.__pre__()})', (a,), {})
 
-_ = AttrLambda('a')
+AttrLambdaInst = AttrLambda('a')
 
-__all__ = ('_',)
+__all__ = ('AttrLambdaInst',)

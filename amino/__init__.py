@@ -5,7 +5,7 @@ from amino.maybe import Maybe, Just, Empty, may, flat_may, Nothing
 from amino.either import Left, Right, Either
 from amino.list import List, Lists
 from amino.boolean import Boolean
-from amino.anon import __, L, _
+from amino.anon.boot import __, L, _
 from amino.lazy_list import LazyList
 from amino.map import Map
 from amino.future import Future
