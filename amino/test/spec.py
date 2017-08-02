@@ -29,7 +29,7 @@ class SpecBase(Logging):
         amino.development = True
         amino_stdout_logging()
 
-    def teardown(self, *a, **kw):
+    def teardown(self):
         warnings.simplefilter('ignore')
 
     def _wait(self, seconds):
@@ -39,9 +39,12 @@ class SpecBase(Logging):
 class IntegrationSpecBase(SpecBase):
 
     def setup(self) -> None:
+        SpecBase.setup(self)
         os.environ['AMINO_INTEGRATION'] = '1'
         amino.integration_test = True
-        SpecBase.setup(self)
+
+    def teardown(self):
+        SpecBase.teardown(self)
 
 
 def profiled(sort='time'):
