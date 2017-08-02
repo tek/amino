@@ -127,6 +127,14 @@ class Either(Generic[A, B], Implicits, implicits=True):
     def json(self) -> B:
         return self.to_maybe.json
 
+    def accum_error(self, b: 'Either[A, C]') -> 'Either[A, C]':
+        return self.accum_error_f(lambda: b)
+
+    def accum_error_f(self, f: Callable[[], 'Either[A, C]']) -> 'Either[A, C]':
+        def acc(v: A) -> None:
+            return Monoid.fatal(type(v)).combine(self.__left_value, v)
+        return f().lmap(acc) if self.is_left else self
+
 
 class Right(Either):
 
