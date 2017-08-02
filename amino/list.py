@@ -283,12 +283,32 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
 
 
 class Lists:
-    wrap = List.wrap
-    range = List.range
-    random_string = List.random_string
-    random_alpha = List.random_alpha
-    gen = List.gen
-    lines = List.lines
+
+    @staticmethod
+    def wrap(l: Iterable[B]) -> List[B]:
+        return List(*list(l))
+
+    @staticmethod
+    def range(*a: int) -> List[int]:
+        return List.wrap(range(*a))
+
+    @staticmethod
+    def random_string(num: int=10) -> str:
+        chars = string.ascii_letters + string.digits
+        return _rand_str(chars, num)
+
+    @staticmethod
+    def random_alpha(num: int=10) -> str:
+        chars = string.ascii_letters
+        return _rand_str(chars, num)
+
+    @staticmethod
+    def gen(num: int, f: Callable[[], 'List[A]']) -> List[A]:
+        return List.range(num) // (lambda a: f())
+
+    @staticmethod
+    def lines(data: str) -> List[str]:
+        return List.wrap(data.splitlines())
 
     @staticmethod
     def split(data: str, splitter: str, maxsplit: int=-1) -> List[str]:
