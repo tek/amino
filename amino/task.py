@@ -6,18 +6,14 @@ from typing import Callable, TypeVar, Generic, Any
 
 from fn.recur import tco
 
-from amino import Either, Right, Left, Maybe, List, Empty, __, Just, env, _, Lists
+from amino import Either, Right, Left, Maybe, List, Empty, __, Just, env, _, Lists, L
 from amino.tc.base import Implicits, ImplicitsMeta
-from amino.anon import L
 from amino.logging import log
 from amino.util.fun import lambda_str, format_funcall
+from amino.util.exception import format_exception, sanitize_tb
 
 A = TypeVar('A')
 B = TypeVar('B')
-
-
-def sanitize_tb(tb: List[str]) -> List[str]:
-    return tb.flat_map(lambda a: Lists.wrap(a.splitlines()))
 
 
 class TaskException(Exception):
@@ -54,12 +50,10 @@ class TaskException(Exception):
 
     @property
     def lines(self) -> List[str]:
-        from traceback import format_tb
-        cause_tb = sanitize_tb(Lists.wrap(format_tb(self.cause.__traceback__)))
+        cause = format_exception(self.cause)
         suf1 = '' if self.stack.empty else ' at:'
         tb1 = (List() if self.stack.empty else self.format_stack)
-        return tb1.cons(f'Task exception{suf1}').cat('Cause:') + cause_tb + List(
-            f'{self.cause.__class__.__name__}: {self.cause}',
+        return tb1.cons(f'Task exception{suf1}').cat('Cause:') + cause + List(
             '',
             'Callback:',
             f'  {self.f}'
@@ -67,6 +61,7 @@ class TaskException(Exception):
 
     def __str__(self):
         return self.lines.join_lines
+
 
 class TaskMeta(ImplicitsMeta):
 
