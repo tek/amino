@@ -1,10 +1,9 @@
 from typing import TypeVar, Callable, Tuple
 import itertools
 
-from amino import Maybe, LazyList, _, L
+from amino import Maybe, LazyList, _, __
 from amino.list import List
 from amino.func import curried
-from amino.anon import __
 from amino.tc.monad import Monad
 from amino.tc.base import ImplicitInstances, tc_prop
 from amino.lazy import lazy
