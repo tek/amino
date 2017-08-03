@@ -166,7 +166,7 @@ def format_logger_tree(tree, fmt_logger, level=0):
     return '\n'.join(indent(formatted.map2('{}\n{}'.format), level))
 
 
-def print_info(out: Callable[[str], None]):
+def print_log_info(out: Callable[[str], None]):
     lname = lambda l: logging.getLevelName(l.getEffectiveLevel())
     hlname = lambda h: logging.getLevelName(h.level)
     def handler(h):
@@ -176,5 +176,5 @@ def print_info(out: Callable[[str], None]):
         return '{}: {} {}'.format(l.name, lname(l), handlers)
     out(format_logger_tree(logger_tree('amino'), logger))
 
-__all__ = ('amino_root_logger', 'amino_stdout_logging', 'amino_file_logging',
-           'amino_root_file_logging')
+__all__ = ('amino_root_logger', 'amino_stdout_logging', 'amino_file_logging', 'amino_root_file_logging',
+           'print_log_info')
