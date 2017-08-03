@@ -10,11 +10,16 @@ from amino.lazy import lazy
 
 import amino
 import amino.maybe
+from amino.options import EnvOption
 
 VERBOSE = 15
-DDEBUG = 5
+TEST = 12
+DEBUG1 = DDEBUG = 7
+DEBUG2 = 4
 logging.addLevelName(VERBOSE, 'VERBOSE')
-logging.addLevelName(DDEBUG, 'DDEBUG')
+logging.addLevelName(TEST, 'TEST')
+logging.addLevelName(DEBUG1, 'DEBUG1')
+logging.addLevelName(DEBUG2, 'DEBUG2')
 
 
 def seq_to_str(data: Union[str, 'amino.List', Any]) -> str:
@@ -35,18 +40,28 @@ class LazyRecord(logging.LogRecord):
         return seq_to_str(data)
 
     def getMessage(self) -> str:
-        return self._cons_message if self.levelname == 'DDEBUG' else super().getMessage()
+        return self._cons_message if self.levelname in ('DEBUG1', 'DEBUG2') else super().getMessage()
 
 
 class Logger(logging.Logger):
+
+    def test(self, message, *args, **kws):
+        if self.isEnabledFor(TEST):
+            self._log(TEST, message, args, **kws)
 
     def verbose(self, message, *args, **kws):
         if self.isEnabledFor(VERBOSE):
             self._log(VERBOSE, message, args, **kws)
 
-    def ddebug(self, f: Callable[..., str], *args: Any) -> None:
-        if self.isEnabledFor(DDEBUG):
-            self._log(DDEBUG, f, args)  # type: ignore
+    def debug1(self, f: Callable[..., str], *args: Any) -> None:
+        if self.isEnabledFor(DEBUG1):
+            self._log(DEBUG1, f, args)  # type: ignore
+
+    def debug2(self, f: Callable[..., str], *args: Any) -> None:
+        if self.isEnabledFor(DEBUG2):
+            self._log(DEBUG2, f, args)  # type: ignore
+
+    ddebug = debug2
 
     def caught_exception(self, when: str, exc: Exception, *a: Any, **kw: Any) -> None:
         headline = 'caught exception while {}:'.format(when)
@@ -64,7 +79,8 @@ install_logger_class()
 
 log = logging.getLogger('amino')
 amino_root_logger = log
-log.setLevel(DDEBUG)
+log.setLevel(DEBUG2)
+log.propagate = False
 
 
 def amino_logger(name: str) -> logging.Logger:
@@ -72,17 +88,13 @@ def amino_logger(name: str) -> logging.Logger:
 
 _stdout_logging_initialized = False
 
-_level_env_var = 'AMINO_LOG_LEVEL'
-
-
-def env_log_level() -> 'amino.maybe.Maybe[int]':
-    return amino.env[_level_env_var]
+env_log_level = EnvOption('AMINO_LOG_LEVEL')
 
 
 def init_loglevel(handler: logging.Handler, level: int=None) -> None:
     (
         amino.Maybe.check(level)
-        .o(env_log_level)
+        .o(env_log_level.value)
         .o(amino.Boolean(amino.development).flat_m(VERBOSE)) %
         handler.setLevel
     )
@@ -102,8 +114,8 @@ default_logfile = Path.home() / '.python' / 'log'
 _file_fmt = ('{asctime} [{levelname} @ {name}:{funcName}:{lineno}] {message}')
 
 
-def amino_file_logging(logger: logging.Logger, level: int=logging.DEBUG,
-                       logfile: Path=default_logfile, fmt: str=None) -> None:
+def amino_file_logging(logger: logging.Logger, level: int=logging.DEBUG, logfile: Path=default_logfile,
+                       fmt: str=None) -> None:
     logfile.parent.mkdir(exist_ok=True)
     formatter = logging.Formatter(fmt or _file_fmt, style='{')
     handler = logging.FileHandler(str(logfile))
@@ -131,7 +143,7 @@ class Logging:
         v(a)
         return a
 
-    def _dbg(self, fmt, level=DDEBUG):
+    def _dbg(self, fmt, level=DEBUG2):
         def log(a):
             msg = fmt.format(a)
             self.log.log(level, msg)
@@ -142,8 +154,7 @@ class Logging:
 def sub_loggers(loggers, root):
     from amino import Map, _, L
     children = loggers.keyfilter(L(re.match)('{}\.[^.]+$'.format(root), _))
-    sub = (children.k / L(sub_loggers)(loggers, _))\
-        .fold_left(Map())(operator.pow)
+    sub = (children.k / L(sub_loggers)(loggers, _)).fold_left(Map())(operator.pow)
     return Map({loggers[root]: sub})
 
 
@@ -154,27 +165,31 @@ def logger_tree(root):
     return sub_loggers(all, 'amino')
 
 
-def indent(strings, level, width=1):
+def indent(strings: 'amino.List[str]', level: int, width: int=1) -> 'amino.List[str]':
     ws = ' ' * level * width
     return strings.map(str).map(ws.__add__)
 
 
-def format_logger_tree(tree, fmt_logger, level=0):
+def format_logger_tree(tree: 'amino.Map[Logger, Any]', fmt_logger: Callable[[Logger], str], level: int=0
+                       ) -> 'amino.List[str]':
     from amino import _, L
     sub_f = L(format_logger_tree)(_, fmt_logger, level=level + 1)
     formatted = tree.bimap(fmt_logger, sub_f)
-    return '\n'.join(indent(formatted.map2('{}\n{}'.format), level))
+    return indent(formatted.flat_map2(lambda a, b: b.cons(a)), level)
 
 
-def print_log_info(out: Callable[[str], None]):
+def print_log_info(out: Callable[[str], None]) -> None:
     lname = lambda l: logging.getLevelName(l.getEffectiveLevel())
     hlname = lambda h: logging.getLevelName(h.level)
-    def handler(h):
+    def handler(h: logging.Handler) -> str:
         return '{}({})'.format(h.__class__.__name__, hlname(h))
-    def logger(l):
+    def logger(l: logging.Logger) -> str:
         handlers = ','.join(list(map(handler, l.handlers)))
         return '{}: {} {}'.format(l.name, lname(l), handlers)
-    out(format_logger_tree(logger_tree('amino'), logger))
+    out(format_logger_tree(logger_tree('amino'), logger).join_lines)
+    out('-------')
+    out(str(env_log_level))
+    out(str(amino.development))
 
 __all__ = ('amino_root_logger', 'amino_stdout_logging', 'amino_file_logging', 'amino_root_file_logging',
            'print_log_info')
