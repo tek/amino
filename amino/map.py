@@ -105,6 +105,9 @@ class Map(Generic[A, B], Dict[A, B], Implicits, metaclass=ImplicitsMeta):
     def map2(self, f: Callable[[A, B], C]) -> List[C]:
         return List.wrap([f(a, b) for a, b in self.items()])
 
+    def flat_map2(self, f: Callable[[A, B], List[C]]) -> List[C]:
+        return self.to_list.flat_map2(f)
+
     @property
     def to_list(self):
         return List.wrap(self.items())
