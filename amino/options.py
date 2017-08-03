@@ -1,5 +1,7 @@
 import os
 
+import amino
+
 
 class EnvOption:
 
@@ -8,6 +10,14 @@ class EnvOption:
 
     def __bool__(self) -> bool:
         return self.name in os.environ
+
+    @property
+    def value(self) -> 'amino.Maybe[str]':
+        return amino.env[self.name]
+
+    def __str__(self) -> str:
+        value = self.value.map(lambda a: f'={a}') | ' is unset'
+        return f'{self.name}{value}'
 
 development = EnvOption('AMINO_DEVELOPMENT')
 integration_test = EnvOption('AMINO_INTEGRATION')
