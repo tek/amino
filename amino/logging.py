@@ -190,7 +190,7 @@ def print_log_info(out: Callable[[str], None]) -> None:
     out(format_logger_tree(logger_tree('amino'), logger).join_lines)
     out('-------')
     out(str(env_log_level))
-    out(str(amino.development))
+    out(str(amino.options.development))
 
 __all__ = ('amino_root_logger', 'amino_stdout_logging', 'amino_file_logging', 'amino_root_file_logging',
            'print_log_info')
