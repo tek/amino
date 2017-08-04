@@ -225,7 +225,7 @@ class Implicits(metaclass=ImplicitsMeta):
 
     @property
     def dbg(self) -> Any:
-        amino_root_logger.verbose(self)
+        amino_root_logger.test(self)
         return self
 
     @property
