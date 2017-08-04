@@ -74,8 +74,7 @@ class EitherFoldable(Foldable):
     def with_index(self, fa: Either[A, B]) -> Either[A, Tuple[int, B]]:
         return Right(0) & fa
 
-    def filter(self, fa: Either[A, B], f: Callable[[B], bool]
-               ) -> Either[Any, B]:
+    def filter(self, fa: Either[A, B], f: Callable[[B], bool]) -> Either[Any, B]:
         return fa // (lambda a: Right(a) if f(a) else Left('filtered'))
 
     @curried

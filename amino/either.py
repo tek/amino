@@ -165,6 +165,9 @@ class Either(Generic[A, B], Implicits, implicits=True):
             return Monoid.fatal(type(v)).combine(self.__left_value, v)
         return f().lmap(acc) if self.is_left else self
 
+    def filter_with(self, f: Callable[[B], bool], g: Callable[[B], C]) -> 'Either[C, B]':
+        return self // (lambda a: Right(a) if f(a) else Left(g(a)))
+
 
 class Right(Either):
 
