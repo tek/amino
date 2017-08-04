@@ -1,9 +1,13 @@
 from functools import wraps, partial, singledispatch
 from inspect import getfullargspec
 import typing
-from typing import Callable, Union, Any, Dict
+from typing import Callable, Union, Any, Dict, TypeVar, Tuple
 
 from amino.util.string import snake_case
+
+A = TypeVar('A')
+B = TypeVar('B')
+C = TypeVar('C')
 
 
 def curried(func):
@@ -92,8 +96,15 @@ def dispatch_with(rules: Dict[type, Callable], default: Callable=None):
         main.register(tpe)(fun)
     return main
 
+
 def is_not_none(a):
     return a is not None
 
-__all__ = ('curried', 'F', 'I', 'flip', 'call_by_name', 'Val', 'ReplaceVal',
-           'dispatch', 'dispatch_with', 'is_not_none')
+
+def tupled2(f: Callable[[A, B], C]) -> Callable[[Tuple[A, B]], C]:
+    def wrap(a: Tuple[A, B]) -> C:
+        return f(a[0], a[1])
+    return wrap
+
+__all__ = ('curried', 'I', 'flip', 'call_by_name', 'Val', 'ReplaceVal', 'dispatch', 'dispatch_with', 'is_not_none',
+           'tupled2')
