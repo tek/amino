@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Generic, Callable, Union
+from typing import TypeVar, Generic, Callable, Union, cast
 
 from amino.tc.base import TypeClass, tc_prop
 from amino import maybe  # NOQA
@@ -42,5 +42,9 @@ class Optional(Generic[F], TypeClass):
     @tc_prop
     def true(self, fa: F) -> Boolean:
         return self.to_maybe(fa).exists(bool)
+
+    @tc_prop
+    def _unsafe_value(self, fa: F) -> A:
+        return cast(A, self.to_maybe(fa)._get)
 
 __all__ = ('Optional',)
