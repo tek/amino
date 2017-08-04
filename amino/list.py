@@ -278,6 +278,9 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
     def rstrip_newlines(self) -> 'List[str]':
         return self / (lambda a: a.rstrip('\n'))
 
+    def collect(self, f: Callable[[A], maybe.Maybe[B]]) -> 'List[B]':
+        return self.flat_map(f)
+
 
 class Lists:
 

@@ -1,8 +1,9 @@
 import itertools
 
 from amino.test.spec_spec import Spec
-from amino import LazyList, List, _, Just, Maybe, Task, I
+from amino import LazyList, List, _, Just, Maybe, Task, I, Nothing
 from amino.lazy_list import LazyLists
+from amino.func import tupled2
 
 
 class LazyListSpec(Spec):
@@ -108,5 +109,12 @@ class LazyListSpec(Spec):
         l = LazyLists.cons(LazyList((1, 2, 3)), LazyList((4, 5, 6)), LazyList((1, 2, 3)))
         l.lift(1)
         l.flat_map(I).drain.should.equal(List(1, 2, 3, 4, 5, 6, 1, 2, 3))
+
+    def collect(self) -> None:
+        def f(a: int, n: str) -> Maybe[str]:
+            return Just(n) if a % 2 == 0 else Nothing
+        l: LazyList = LazyList((a, str(a)) for a in range(10))
+        l2 = l.collect(tupled2(f))
+        l2.drain.should.equal(List('0', '2', '4', '6', '8'))
 
 __all__ = ('LazyListSpec',)

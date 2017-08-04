@@ -149,6 +149,9 @@ class LazyList(Generic[A], Implicits, implicits=True):
     def cat(self, a: A) -> 'LazyList[A]':
         return self.copy(lambda xs: itertools.chain(xs, (a,)), I)
 
+    def collect(self, f: Callable[[A], Maybe[B]]) -> 'LazyList[B]':
+        return self.copy(lambda s: (a._unsafe_value for a in map(f, s) if a.present), lambda a: a.collect(f))
+
 
 def lazy_list(f: Callable) -> Callable:
     @wraps(f)
