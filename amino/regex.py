@@ -2,7 +2,7 @@ import re
 import typing
 from typing import Any, Union, Pattern
 
-from amino import L, _, Maybe, Map, List, Either
+from amino import L, _, Maybe, Map, List, Either, Boolean
 
 
 class Regex:
@@ -29,6 +29,9 @@ class Regex:
             .to_either('`{}` does not match `{}`'.format(data, self.spec)) /
             L(Match)(self, _, data)
         )
+
+    def matches(self, data: str, *a: Any, **kw: Any) -> Boolean:
+        return self.match(data, *a, **kw).is_right
 
     def search(self, data: str, *a: Any, **kw: Any) -> Maybe['Match']:
         return (
