@@ -115,17 +115,18 @@ _file_fmt = ('{asctime} [{levelname} @ {name}:{funcName}:{lineno}] {message}')
 
 
 def amino_file_logging(logger: logging.Logger, level: int=logging.DEBUG, logfile: Path=default_logfile,
-                       fmt: str=None) -> None:
+                       fmt: str=None) -> logging.Handler:
     logfile.parent.mkdir(exist_ok=True)
     formatter = logging.Formatter(fmt or _file_fmt, style='{')
     handler = logging.FileHandler(str(logfile))
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     init_loglevel(handler, level)
+    return handler
 
 
-def amino_root_file_logging(level: int=logging.DEBUG, **kw: Any) -> None:
-    amino_file_logging(amino_root_logger, level, **kw)
+def amino_root_file_logging(level: int=logging.DEBUG, **kw: Any) -> logging.Handler:
+    return amino_file_logging(amino_root_logger, level, **kw)
 
 
 class Logging:
