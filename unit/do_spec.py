@@ -2,6 +2,7 @@ from typing import Generator
 
 from amino.test.spec_spec import Spec
 from amino import Just, Nothing, Maybe, do
+from amino.state import EvalState, StateT
 
 
 class DoSpec(Spec):
@@ -24,5 +25,13 @@ class DoSpec(Spec):
             c = yield Just(b + 7)
             yield Just(c)
         run(3).should.equal(Nothing)
+
+    def eval_state(self) -> None:
+        @do
+        def run() -> None:
+            a = yield EvalState.pure(1)
+            yield EvalState.set('state')
+            yield EvalState.inspect(lambda s: f'{s}: {a}')
+        run().run_a('init').value.should.equal('state: 1')
 
 __all__ = ('DoSpec',)
