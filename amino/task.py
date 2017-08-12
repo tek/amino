@@ -204,6 +204,9 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
         self.stack = s
         return self
 
+    def recover(self, f: Callable[[TaskException], B]) -> 'Task[B]':
+        return Task.delay(self.unsafe_perform_sync).map(__.value_or(f))
+
 
 class Suspend(Generic[A], Task[A]):
 
