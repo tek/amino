@@ -1,6 +1,7 @@
-from amino.state import MaybeState, EitherState, EvalState
+from amino.state import MaybeState, EitherState, EvalState, IdState
 from amino.test.spec_spec import Spec
 from amino import Just, Left, List, Either, Right, I
+from amino.id import Id
 
 
 class StateSpec(Spec):
@@ -34,5 +35,9 @@ class StateSpec(Spec):
         s0 = EvalState.pure(Right(1))
         s0.eff(Either).flat_map(f).value.run(1)._value().should.equal((1, Right(2)))
         (s0 // EvalState.modify(I).replace).eff(Either).flat_map(f).value.run(1)._value().should.equal((1, Right(2)))
+
+    def id(self) -> None:
+        s = IdState.inspect(lambda s0: s0 * 2).flat_map(lambda a: IdState.pure(a + 4))
+        s.run(5).should.equal(Id((5, 14)))
 
 __all__ = ('StateSpec',)
