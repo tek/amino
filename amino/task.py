@@ -104,6 +104,10 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
         return Now(a)
 
     @staticmethod
+    def pure(a: A) -> 'IO[A]':
+        return Pure(a)
+
+    @staticmethod
     def just(a: A) -> 'Task[Maybe[A]]':
         return Task.now(Just(a))
 
@@ -285,6 +289,8 @@ class Now(Generic[A], Task[A]):
     @property
     def string(self) -> str:
         return str(self)
+
+Pure = Now
 
 
 def Try(f: Callable[..., A], *a, **kw) -> Either[Exception, A]:
