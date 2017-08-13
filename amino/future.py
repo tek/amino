@@ -9,7 +9,6 @@ class Future(Generic[A], asyncio.Future):
 
     def flat_map(self, f: Callable[[A], 'Future[B]']) -> 'Future[B]':
         wrapper = Future()  # type: ignore
-
         def cb(future: asyncio.Future):
             res = future.result()
             if res.success:

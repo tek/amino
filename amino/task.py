@@ -290,4 +290,6 @@ def task(fun):
         return Task.delay(fun, *a, **kw)
     return dec
 
-__all__ = ('Task', 'Try', 'task')
+IO = Task
+
+__all__ = ('Task', 'Try', 'task', 'IO')

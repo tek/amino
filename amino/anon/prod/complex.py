@@ -3,6 +3,7 @@ from types import FunctionType
 
 from amino.anon.prod.attr import AttrLambdaInst
 from amino.anon.prod.method import Anon, MethodRef, MethodLambdaInst, MethodChain, AnonChain
+from amino.util.fun import format_funcall
 
 
 def make_complex(args: list) -> Tuple[list, list, int, Any, int]:
@@ -54,6 +55,9 @@ class ComplexLambda:
 
     def __call__(self, *a, **kw):
         return self.__lambda(self.__func)(*self.__lambda_args)(*a)(*self.__rest, **self.__kwargs, **kw)
+
+    def __readable(self) -> str:
+        return format_funcall(self.__func, self.__args, self.__kwargs)
 
     def __str__(self) -> str:
         return self.__repr

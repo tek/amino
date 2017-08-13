@@ -3,7 +3,7 @@ import typing
 import random
 import string
 from functools import reduce
-from typing import TypeVar, Callable, Generic, Iterable, Any, Union, Tuple
+from typing import TypeVar, Callable, Generic, Iterable, Any, Union, Tuple, Type
 
 from toolz.itertoolz import cons, groupby
 
@@ -165,7 +165,7 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
         l, r = reduce(splitter, self, ((), (),))  # type: ignore
         return List.wrap(l), List.wrap(r)
 
-    def split_type(self, tpe: type) -> Tuple['List[A]', 'List[A]']:
+    def split_type(self, tpe: Type[B]) -> Tuple['List[B]', 'List[A]']:
         return self.split(lambda a: isinstance(a, tpe))
 
     def index_of(self, target: Any) -> maybe.Maybe[int]:
