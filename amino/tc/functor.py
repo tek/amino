@@ -11,7 +11,7 @@ A = TypeVar('A')
 B = TypeVar('B')
 
 
-class Functor(Generic[F], TypeClass):
+class Functor(Generic[F], TypeClass[F]):
     _map_re = re.compile('^map(\d+)$')
 
     @abc.abstractmethod

@@ -1,4 +1,4 @@
-from typing import TypeVar, Callable
+from typing import TypeVar, Callable, Generic
 
 from amino.tc.flat_map import FlatMap
 from amino.tc.applicative import Applicative
@@ -9,7 +9,7 @@ A = TypeVar('A')
 B = TypeVar('B')
 
 
-class Monad(FlatMap, Applicative):
+class Monad(Generic[F], FlatMap[F], Applicative[F]):
 
     def map(self, fa: F, f: Callable[[A], B]) -> F:
         return self.flat_map(fa, lambda a: self.pure(f(a)))

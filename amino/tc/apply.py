@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Callable, Tuple
+from typing import TypeVar, Callable, Tuple, Generic
 
 from amino.tc.functor import Functor
 from amino.tc.monoidal import Monoidal
@@ -10,7 +10,7 @@ B = TypeVar('B')
 Z = TypeVar('Z')
 
 
-class Apply(Functor, Monoidal):
+class Apply(Generic[F], Functor[F], Monoidal[F]):
 
     @abc.abstractmethod
     def ap(self, fa: F, f: F) -> F:

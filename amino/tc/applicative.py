@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar
+from typing import TypeVar, Generic
 
 from amino.tc.apply import Apply
 
@@ -7,7 +7,7 @@ F = TypeVar('F')
 A = TypeVar('A')
 
 
-class Applicative(Apply):
+class Applicative(Generic[F], Apply[F]):
 
     @abc.abstractmethod
     def pure(self, a: A) -> F:

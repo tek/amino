@@ -1,6 +1,6 @@
 import re
 import abc
-from typing import Callable, Iterable, TypeVar
+from typing import Callable, Iterable, TypeVar, Generic
 from functools import partial
 
 import amino  # NOQA
@@ -13,7 +13,7 @@ A = TypeVar('A')
 B = TypeVar('B')
 
 
-class FlatMap(Apply):
+class FlatMap(Generic[F], Apply[F]):
     _flat_map_re = re.compile('^flat_map(\d+)$')
     _product_re = re.compile('^product(\d+)$')
 
