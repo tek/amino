@@ -2,7 +2,7 @@ import abc
 import time
 import traceback
 import inspect
-from typing import Callable, TypeVar, Generic, Any
+from typing import Callable, TypeVar, Generic, Any, Coroutine
 
 from fn.recur import tco
 
@@ -206,6 +206,12 @@ class Task(Generic[A], Implicits, implicits=True, metaclass=TaskMeta):
 
     def recover(self, f: Callable[[TaskException], B]) -> 'Task[B]':
         return Task.delay(self.unsafe_perform_sync).map(__.value_or(f))
+
+    @property
+    def coro(self) -> Coroutine:
+        async def coro() -> Either[TaskException, A]:
+            return self.attempt
+        return coro()
 
 
 class Suspend(Generic[A], Task[A]):
