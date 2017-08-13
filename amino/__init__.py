@@ -18,6 +18,7 @@ from amino.eval import Eval
 from amino.regex import Regex
 from amino.options import integration_test, development
 from amino.do import do
+from amino.id import Id
 
 Path = pathlib.Path
 
@@ -25,4 +26,4 @@ boot()
 
 __all__ = ('Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future', 'Boolean', 'development', 'flat_may',
            'curried', '__', 'Left', 'Right', 'Either', 'env', 'Try', 'LazyList', 'Logger', 'log', 'I', 'L', 'Eff',
-           'Task', 'Eval', 'Regex', 'Nothing', 'integration_test', 'Lists', 'do', 'IO')
+           'Task', 'Eval', 'Regex', 'Nothing', 'integration_test', 'Lists', 'do', 'IO', 'Id')

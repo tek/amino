@@ -6,6 +6,7 @@ from amino.tc.monad import Monad
 from amino.tc.zip import Zip
 from amino.instances.list import ListTraverse
 from amino import List, Maybe, Either, Eval
+from amino.id import Id
 
 S = TypeVar('S')
 A = TypeVar('A')
@@ -109,5 +110,6 @@ def state_t(tpe: type) -> type:
 MaybeState = state_t(Maybe)
 EitherState = state_t(Either)
 EvalState = state_t(Eval)
+IdState = state_t(Id)
 
-__all__ = ('StateT', 'state_t')
+__all__ = ('StateT', 'state_t', 'MaybeState', 'EitherState', 'EvalState', 'IdState')
