@@ -1,5 +1,5 @@
 import abc
-from typing import Generic, TypeVar, Callable, Tuple
+from typing import Generic, TypeVar, Callable, Tuple, cast
 
 from amino.tc.base import Implicits
 from amino.tc.monad import Monad
@@ -17,10 +17,10 @@ class StateT(Generic[S, A]):
 
 
 def state_t(tpe: type) -> type:
-    class F(Generic[A], Implicits, abc.ABC):
+    class F(Generic[A], Implicits):
         pass
-    F.register(tpe)
-    monad = Monad.fatal(tpe)
+    cast(abc.ABCMeta, F).register(tpe)
+    monad: Monad = cast(Monad, Monad.fatal(tpe))
     class State(Generic[S, A], StateT[S, A], Implicits, implicits=True, auto=True):
 
         @staticmethod
@@ -39,7 +39,7 @@ def state_t(tpe: type) -> type:
 
         @staticmethod
         def pure(a: A) -> 'State[S, A]':
-            return State(monad.pure(lambda s: monad.pure((s, a))))
+            return State.apply(lambda s: monad.pure((s, a)))
 
         @staticmethod
         def modify(f: Callable[[S], S]) -> 'State[S, A]':
@@ -48,6 +48,10 @@ def state_t(tpe: type) -> type:
         @staticmethod
         def modify_f(f: Callable[[S], F[S]]) -> 'State[S, A]':
             return State.apply(lambda s: (f(s).map(lambda a: (a, None))))
+
+        @staticmethod
+        def set(s: S) -> 'State[S, A]':
+            return State.modify(lambda s0: s)
 
         @property
         def tpe(self) -> type:
