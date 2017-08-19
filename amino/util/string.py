@@ -1,7 +1,9 @@
 import re
 import abc
-from typing import Any
+from typing import Any, Callable
 from functools import singledispatch
+
+from hues import huestr
 
 import amino
 
@@ -63,4 +65,32 @@ class ToStr(abc.ABC):
     def __repr__(self) -> str:
         return str(self)
 
-__all__ = ('snake_case', 'decode', 'camelcaseify')
+
+def col(a: Any, c: Callable[[huestr], huestr]) -> str:
+    return c(huestr(str(a))).colorized  # type: ignore
+
+
+def red(a: Any) -> str:
+    return col(a, lambda a: a.red)
+
+
+def green(a: Any) -> str:
+    return col(a, lambda a: a.green)
+
+
+def yellow(a: Any) -> str:
+    return col(a, lambda a: a.yellow)
+
+
+def blue(a: Any) -> str:
+    return col(a, lambda a: a.blue)
+
+
+def cyan(a: Any) -> str:
+    return col(a, lambda a: a.cyan)
+
+
+def magenta(a: Any) -> str:
+    return col(a, lambda a: a.magenta)
+
+__all__ = ('snake_case', 'decode', 'camelcaseify', 'red', 'green', 'yellow', 'blue', 'cyan', 'magenta')
