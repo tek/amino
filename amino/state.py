@@ -1,5 +1,5 @@
 import abc
-from typing import Generic, TypeVar, Callable, Tuple, cast
+from typing import Generic, TypeVar, Callable, Tuple, cast, Type
 
 from amino.tc.base import Implicits
 from amino.tc.monad import Monad
@@ -11,18 +11,19 @@ from amino.id import Id
 S = TypeVar('S')
 A = TypeVar('A')
 B = TypeVar('B')
+G = TypeVar('G')
 
 
-class StateT(Generic[S, A]):
+class StateT(Generic[G, S, A]):
     pass
 
 
-def state_t(tpe: type) -> type:
+def state_t(tpe: Type[G]) -> type:
     class F(Generic[A], Implicits):
         pass
     cast(abc.ABCMeta, F).register(tpe)
     monad: Monad = cast(Monad, Monad.fatal(tpe))
-    class State(Generic[S, A], StateT[S, A], Implicits, implicits=True, auto=True):
+    class State(Generic[S, A], StateT[tpe, S, A], Implicits, implicits=True, auto=True):
 
         @staticmethod
         def apply(f: Callable[[S], F[Tuple[S, A]]]) -> 'State[S, A]':
