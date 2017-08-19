@@ -294,7 +294,10 @@ Pure = Now
 
 
 def Try(f: Callable[..., A], *a, **kw) -> Either[Exception, A]:
-    return Task.delay(f, *a, **kw).attempt
+    try:
+        return Right(f(*a, **kw))
+    except Exception as e:
+        return Left(e)
 
 
 def task(fun):
