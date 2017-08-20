@@ -128,13 +128,13 @@ def tcs(tpe: Type[G], state_tpe: Type[ST]) -> None:
             return cast(StateT[G, S, List[A]], v)
 
 
-class MaybeState(Generic[S, A], StateT[Maybe, S, A], tpe=Maybe[A]):
+class MaybeState(Generic[S, A], StateT[Maybe, S, A], tpe=Maybe):
     pass
 
 tcs(Maybe, MaybeState)
 
 
-class EitherState(Generic[S, A], StateT[Either, S, A], tpe=Either[str, A]):
+class EitherState(Generic[S, A], StateT[Either, S, A], tpe=Either):
     pass
 
 tcs(Either, EitherState)
@@ -146,7 +146,7 @@ class EvalState(Generic[S, A], StateT[Eval, S, A], tpe=Eval):
 tcs(Eval, EvalState)  # type: ignore
 
 
-class IdState(Generic[S, A], StateT[Id, S, A], tpe=Id[A]):
+class IdState(Generic[S, A], StateT[Id, S, A], tpe=Id):
     pass
 
 tcs(Id, IdState)
