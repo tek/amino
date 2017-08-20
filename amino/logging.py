@@ -77,7 +77,7 @@ def install_logger_class() -> None:
 
 install_logger_class()
 
-log = logging.getLogger('amino')
+log: Logger = cast(Logger, logging.getLogger('amino'))
 amino_root_logger = log
 log.setLevel(DEBUG2)
 log.propagate = False
