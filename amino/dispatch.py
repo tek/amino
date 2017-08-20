@@ -18,7 +18,7 @@ def dispatch(obj: B, tpes: typing.List[A], prefix: str, default: Callable[[A], R
             msg = 'no dispatcher defined for {} on {} {}'
             raise TypeError(msg.format(o, obj.__class__.__name__, prefix))
         else:
-            default(o, *a, **kw)
+            return default(o, *a, **kw)
     for tpe in tpes:
         fun = getattr(obj, '{}{}'.format(prefix, snake_case(tpe.__name__)))
         main.register(tpe)(fun)
