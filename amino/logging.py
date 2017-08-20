@@ -65,7 +65,7 @@ class Logger(logging.Logger):
 
     def caught_exception(self, when: str, exc: Exception, *a: Any, **kw: Any) -> None:
         headline = 'caught exception while {}:'.format(when)
-        self.exception(headline, exc_info=(type(exc), exc, exc.__traceback__))
+        self.debug(headline, exc_info=(type(exc), exc, exc.__traceback__))
 
     def makeRecord(self, name: str, level: int, fn: str, lno: int, msg: Any, args: Any, exc_info: Any, func: Any=None,
                    extra: Any=None, sinfo: Any=None) -> LogRecord:
