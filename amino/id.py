@@ -17,7 +17,6 @@ class Id(Generic[A], Implicits, ToStr, implicits=True, auto=True):
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Id) and self.value == other.value
 
-    @property
     def _arg_desc(self) -> List[str]:
         return List(str(self.value))
 

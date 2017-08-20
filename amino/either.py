@@ -24,7 +24,6 @@ class ImportException(ImportFailure):
     def __init__(self, exc: Exception) -> None:
         self.exc = exc
 
-    @property
     def _arg_desc(self) -> 'amino.List[str]':
         return amino.List(str(self.exc))
 
@@ -34,7 +33,6 @@ class InvalidLocator(ImportFailure):
     def __init__(self, msg: str) -> None:
         self.msg = msg
 
-    @property
     def _arg_desc(self) -> 'amino.List[str]':
         return amino.List(self.msg)
 

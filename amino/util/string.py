@@ -54,12 +54,12 @@ def safe_string(value: Any) -> str:
 
 class ToStr(abc.ABC):
 
-    @abc.abstractproperty
+    @abc.abstractmethod
     def _arg_desc(self) -> 'amino.List[str]':
         ...
 
     def __str__(self) -> str:
-        args = self._arg_desc.join_comma
+        args = self._arg_desc().join_comma
         return f'{self.__class__.__name__}({args})'
 
     def __repr__(self) -> str:
