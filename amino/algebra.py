@@ -3,6 +3,7 @@ from typing import GenericMeta, Any
 from types import SimpleNamespace
 
 from amino import List, Lists
+from amino.util.string import ToStr
 
 
 class AlgebraMeta(GenericMeta):
@@ -21,4 +22,8 @@ class AlgebraMeta(GenericMeta):
             cls.sub = sub
         return super().__new__(cls, name, bases, namespace, **kw)
 
-__all__ = ('AlgebraMeta',)
+
+class Algebra(ToStr, metaclass=AlgebraMeta):
+    pass
+
+__all__ = ('AlgebraMeta', 'Algebra')
