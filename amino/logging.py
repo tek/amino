@@ -53,13 +53,13 @@ class Logger(logging.Logger):
         if self.isEnabledFor(VERBOSE):
             self._log(VERBOSE, message, args, **kws)
 
-    def debug1(self, f: Callable[..., str], *args: Any) -> None:
+    def debug1(self, f: Callable[..., str], *args: Any, **kws) -> None:
         if self.isEnabledFor(DEBUG1):
-            self._log(DEBUG1, f, args)  # type: ignore
+            self._log(DEBUG1, f, args, kws)  # type: ignore
 
-    def debug2(self, f: Callable[..., str], *args: Any) -> None:
+    def debug2(self, f: Callable[..., str], *args: Any, **kws) -> None:
         if self.isEnabledFor(DEBUG2):
-            self._log(DEBUG2, f, args)  # type: ignore
+            self._log(DEBUG2, f, args, kws)  # type: ignore
 
     ddebug = debug2
 
