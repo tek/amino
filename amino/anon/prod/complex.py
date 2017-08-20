@@ -60,7 +60,7 @@ class ComplexLambda:
         return format_funcall(self.__func, self.__args, self.__kwargs)
 
     def __str__(self) -> str:
-        return self.__repr
+        return self.__readable()
 
     def __rshift__(self, f):
         return AnonChain(self, f, self.__param_count)
