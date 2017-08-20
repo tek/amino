@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar, Callable, Any
 
-from amino.tc.base import Implicits
+from amino.tc.base import F
 from amino.tc.monad import Monad
 from amino.util.string import ToStr
 from amino import List
@@ -9,7 +9,7 @@ A = TypeVar('A')
 B = TypeVar('B')
 
 
-class Id(Generic[A], Implicits, ToStr, implicits=True, auto=True):
+class Id(Generic[A], F[A], ToStr, implicits=True, auto=True):
 
     def __init__(self, value: A) -> None:
         self.value = value

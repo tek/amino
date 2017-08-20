@@ -6,7 +6,7 @@ from amino.func import curried
 from amino.lazy import lazy
 from amino.tc.monad import Monad
 from amino.tc.base import ImplicitInstances, tc_prop
-from amino.tc.traverse import Traverse
+from amino.tc.traverse import Traverse, TraverseF, TraverseG
 from amino.tc.applicative import Applicative
 from amino.tc.foldable import Foldable, FoldableABC
 from amino.list import flatten
@@ -55,6 +55,8 @@ class ListTraverse(Traverse):
 
 
 FoldableABC.register(List)
+TraverseF.register(List)
+TraverseG.register(List)
 
 
 def _find(fa: List[A], f: Callable[[A], bool]) -> Optional[A]:
@@ -86,7 +88,7 @@ class ListFoldable(Foldable):
 
     def index_where(self, fa: List[A], f: Callable[[A], bool]):
         gen = (maybe.Just(i) for i, a in enumerate(fa) if f(a))
-        return next(gen, maybe.Empty())  # type: ignore
+        return next(gen, maybe.Nothing)
 
 
 class ListZip(Zip):

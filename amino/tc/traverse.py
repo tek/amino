@@ -7,7 +7,6 @@ from amino import _
 
 A = TypeVar('A')
 B = TypeVar('B')
-Z = TypeVar('Z')
 
 
 class TraverseF(Generic[A]):
@@ -20,8 +19,11 @@ class TraverseG(Generic[A]):
 F = TraverseF
 G = TraverseG
 
+F0 = TypeVar('F0', bound=TraverseF)
+G0 = TypeVar('G0', bound=TraverseG)
 
-class Traverse(TypeClass):
+
+class Traverse(Generic[F0], TypeClass[F0]):
     # FIXME lens functions return index lenses, which is not a property of
     # Traverse
 

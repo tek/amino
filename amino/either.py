@@ -5,7 +5,7 @@ from types import ModuleType  # noqa
 import amino  # noqa
 from amino import boolean
 from amino.func import I
-from amino.tc.base import Implicits
+from amino.tc.base import F
 from amino.util.mod import unsafe_import_name
 from amino.tc.monoid import Monoid
 from amino.util.string import ToStr
@@ -37,7 +37,7 @@ class InvalidLocator(ImportFailure):
         return amino.List(self.msg)
 
 
-class Either(Generic[A, B], Implicits, implicits=True):
+class Either(Generic[A, B], F[B], implicits=True):
 
     def __init__(self, value: Union[A, B]) -> None:
         self.value = value

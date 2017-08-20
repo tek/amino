@@ -173,7 +173,7 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
 
     @property
     def reversed(self) -> 'List[A]':
-        return Lists.wrap(reversed(self))  # type: ignore
+        return Lists.wrap(reversed(self))
 
     def mk_string(self, sep: str='') -> str:
         return sep.join(self / str)

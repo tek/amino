@@ -5,14 +5,14 @@ import inspect
 import traceback
 
 from amino import boolean
-from amino.tc.base import Implicits
+from amino.tc.base import F
 from amino.func import call_by_name, I, curried
 
 A = TypeVar('A')
 B = TypeVar('B')
 
 
-class Maybe(Generic[A], Implicits, implicits=True):
+class Maybe(Generic[A], F[A], implicits=True):
 
     __slots__ = ()
 

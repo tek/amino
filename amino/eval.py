@@ -3,7 +3,7 @@ from typing import Generic, TypeVar, Callable, Tuple, Any, Union
 
 from fn.recur import tco
 
-from amino.tc.base import Implicits
+from amino.tc.base import F
 from amino.tc.monad import Monad
 from amino import List
 
@@ -11,7 +11,7 @@ A = TypeVar('A')
 B = TypeVar('B')
 
 
-class Eval(Generic[A], Implicits, implicits=True, auto=True):
+class Eval(Generic[A], F[A], implicits=True, auto=True):
 
     @staticmethod
     def now(a: A) -> 'Eval[A]':

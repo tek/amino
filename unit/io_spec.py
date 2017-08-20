@@ -127,7 +127,6 @@ class IOStringSpec(Spec):
 
     def now_map(self) -> None:
         t = IO.now(5) / (_ + 1)
-        print(t.thunk().value)
         target = 'Suspend(Now(5).map(lambda a: (lambda b: a + b)(1)))'
         str(t).should.equal(target)
         str(t.step()).should.equal('Now(6)')

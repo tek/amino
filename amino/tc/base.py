@@ -245,6 +245,10 @@ class GlobalTypeClasses(TypeClasses):
         return Map({Show: Show(), Tap: Tap()})
 
 
+class F(Generic[A], Implicits):
+    pass
+
+
 TC = GlobalTypeClasses()
 
 
