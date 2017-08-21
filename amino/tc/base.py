@@ -10,6 +10,7 @@ from amino.lazy import lazy
 from amino.logging import amino_root_logger
 
 A = TypeVar('A')
+TC = TypeVar('TC', bound='TypeClass')
 
 
 class TypeClassMeta(GenericMeta):
@@ -35,6 +36,9 @@ class TypeClassMeta(GenericMeta):
 
     def m_for(self, a: Any) -> 'amino.maybe.Maybe[TypeClass]':
         return self.m(type(a))
+
+    def e_for(self, a: A) -> 'amino.either.Either[str, TC]':
+        return self.m_for(a).to_either(f'no `{self.__name__}` instance for {type(a)}')
 
     def exists_instance(self, tpe: type) -> bool:
         return self.m(tpe).present
