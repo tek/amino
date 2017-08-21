@@ -3,7 +3,7 @@ import sys
 import logging
 import operator
 from pathlib import Path
-from logging import LogRecord
+from logging import LogRecord, DEBUG, ERROR
 from typing import Callable, Any, Union, cast
 
 from amino.lazy import lazy
@@ -63,9 +63,15 @@ class Logger(logging.Logger):
 
     ddebug = debug2
 
+    def caught_exception_error(self, when: str, exc: Exception, *a: Any, **kw: Any) -> None:
+        self._caught_exception(ERROR, when, exc, *a, **kw)
+
     def caught_exception(self, when: str, exc: Exception, *a: Any, **kw: Any) -> None:
-        headline = 'caught exception while {}:'.format(when)
-        self.debug(headline, exc_info=(type(exc), exc, exc.__traceback__))
+        self._caught_exception(DEBUG, when, exc, *a, **kw)
+
+    def _caught_exception(self, level: int, when: str, exc: Exception, *a: Any, **kw: Any) -> None:
+        headline = 'exception while {}:'.format(when)
+        self.log(level, headline, exc_info=(type(exc), exc, exc.__traceback__))
 
     def makeRecord(self, name: str, level: int, fn: str, lno: int, msg: Any, args: Any, exc_info: Any, func: Any=None,
                    extra: Any=None, sinfo: Any=None) -> LogRecord:
@@ -114,7 +120,7 @@ default_logfile = Path.home() / '.python' / 'log'
 _file_fmt = ('{asctime} [{levelname} @ {name}:{funcName}:{lineno}] {message}')
 
 
-def amino_file_logging(logger: logging.Logger, level: int=logging.DEBUG, logfile: Path=default_logfile,
+def amino_file_logging(logger: logging.Logger, level: int=DEBUG, logfile: Path=default_logfile,
                        fmt: str=None) -> logging.Handler:
     logfile.parent.mkdir(exist_ok=True)
     formatter = logging.Formatter(fmt or _file_fmt, style='{')
@@ -125,7 +131,7 @@ def amino_file_logging(logger: logging.Logger, level: int=logging.DEBUG, logfile
     return handler
 
 
-def amino_root_file_logging(level: int=logging.DEBUG, **kw: Any) -> logging.Handler:
+def amino_root_file_logging(level: int=DEBUG, **kw: Any) -> logging.Handler:
     return amino_file_logging(amino_root_logger, level, **kw)
 
 
