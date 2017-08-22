@@ -1,10 +1,11 @@
 import re
 import sys
+import abc
 import logging
 import operator
 from pathlib import Path
 from logging import LogRecord, DEBUG, ERROR
-from typing import Callable, Any, Union, cast
+from typing import Callable, Any, Union, cast, Optional
 
 from amino.lazy import lazy
 
@@ -26,40 +27,70 @@ def seq_to_str(data: Union[str, 'amino.List', Any]) -> str:
     return cast(amino.List, data).join_lines if isinstance(data, amino.List) else str(data)
 
 
+class LogError(abc.ABC):
+
+    @abc.abstractproperty
+    def short(self) -> str:
+        ...
+
+    @abc.abstractproperty
+    def full(self) -> str:
+        ...
+
+
 class LazyRecord(logging.LogRecord):
 
     def __init__(self, name, level, pathname, lineno, msg, args, exc_info, func=None, sinfo=None,  # type: ignore
-                 **kwargs) -> None:
+                 extra: dict={}, **kwargs) -> None:
         super().__init__(name, level, pathname, lineno, msg, args, exc_info, func=func, sinfo=sinfo)
         self._data = msg
         self._args = args
+        self._extra = extra
+        self._lazy_message: Optional[str] = None
 
-    @lazy
     def _cons_message(self) -> str:
         data = self._data(*self._args) if callable(self._data) else self._data
         return seq_to_str(data)
 
+    def lazy_message(self) -> str:
+        if self._lazy_message is None:
+            self._lazy_message = self._cons_message()
+        return self._lazy_message
+
     def getMessage(self) -> str:
-        return self._cons_message if self.levelname in ('DEBUG1', 'DEBUG2') else super().getMessage()
+        return (
+            self._data.full
+            if isinstance(self._data, LogError) else
+            self.lazy_message()
+            if self.levelname in ('DEBUG1', 'DEBUG2') else
+            super().getMessage()
+        )
+
+    def short(self) -> str:
+        try:
+            short = self._extra.get('short', None)
+            return self.getMessage() if short is None else short
+        except Exception as e:
+            return self.getMessage()
 
 
 class Logger(logging.Logger):
 
-    def test(self, message, *args, **kws):
+    def test(self, message, *args, **kw):
         if self.isEnabledFor(TEST):
-            self._log(TEST, message, args, **kws)
+            self._log(TEST, message, args, **kw)
 
-    def verbose(self, message, *args, **kws):
+    def verbose(self, message, *args, **kw):
         if self.isEnabledFor(VERBOSE):
-            self._log(VERBOSE, message, args, **kws)
+            self._log(VERBOSE, message, args, **kw)
 
-    def debug1(self, f: Callable[..., str], *args: Any, **kws) -> None:
+    def debug1(self, f: Callable[..., str], *args: Any, **kw) -> None:
         if self.isEnabledFor(DEBUG1):
-            self._log(DEBUG1, f, args, kws)  # type: ignore
+            self._log(DEBUG1, f, args, kw)  # type: ignore
 
-    def debug2(self, f: Callable[..., str], *args: Any, **kws) -> None:
+    def debug2(self, f: Callable[..., str], *args: Any, **kw) -> None:
         if self.isEnabledFor(DEBUG2):
-            self._log(DEBUG2, f, args, kws)  # type: ignore
+            self._log(DEBUG2, f, args, kw)  # type: ignore
 
     ddebug = debug2
 
@@ -74,8 +105,8 @@ class Logger(logging.Logger):
         self.log(level, headline, exc_info=(type(exc), exc, exc.__traceback__))
 
     def makeRecord(self, name: str, level: int, fn: str, lno: int, msg: Any, args: Any, exc_info: Any, func: Any=None,
-                   extra: Any=None, sinfo: Any=None) -> LogRecord:
-        return LazyRecord(name, level, fn, lno, msg, args, exc_info, func, sinfo)
+                   extra: Any={}, sinfo: Any=None) -> LogRecord:
+        return LazyRecord(name, level, fn, lno, msg, args, exc_info, func, sinfo, extra)
 
 
 def install_logger_class() -> None:
