@@ -40,6 +40,9 @@ class Spec(SureSpec, SpecBase, spec.Spec, metaclass=SpecMeta):
 
 
 class IntegrationSpec(IntegrationSpecBase, Spec):
-    pass
+
+    def setup(self) -> None:
+        IntegrationSpecBase.setup(self)
+        Spec.setup(self)
 
 __all__ = ('Spec', 'IntegrationSpec')

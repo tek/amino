@@ -18,8 +18,9 @@ default_timeout = 20 if 'TRAVIS' in os.environ else 3
 
 class SpecBase(Logging):
 
-    def __init__(self) -> None:
-        self._warnings = True
+    @property
+    def _warnings(self) -> bool:
+        return True
 
     def setup(self) -> None:
         if path.__base_dir__:
