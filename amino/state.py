@@ -146,9 +146,11 @@ class EvalState(Generic[S, A], StateT[Eval, S, A], tpe=Eval):
 tcs(Eval, EvalState)  # type: ignore
 
 
-class IdState(Generic[S, A], StateT[Id, S, A], tpe=Id):
+class State(Generic[S, A], StateT[Id, S, A], tpe=Id):
     pass
 
-tcs(Id, IdState)
+IdState = State
 
-__all__ = ('StateT', 'MaybeState', 'EitherState', 'EvalState', 'IdState')
+tcs(Id, State)
+
+__all__ = ('StateT', 'MaybeState', 'EitherState', 'EvalState', 'IdState', 'State')
