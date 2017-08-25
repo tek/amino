@@ -283,6 +283,7 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
 
 
 class Lists:
+    empty = List()
 
     @staticmethod
     def wrap(l: Iterable[B]) -> List[B]:
@@ -328,4 +329,6 @@ class Lists:
     def iff_l(cond: bool, a: Union[A, Callable[[], A]]) -> List[A]:
         return call_by_name(a) if cond else List()
 
-__all__ = ('List',)
+Nil = Lists.empty
+
+__all__ = ('List', 'Lists', 'Nil')
