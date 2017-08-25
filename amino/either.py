@@ -166,6 +166,9 @@ class Either(Generic[A, B], F[B], implicits=True):
     def filter_with(self, f: Callable[[B], bool], g: Callable[[B], C]) -> 'Either[C, B]':
         return self // (lambda a: Right(a) if f(a) else Left(g(a)))
 
+    def left_contains(self, a: A) -> 'boolean.Boolean':
+        return boolean.Boolean(self.is_left and self.__left_value == a)
+
 
 class Right(Either):
 
