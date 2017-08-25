@@ -120,8 +120,8 @@ log.setLevel(DEBUG2)
 log.propagate = False
 
 
-def amino_logger(name: str) -> logging.Logger:
-    return amino_root_logger.getChild(name)
+def amino_logger(name: str) -> Logger:
+    return cast(Logger, amino_root_logger.getChild(name))
 
 _stdout_logging_initialized = False
 
