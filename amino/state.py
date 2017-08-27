@@ -108,8 +108,11 @@ class StateT(Generic[G, S, A], ToStr, metaclass=StateTMeta):
     def transform(self, f: Callable[[Tuple[S, A]], Tuple[S, B]]) -> 'StateT[G, S, B]':
         def g(fsa: F[Tuple[S, A]]) -> F[Tuple[S, B]]:
             return fsa.map2(f)
-        run_f1 = self.run_f.mmap(lambda sfsa: lambda a: g(sfsa(a)))
+        run_f1 = self.run_f.map(lambda sfsa: lambda a: g(sfsa(a)))
         return self.cls.apply_f(run_f1)
+
+    def modify_(self, f: Callable[[S], S]) -> 'StateT[G, S, A]':
+        return self.transform(lambda s, a: (f(s), a))
 
 
 def tcs(tpe: Type[G], state_tpe: Type[ST]) -> None:
