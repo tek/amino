@@ -1,3 +1,4 @@
+from types import GeneratorType
 from typing import TypeVar, Callable, Any, Generator, cast, Optional
 import functools
 
@@ -11,6 +12,8 @@ def do(f: Callable[..., Generator[F, A, F]]) -> Callable:
     @functools.wraps(f)
     def do_loop(*a: Any, **kw: Any) -> F:
         itr = f(*a, **kw)
+        if not isinstance(itr, GeneratorType):
+            raise Exception(f'function `{f.__qualname__}` decorated with `do` does not produce a generator')
         c: Optional[F] = None
         def send(val: A) -> F:
             nonlocal c
