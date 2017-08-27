@@ -69,7 +69,7 @@ class ToStr(abc.ABC):
 
 
 def col(a: Any, c: Callable[[huestr], huestr]) -> str:
-    return c(huestr(str(a))).colorized  # type: ignore
+    return c(huestr(str(a))).colorized
 
 
 def red(a: Any) -> str:
