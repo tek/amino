@@ -170,8 +170,8 @@ class Either(Generic[A, B], F[B], implicits=True):
         return self.cata(Right, Left)
 
     @property
-    def json(self) -> B:
-        return self.to_maybe.json
+    def json_repr(self) -> B:
+        return self.to_maybe.json_repr
 
     def accum_error(self, b: 'Either[A, C]') -> 'Either[A, C]':
         return self.accum_error_f(lambda: b)

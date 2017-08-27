@@ -135,7 +135,7 @@ class Maybe(Generic[A], F[A], implicits=True):
         return self.exists(inspect.iscoroutine)
 
     @property
-    def json(self):
+    def json_repr(self):
         return self.cata(I, lambda: None)
 
 
