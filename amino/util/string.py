@@ -38,8 +38,10 @@ def decode_exc(value: Exception) -> str:
     return decode_list(value.args).head | str(value)
 
 
-def camelcaseify(name: str, sep: str='', splitter: str='_') -> str:
+def camelcase(name: str, sep: str='', splitter: str='_') -> str:
     return sep.join([n.capitalize() for n in re.split(splitter, name)])
+
+camelcaseify = camelcase
 
 
 def safe_string(value: Any) -> str:
@@ -93,4 +95,4 @@ def cyan(a: Any) -> str:
 def magenta(a: Any) -> str:
     return col(a, lambda a: a.magenta)
 
-__all__ = ('snake_case', 'decode', 'camelcaseify', 'red', 'green', 'yellow', 'blue', 'cyan', 'magenta')
+__all__ = ('snake_case', 'decode', 'camelcaseify', 'red', 'green', 'yellow', 'blue', 'cyan', 'magenta', 'camelcase')
