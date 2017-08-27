@@ -1,4 +1,3 @@
-import typing
 from typing import TypeVar, Dict, Generic, Tuple, Callable
 
 from toolz import dicttoolz
@@ -24,9 +23,8 @@ class Map(Generic[A, B], Dict[A, B], Implicits, metaclass=ImplicitsMeta):
     def get(self, key):
         return Dict.get(self, key)
 
-    @may
-    def lift(self, key):
-        return Dict.get(self, key)
+    def lift(self, key: str) -> Maybe[B]:
+        return Maybe.check(Dict.get(self, key))
 
     def get_item(self, key):
         return self.get(key) / (lambda a: (key, a))
