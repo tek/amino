@@ -1,6 +1,7 @@
 import importlib
 from typing import TypeVar, Generic, Callable, Union, Any, cast, Iterator
 from types import ModuleType  # noqa
+from pathlib import Path
 
 import amino  # noqa
 from amino import boolean
@@ -21,11 +22,12 @@ class ImportFailure(ToStr):
 
 class ImportException(ImportFailure):
 
-    def __init__(self, exc: Exception) -> None:
+    def __init__(self, desc: str, exc: Exception) -> None:
+        self.desc = desc
         self.exc = exc
 
     def _arg_desc(self) -> 'amino.List[str]':
-        return amino.List(str(self.exc))
+        return amino.List(self.desc, str(self.exc))
 
 
 class InvalidLocator(ImportFailure):
@@ -43,22 +45,22 @@ class Either(Generic[A, B], F[B], implicits=True):
         self.value = value
 
     @staticmethod
-    def import_name(mod: str, name: str) -> 'Either[ImportFailure, Any]':
+    def import_name(mod: str, name: str) -> 'Either[ImportFailure, B]':
         try:
             value = unsafe_import_name(mod, name)
         except Exception as e:
-            return Left(ImportException(e))
+            return Left(ImportException(f'{mod}.{name}', e))
         else:
             return Left(InvalidLocator(f'{mod} has no attribute {name}')) if value is None else Right(value)
 
     @staticmethod
-    def import_path(path: str) -> 'Either[ImportFailure, Any]':
+    def import_path(path: str) -> 'Either[ImportFailure, B]':
         from amino.list import List
         return (
             List.wrap(path.rsplit('.', 1))
             .lift_all(0, 1)
             .to_either(InvalidLocator(f'invalid module path: {path}'))
-            .flat_map2(lambda a, b: Either.import_name(a, b).lmap(ImportException))
+            .flat_map2(lambda a, b: Either.import_name(a, b).lmap(lambda a: ImportException(path, a)))
         )
 
     @staticmethod
@@ -66,9 +68,25 @@ class Either(Generic[A, B], F[B], implicits=True):
         try:
             mod = importlib.import_module(modname)
         except Exception as e:
-            return Left(ImportException(e))
+            return Left(ImportException(modname, e))
         else:
             return Right(mod)
+
+    @staticmethod
+    def import_from_file(path: Path, name: str) -> 'Either[ImportFailure, B]':
+        try:
+            spec = importlib.util.spec_from_file_location('temp', str(path))
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+        except Exception as e:
+            return Left(ImportException(f'{path}.{name}', e))
+        else:
+            attr = getattr(module, name, None)
+            return (
+                Left(InvalidLocator(f'{path} has no attribute {name}'))
+                if attr is None else
+                Right(attr)
+            )
 
     @property
     def is_right(self) -> 'amino.Boolean':
