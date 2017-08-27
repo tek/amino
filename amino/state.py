@@ -64,6 +64,12 @@ class StateT(Generic[G, S, A], ToStr, metaclass=StateTMeta):
         return self.apply(lambda s: self.monad.pure((s, a)))
 
     @classmethod
+    def lift(self, fa: F[A]) -> 'StateT[G, S, A]':
+        def g(s: S) -> F[Tuple[S, A]]:
+            return fa.map(lambda a: (s, a))
+        return self.apply(g)
+
+    @classmethod
     def modify(self, f: Callable[[S], S]) -> 'StateT[G, S, A]':
         return self.apply(lambda s: self.monad.pure((f(s), None)))
 
