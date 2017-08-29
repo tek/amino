@@ -37,7 +37,7 @@ def temp_path(*components):
     return Path(__base_dir__, '_temp', *components)
 
 
-def temp_dir(*components):
+def temp_dir(*components: str) -> Path:
     _dir = temp_path(*components)
     _dir.mkdir(exist_ok=True, parents=True)
     return _dir

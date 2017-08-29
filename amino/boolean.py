@@ -94,7 +94,7 @@ class Boolean(object):
         return Boolean(not self.value)
 
     @property
-    def json(self):
+    def json_repr(self):
         return self.value
 
 
