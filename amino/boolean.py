@@ -1,11 +1,14 @@
-from typing import Union, Any
+from typing import Union, Any, TypeVar
 
+import amino
 from amino import maybe
 from amino.either import Right, Left
 from amino.func import call_by_name
 
+A = TypeVar('A')
 
-class Boolean(object):
+
+class Boolean:
 
     def __init__(self, value: Union['Boolean', bool]) -> None:
         self.value = bool(value)
@@ -46,6 +49,9 @@ class Boolean(object):
 
     def flat_e(self, l, r):
         return call_by_name(r) if self else Left(call_by_name(l))
+
+    def l(self, v: A) -> 'amino.List[A]':
+        return self.m(v) / amino.List | amino.Nil
 
     def cata(self, t, f):
         return t if self.value else f
