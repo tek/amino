@@ -2,10 +2,11 @@ from typing import Union, Any, TypeVar
 
 import amino
 from amino import maybe
-from amino.either import Right, Left
+from amino.either import Right, Left, Either
 from amino.func import call_by_name
 
 A = TypeVar('A')
+B = TypeVar('B')
 
 
 class Boolean:
@@ -44,7 +45,7 @@ class Boolean:
     def flat_either_call(self, l, r):
         return r() if self else Left(l)
 
-    def e(self, l, r):
+    def e(self, l: A, r: B) -> Either[A, B]:
         return Right(call_by_name(r)) if self else Left(call_by_name(l))
 
     def flat_e(self, l, r):
