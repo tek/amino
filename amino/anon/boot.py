@@ -1,11 +1,14 @@
-from typing import Any
+from typing import Any, cast
 
 from amino import options
 from amino.util.mod import unsafe_import_name
+from amino.anon.prod.attr import AttrLambda
+from amino.anon.prod.method import MethodLambda
+from amino.anon.prod.complex import ComplexLambda
 
-_ = None
-__ = None
-L = None
+_: AttrLambda = cast(AttrLambda, None)
+__: MethodLambda = cast(MethodLambda, None)
+L: ComplexLambda = cast(ComplexLambda, None)
 
 
 def set(mod: str) -> None:
@@ -14,7 +17,7 @@ def set(mod: str) -> None:
     global _, __, L
     _ = name('AttrLambdaInst')
     __ = name('MethodLambdaInst')
-    L = name('ComplexLambdaInit')
+    L = name('ComplexLambdaInst')
 
 
 def set_debug() -> None:

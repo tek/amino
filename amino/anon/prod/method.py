@@ -1,7 +1,10 @@
 import operator
-from typing import Any, Callable
+from typing import Any, Callable, TypeVar, Generic
 
 from amino.util.fun import format_funcall
+
+A = TypeVar('A')
+B = TypeVar('B')
 
 
 def lop(op, s):
@@ -114,7 +117,7 @@ class MethodChain:
         return MethodChain(self.__pre, f'{self.__post}.{name}')
 
 
-class AnonMethodCall(Anon, Opers):
+class AnonMethodCall(Anon, Opers, Generic[A]):
 
     def __init__(self, pre: str, args: tuple, kw: dict) -> None:
         self.__pre = pre
@@ -124,7 +127,7 @@ class AnonMethodCall(Anon, Opers):
     def __repr__(self) -> str:
         return f'lambda a: {self.__pre}'
 
-    def __call__(self, *a: Any, **kw: Any) -> Any:
+    def __call__(self, *a: Any, **kw: Any) -> A:
         return self.__eval__()(*a, **kw)(*self.__args, **self.__kw)
 
     def __getattr__(self, name: str) -> MethodChain:
@@ -172,7 +175,7 @@ class MethodLambda:
     def __call__(self, *a: Any, **kw: Any) -> AnonMethodCall:
         return MethodRef('a')(*a, **kw)
 
-    def __getitem__(self, key: Any) -> MethodRef:
+    def __getitem__(self, key: Any) -> AnonMethodCall:
         return MethodRef('a.__getitem__')(key)
 
 MethodLambdaInst = MethodLambda()

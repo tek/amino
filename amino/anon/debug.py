@@ -137,6 +137,10 @@ class AnonFunc(AnonGetter, HasArgs):
         return self(obj)
 
 
+class AnonMethod(AnonFunc):
+    pass
+
+
 class MethodRef(AnonMemberCallable):
 
     def __init__(self, pre: AnonFunc, name: str) -> None:
@@ -144,7 +148,7 @@ class MethodRef(AnonMemberCallable):
         self.__name = name
 
     def __call__(self, *a, **kw):
-        return AnonFunc(self.__pre, self.__name, a, kw)
+        return AnonMethod(self.__pre, self.__name, a, kw)
 
     def __getattr__(self, name):
         pre = AnonGetter(self.__pre, self.__name)
@@ -292,7 +296,7 @@ class LazyMethod(Anon):
         return LazyMethod(self.__obj, getattr(self.__attr, name))
 
 
-class ComplexLambdaInit:
+class ComplexLambdaInst:
 
     def __init__(self, func) -> None:
         self.__func = func
@@ -301,7 +305,7 @@ class ComplexLambdaInit:
         return ComplexLambda(self.__func, *a, **kw)
 
     def __getattr__(self, name):
-        return ComplexLambdaInit(LazyMethod(self.__func, MethodRef(IdAnonFunc(), name)))
+        return ComplexLambdaInst(LazyMethod(self.__func, MethodRef(IdAnonFunc(), name)))
 
 
 def lambda_op(op, s):
@@ -424,4 +428,4 @@ class OperatorLambda(AttrLambda):
         )
         return '({!r} {} {!r})'.format(a, self._AnonGetter__name, b)
 
-__all__ = ('ComplexLambdaInit', 'RootAttrLambda', 'MethodLambda', 'AttrLambdaInst', 'MethodLambdaInst')
+__all__ = ('ComplexLambdaInst', 'RootAttrLambda', 'MethodLambda', 'AttrLambdaInst', 'MethodLambdaInst')

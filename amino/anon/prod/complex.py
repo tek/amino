@@ -1,12 +1,15 @@
-from typing import Callable, Tuple, Any
+from typing import Callable, Tuple, Any, Generic, TypeVar
 from types import FunctionType
 
 from amino.anon.prod.attr import AttrLambdaInst
 from amino.anon.prod.method import Anon, MethodRef, MethodLambdaInst, MethodChain, AnonChain
 from amino.util.fun import format_funcall
 
+A = TypeVar('A')
+B = TypeVar('B')
 
-def make_complex(args: list) -> Tuple[list, list, int, Any, int]:
+
+def make_complex(args: tuple) -> Tuple[list, list, str, Any, int]:
     i_strict, i_lambda, i_param = 0, 0, 0
     ordered = ''
     stricts = ''
@@ -38,9 +41,9 @@ def make_complex(args: list) -> Tuple[list, list, int, Any, int]:
     return lambda_args, rest, rep, eval(rep), i_param
 
 
-class ComplexLambda:
+class ComplexLambda(Generic[A]):
 
-    def __init__(self, func: Callable, a: tuple, kw: dict) -> None:
+    def __init__(self, func: Callable[..., A], a: tuple, kw: dict) -> None:
         self.__func = func
         self.__args = a
         self.__kwargs = kw
@@ -53,7 +56,7 @@ class ComplexLambda:
         self.__annotations__ = {}
         self.__lambda_args, self.__rest, self.__repr, self.__lambda, self.__param_count = make_complex(self.__args)
 
-    def __call__(self, *a, **kw):
+    def __call__(self, *a: Any, **kw: Any) -> Callable[..., A]:
         return self.__lambda(self.__func)(*self.__lambda_args)(*a)(*self.__rest, **self.__kwargs, **kw)
 
     def __readable(self) -> str:
@@ -83,15 +86,15 @@ class LazyMethod(Anon):
         return LazyMethod(self.__obj, getattr(self.__attr, name))
 
 
-class ComplexLambdaInit:
+class ComplexLambdaInst(Generic[A]):
 
-    def __init__(self, func) -> None:
+    def __init__(self, func: Callable[..., A]) -> None:
         self.__func = func
 
-    def __call__(self, *a, **kw):
+    def __call__(self, *a: Any, **kw: Any) -> ComplexLambda[A]:
         return ComplexLambda(self.__func, a, kw)
 
     def __getattr__(self, name):
-        return ComplexLambdaInit(LazyMethod(self.__func, getattr(MethodLambdaInst, name)))
+        return ComplexLambdaInst(LazyMethod(self.__func, getattr(MethodLambdaInst, name)))
 
-__all__ = ('ComplexLambdaInit',)
+__all__ = ('ComplexLambdaInst',)
