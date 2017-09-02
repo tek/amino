@@ -13,8 +13,8 @@ def lambda_str(f: Callable) -> str:
         return str(f)
 
 
-def format_funcall(fun: Callable, args: list, kwargs: dict) -> str:
-    from amino import Map
+def format_funcall(fun: Callable, args: tuple, kwargs: dict) -> str:
+    from amino.map import Map
     kw = Map(kwargs).map2('{}={!r}'.format)
     a = list(map(repr, args)) + list(kw)
     args_fmt = ', '.join(a)

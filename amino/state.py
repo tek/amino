@@ -30,7 +30,7 @@ class StateTMeta(ImplicitsMeta, abc.ABCMeta):
             return super().__new__(cls, name, bases, ns, tpe, **kw)
 
 
-class StateT(Generic[G, S, A], ToStr, metaclass=StateTMeta):
+class StateT(Generic[G, S, A], ToStr, F[A], metaclass=StateTMeta):
 
     def __init__(self, run_f: F[Callable[[S], F[Tuple[S, A]]]]) -> None:
         self.run_f = run_f

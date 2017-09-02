@@ -54,7 +54,7 @@ class Boolean:
     def l(self, v: A) -> 'amino.List[A]':
         return self.m(v) / amino.List | amino.Nil
 
-    def cata(self, t, f):
+    def cata(self, t: A, f: A) -> A:
         return t if self.value else f
 
     def cata_call(self, t, f):
