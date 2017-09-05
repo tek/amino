@@ -30,10 +30,10 @@ class SpecBase(Logging):
         amino.development = True
         amino_stdout_logging()
 
-    def teardown(self):
+    def teardown(self) -> None:
         warnings.simplefilter('ignore')
 
-    def _wait(self, seconds):
+    def _wait(self, seconds: int) -> None:
         time.sleep(seconds)
 
 

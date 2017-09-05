@@ -151,8 +151,8 @@ default_logfile = Path.home() / '.python' / 'log'
 _file_fmt = ('{asctime} [{levelname} @ {name}:{funcName}:{lineno}] {message}')
 
 
-def amino_file_logging(logger: logging.Logger, level: int=DEBUG, logfile: Path=default_logfile,
-                       fmt: str=None) -> logging.Handler:
+def amino_file_logging(logger: logging.Logger, level: int=DEBUG, logfile: Path=default_logfile, fmt: str=None
+                       ) -> logging.Handler:
     logfile.parent.mkdir(exist_ok=True)
     formatter = logging.Formatter(fmt or _file_fmt, style='{')
     handler = logging.FileHandler(str(logfile))
