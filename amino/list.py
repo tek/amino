@@ -86,23 +86,23 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
         for el in self:
             f(el)
 
-    def forall(self, f: Callable[[A], bool]) -> boolean.Boolean:
+    def forall(self, f: Callable[[A], bool]) -> 'boolean.Boolean':
         return boolean.Boolean(all(f(el) for el in self))
 
-    def contains(self, value: A) -> boolean.Boolean:
+    def contains(self, value: A) -> 'boolean.Boolean':
         return boolean.Boolean(value in self)
 
     def exists(self, f: Callable[[A], bool]) -> bool:
         return self.find(f).is_just
 
     @property
-    def is_empty(self) -> boolean.Boolean:
+    def is_empty(self) -> 'boolean.Boolean':
         return boolean.Boolean(self.length == 0)
 
     empty = is_empty
 
     @property
-    def nonempty(self) -> boolean.Boolean:
+    def nonempty(self) -> 'boolean.Boolean':
         return not self.empty
 
     @property
@@ -110,27 +110,27 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
         return len(self)
 
     @property
-    def head(self) -> maybe.Maybe[A]:
+    def head(self) -> 'maybe.Maybe[A]':
         return self.lift(0)
 
     @property
-    def last(self) -> maybe.Maybe[A]:
+    def last(self) -> 'maybe.Maybe[A]':
         return self.lift(-1)
 
     @property
-    def init(self) -> maybe.Maybe['List[A]']:
+    def init(self) -> 'maybe.Maybe[List[A]]':
         return maybe.Empty() if self.empty else maybe.Just(self[:-1])
 
     @property
-    def tail(self) -> maybe.Maybe['List[A]']:
+    def tail(self) -> 'maybe.Maybe[List[A]]':
         return maybe.Empty() if self.empty else maybe.Just(self[1:])
 
     @property
-    def detach_head(self) -> maybe.Maybe[Tuple[A, 'List[A]']]:
+    def detach_head(self) -> 'maybe.Maybe[Tuple[A, List[A]]]':
         return self.head.product(self.tail)
 
     @property
-    def detach_last(self) -> maybe.Maybe[Tuple[A, 'List[A]']]:
+    def detach_last(self) -> 'maybe.Maybe[Tuple[A, List[A]]]':
         return self.last.product(self.init)
 
     @property
@@ -168,7 +168,7 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
     def split_type(self, tpe: Type[B]) -> Tuple['List[B]', 'List[A]']:
         return self.split(lambda a: isinstance(a, tpe))
 
-    def index_of(self, target: Any) -> maybe.Maybe[int]:
+    def index_of(self, target: Any) -> 'maybe.Maybe[int]':
         return self.index_where(lambda a: a == target)
 
     @property
@@ -197,13 +197,13 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
     def cons(self, item: A) -> 'List[A]':
         return List.wrap(cons(item, self))
 
-    def cons_m(self, item: maybe.Maybe[A]) -> 'List[A]':
+    def cons_m(self, item: 'maybe.Maybe[A]') -> 'List[A]':
         return item / self.cons | self
 
     def cat(self, item: A) -> 'List[A]':
         return self + List(item)
 
-    def cat_m(self, item: maybe.Maybe) -> 'List[A]':
+    def cat_m(self, item: 'maybe.Maybe') -> 'List[A]':
         return item / self.cat | self
 
     @property
@@ -278,7 +278,7 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
     def rstrip_newlines(self) -> 'List[str]':
         return self / (lambda a: a.rstrip('\n'))
 
-    def collect(self, f: Callable[[A], maybe.Maybe[B]]) -> 'List[B]':
+    def collect(self, f: Callable[[A], 'maybe.Maybe[B]']) -> 'List[B]':
         return self.flat_map(f)
 
 

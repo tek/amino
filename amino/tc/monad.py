@@ -2,7 +2,7 @@ from typing import TypeVar, Callable, Generic
 
 from amino.tc.flat_map import FlatMap
 from amino.tc.applicative import Applicative
-from amino import List
+from amino.list import List
 
 F = TypeVar('F')
 A = TypeVar('A')

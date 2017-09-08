@@ -5,7 +5,7 @@ from functools import partial
 
 import amino  # NOQA
 from amino.tc.apply import Apply
-from amino import I
+from amino.func import I
 from amino.tc.base import tc_prop
 
 F = TypeVar('F')
