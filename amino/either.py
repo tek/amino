@@ -10,6 +10,7 @@ from amino.tc.base import F
 from amino.util.mod import unsafe_import_name
 from amino.tc.monoid import Monoid
 from amino.util.string import ToStr
+from amino.do import do
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -73,20 +74,26 @@ class Either(Generic[A, B], F[B], implicits=True):
             return Right(mod)
 
     @staticmethod
-    def import_from_file(path: Path, name: str) -> 'Either[ImportFailure, B]':
+    def import_file(path: Path) -> 'Either[ImportFailure, ModuleType]':
         try:
             spec = importlib.util.spec_from_file_location('temp', str(path))
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
         except Exception as e:
-            return Left(ImportException(f'{path}.{name}', e))
+            return Left(ImportException(path, e))
         else:
-            attr = getattr(module, name, None)
-            return (
-                Left(InvalidLocator(f'{path} has no attribute {name}'))
-                if attr is None else
-                Right(attr)
-            )
+            return Right(module)
+
+    @staticmethod
+    @do
+    def import_from_file(path: Path, name: str) -> 'Either[ImportFailure, B]':
+        module = yield Either.import_file(path)
+        attr = getattr(module, name, None)
+        yield (
+            Left(InvalidLocator(f'{path} has no attribute {name}'))
+            if attr is None else
+            Right(attr)
+        )
 
     @property
     def is_right(self) -> 'amino.Boolean':
