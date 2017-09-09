@@ -1,11 +1,13 @@
 ## About
 This library provides some functional data structures, utilities and a typeclass system that resemble those concepts in
 scala.
-Most of the implementations have considerable overhead and aren't suitable for performance critical applications; their
+Some of the implementations have considerable overhead and aren't suitable for performance critical applications; their
 purpose is nicer and familiar syntax and composability.
 
 ## Anonymous functions
-These are an alternative to `lambda`s with parameter placeholder wildcards and literal string representation.
+These are an alternative to `lambda`s with parameter placeholder wildcards.
+If the env var `AMINO_ANON_DEBUG` is set, a different implementation with severe performance penalties but literal
+string representation is used.
 
 ```python
 from amino import L, _, __
