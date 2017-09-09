@@ -3,8 +3,6 @@ from setuptools import setup, find_packages
 version_parts = (10, 9, 6)
 version = '.'.join(map(str, version_parts))
 
-gh_lenses = 'git+https://github.com/ingolemo/python-lenses.git#egg=lenses'
-
 setup(
     name='amino',
     description='functional data structures and type classes',
@@ -23,7 +21,4 @@ setup(
     tests_require=[
         'kallikrein',
     ],
-    dependency_links=[
-        gh_lenses,
-    ]
 )
