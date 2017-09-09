@@ -1,13 +1,11 @@
 ## About
-This library provides some functional data structures, utilities and a
-typeclass system that resemble those concepts in scala.
-Most of the implementations have considerable overhead and aren't suitable for
-performance critical applications; their purpose is nicer and familiar syntax
-and composability.
+This library provides some functional data structures, utilities and a typeclass system that resemble those concepts in
+scala.
+Most of the implementations have considerable overhead and aren't suitable for performance critical applications; their
+purpose is nicer and familiar syntax and composability.
 
 ## Anonymous functions
-These are an alternative to `lambda`s with parameter placeholder wildcards and
-literal string representation. 
+These are an alternative to `lambda`s with parameter placeholder wildcards and literal string representation.
 
 ```python
 from amino import L, _, __
@@ -82,26 +80,22 @@ r.flat_map(lambda a: Left(a + 3))
 ```
 
 ## Typeclasses
-Although these make a lot more sense with a real type system, they provide a
-nice abstraction for functionality.
-The `map` and `flat_map` operations, for instance, are implemented in the
-typeclasses `Functor` and `FlatMap`, for which instances are provided for
-arbitrary types, among them `List` and `Maybe`.
-The typeclasses define methods that are looked up in the data class'
-`__getattr__`, which is provided by the `Implicits` base class inherited by
-`List` and `Maybe`.
-The typeclass instances are stored in a global registry, which can be used
-separately from the `Implicits` concept:
+Although these make a lot more sense with a real type system, they provide a nice abstraction for functionality.
+The `map` and `flat_map` operations, for instance, are implemented in the typeclasses `Functor` and `FlatMap`, for which
+instances are provided for arbitrary types, among them `List` and `Maybe`.
+The typeclasses define methods that are looked up in the data class' `__getattr__`, which is provided by the `Implicits`
+base class inherited by `List` and `Maybe`.
+The typeclass instances are stored in a global registry, which can be used separately from the `Implicits` concept:
 
 ```python
 from amino.tc.monad import Monad
 
-Monad[List].flat_map(List(1, 2), _ + 5)
+Monad.lookup(List).flat_map(List(1, 2), _ + 5)
 # List(6, 7)
 ```
 
-Instances can be registered in several ways, the easiest of which is by passing
-the target type to the metaclass:
+Instances can be registered in several ways, the easiest of which is by passing the target type to the metaclass:
+
 ```python
 from typing import TypeVar, Callable
 from amino.tc.functor import Functor
@@ -118,13 +112,12 @@ class ListFunctor(Functor, tpe=List):
 After importing the instance's module, the `map` method can be used as shown
 above.
 
-## Task
-`Task` is a trampolined algebra for computation abstraction that catches
-errors:
+## IO
+`IO` is a trampolined algebra for computation abstraction that catches errors:
 
 ```python
-t = Task.now(Path('/var/log/dmesg')).flat_map(L(Task.delay)(__.read_text()))
-# Task(Now(/var/log/dmesg).flat_map(L(delay)(__.read_text())))
+t = IO.now(Path('/var/log/dmesg')).flat_map(L(IO.delay)(__.read_text()))
+# IO(Now(/var/log/dmesg).flat_map(L(delay)(__.read_text())))
 
 t.attempt
 # Right('...'): Either[TaskException, str]

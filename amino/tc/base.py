@@ -28,6 +28,8 @@ class TypeClassMeta(GenericMeta):
     def fatal(self, tpe: type) -> 'TypeClass':
         return Instances.lookup_fatal(self, tpe)
 
+    lookup = fatal
+
     def fatal_for(self, a: Any) -> 'amino.maybe.Maybe[TypeClass]':
         return self.fatal(type(a))
 
