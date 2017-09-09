@@ -79,6 +79,24 @@ r.flat_map(lambda a: Left(a + 3))
 # Left(8)
 ```
 
+## do notation
+The function decorator `do` allows to use generators as do-blocks with any class that responds to `flat_map`.
+It is implemented by looping until the generator is exhausted, calling `flat_map` on each yielded effect and sending
+its value into the generator.
+
+```
+from amino import do
+
+@do
+def compute() -> typing.Generator[Either[str, int], Any, None]:
+  user = yield Right('root')
+  content = yield IO.delay(Path('/etc/passwd').read_text).attempt
+  yield Lists.lines(content).index_where(lambda l: user in l).to_either('not found')
+```
+
+All yielded values produce an Either, the return value is the found index or the error message from the last statement
+or the `IO` call.
+
 ## Typeclasses
 Although these make a lot more sense with a real type system, they provide a nice abstraction for functionality.
 The `map` and `flat_map` operations, for instance, are implemented in the typeclasses `Functor` and `FlatMap`, for which
@@ -116,11 +134,28 @@ above.
 `IO` is a trampolined algebra for computation abstraction that catches errors:
 
 ```python
-t = IO.now(Path('/var/log/dmesg')).flat_map(L(IO.delay)(__.read_text()))
-# IO(Now(/var/log/dmesg).flat_map(L(delay)(__.read_text())))
+t = IO.pure(Path('/var/log/dmesg')).flat_map(L(IO.delay)(__.read_text()))
+# IO(Pure(/var/log/dmesg).flat_map(L(delay)(__.read_text())))
 
 t.attempt
-# Right('...'): Either[TaskException, str]
+# Right('...'): Either[IOException, str]
 # or
-# Left(TaskException('Now(/var/log/dmesg).flat_map(L(delay)(__.read_text()))', [], PermissionError(13, 'Permission denied')))
+# Left(IOException('Pure(/var/log/dmesg).flat_map(L(delay)(__.read_text()))', [], PermissionError(13, 'Permission denied')))
+```
+
+## StateT
+`StateT` abstracts `F[S => F[S, A]]`, implemented for several effects as `EitherState` etc.
+It offers the usual monadic constructors:
+
+```python
+from amino.state import StateT, EitherState
+
+@do
+def state(x: int) -> typing.Generator[StateT[Either, str, int], Any, None]:
+  i = yield EitherState.inspect_f(lambda s: Try(int, s))
+  yield EitherState.modify(lambda a: len(a) * x + i)
+  yield EitherState.pure(x)
+
+s = state(5)
+s.run('15') # -> Right((25, 5))
 ```
