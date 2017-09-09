@@ -11,7 +11,7 @@ from amino.map import Map
 from amino.future import Future
 from amino.func import curried, I
 from amino.env_vars import env
-from amino.task import Try, Task, IO
+from amino.io import Try, Task, IO
 from amino.logging import Logger, log
 from amino.eff import Eff
 from amino.eval import Eval

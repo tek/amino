@@ -1,4 +1,4 @@
-from amino.task import IO, IOException
+from amino.io import IO, IOException
 from amino.test.spec_spec import Spec
 from amino import List, Right, L, _, Just
 
@@ -113,11 +113,11 @@ class IOSpec(Spec):
 class IOStringSpec(Spec):
 
     def now(self) -> None:
-        str(IO.now(5)).should.equal('Now(5)')
+        str(IO.now(5)).should.equal('Pure(5)')
 
     def now_flat_map(self) -> None:
         t = IO.now(5) // IO.now
-        target = 'Suspend(Now(5).flat_map(now))'
+        target = 'Suspend(Pure(5).flat_map(now))'
         str(t).should.equal(target)
 
     def suspend_flat_map(self) -> None:
@@ -127,13 +127,13 @@ class IOStringSpec(Spec):
 
     def now_map(self) -> None:
         t = IO.now(5) / (_ + 1)
-        target = 'Suspend(Now(5).map(lambda a: (lambda b: a + b)(1)))'
+        target = 'Suspend(Pure(5).map(lambda a: (lambda b: a + b)(1)))'
         str(t).should.equal(target)
-        str(t.step()).should.equal('Now(6)')
+        str(t.step()).should.equal('Pure(6)')
 
     def suspend_map(self) -> None:
         t = IO.suspend(IO.now, 5) / (_ + 1)
-        target = 'Suspend(Now(5).map(lambda a: (lambda b: a + b)(1)))'
+        target = 'Suspend(Pure(5).map(lambda a: (lambda b: a + b)(1)))'
         str(t.step()).should.equal(target)
 
 __all__ = ('IOSpec', 'IOStringSpec')

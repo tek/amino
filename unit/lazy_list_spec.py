@@ -82,7 +82,7 @@ class LazyListSpec(Spec):
         target = LazyList(List.wrap(range(n)))
         (l.sequence(Maybe) / _.drain).should.contain(target.drain)
 
-    def traverse_task(self) -> None:
+    def traverse_io(self) -> None:
         n = 3
         l = LazyList(range(n))
         result = l.traverse(Task.now, Task).attempt / _.drain
