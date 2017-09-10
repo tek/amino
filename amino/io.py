@@ -7,7 +7,7 @@ from typing import Callable, TypeVar, Generic, Any, Union, Tuple, Awaitable
 
 from fn.recur import tco
 
-from amino import Either, Right, Left, Maybe, List, __, Just, env, _, Lists, L, Nothing
+from amino import Either, Right, Left, Maybe, List, __, Just, env, _, Lists, L, Nothing, options
 from amino.eval import Eval
 from amino.tc.base import Implicits, ImplicitsMeta
 from amino.logging import log
@@ -43,7 +43,7 @@ class IOException(Exception):
         rev = self.stack.reversed
         def remove_recursion(i):
             pre = rev[:i + 1]
-            post = rev[i:].drop_while(__.filename.endswith('/amino/task.py'))
+            post = rev[i:].drop_while(__.filename.endswith('/amino/io.py'))
             return pre + post
         def remove_internal():
             start = rev.index_where(_.function == 'unsafe_perform_sync')
@@ -66,10 +66,8 @@ class IOException(Exception):
     def __str__(self):
         return self.lines.join_lines
 
-TaskException = IOException
 
-
-class TaskMeta(ImplicitsMeta):
+class IOMeta(ImplicitsMeta):
 
     @property
     def zero(self):
@@ -86,8 +84,8 @@ def safe_fmt(f: Callable[..., Any], a: tuple, kw: dict) -> Eval[str]:
     return Eval.later(s)
 
 
-class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=TaskMeta):
-    debug = 'AMINO_TASK_DEBUG' in env
+class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
+    debug = options.io_debug.exists
     stack_only_location = True
 
     def __init__(self) -> None:
@@ -176,7 +174,7 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=TaskMeta):
         v = self._step()
         dur = time.time() - start
         if dur > 0.1:
-            log.debug2(lambda: 'task {} took {:.4f}s'.format(self.string(), dur))
+            log.debug2(lambda: 'IO {} took {:.4f}s'.format(self.string(), dur))
         return v
 
     def _attempt(self) -> Either[IOException, A]:
@@ -294,8 +292,6 @@ class Pure(Generic[A], IO[A]):
     def _flat_map(self, f: Callable[[A], IO[B]], ts: Eval[str], fs: Eval[str]) -> IO[B]:
         return Suspend(L(f)(self.value), (ts & fs).map2('{}.{}'.format))
 
-Now = Pure
-
 
 def Try(f: Callable[..., A], *a: Any, **kw: Any) -> Either[Exception, A]:
     try:
@@ -304,11 +300,9 @@ def Try(f: Callable[..., A], *a: Any, **kw: Any) -> Either[Exception, A]:
         return Left(e)
 
 
-def task(fun: Callable[..., A]) -> Callable[..., IO[A]]:
+def io(fun: Callable[..., A]) -> Callable[..., IO[A]]:
     def dec(*a: Any, **kw: Any) -> IO[A]:
         return IO.delay(fun, *a, **kw)
     return dec
 
-Task = IO
-
-__all__ = ('IO', 'Try', 'task')
+__all__ = ('IO', 'Try', 'io')

@@ -1,7 +1,7 @@
 import itertools
 
 from amino.test.spec_spec import Spec
-from amino import LazyList, List, _, Just, Maybe, Task, I, Nothing
+from amino import LazyList, List, _, Just, Maybe, IO, I, Nothing
 from amino.lazy_list import LazyLists
 from amino.func import tupled2
 
@@ -85,7 +85,7 @@ class LazyListSpec(Spec):
     def traverse_io(self) -> None:
         n = 3
         l = LazyList(range(n))
-        result = l.traverse(Task.now, Task).attempt / _.drain
+        result = l.traverse(IO.now, IO).attempt / _.drain
         result.should.contain(l.drain)
 
     def zip(self) -> None:

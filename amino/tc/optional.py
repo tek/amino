@@ -36,8 +36,8 @@ class Optional(Generic[F], TypeClass):
     o = or_else
 
     def io(self, fa: F, err: str=''):
-        from amino.io import Task
-        return Task.from_either(self.to_either(fa, err))
+        from amino.io import IO
+        return IO.from_either(self.to_either(fa, err))
 
     @tc_prop
     def true(self, fa: F) -> Boolean:

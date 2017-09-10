@@ -15,7 +15,7 @@ class F(Generic[A]):
 
 class Eff(Generic[A], Implicits, implicits=True, auto=True):
     ''' An effect stack transformer.
-    Wraps arbitrarily nested effects, like Task[List[Maybe[A]]].
+    Wraps arbitrarily nested effects, like IO[List[Maybe[A]]].
     '''
 
     def __init__(self, value: F[A], effects: List[type]=List(), depth: int=1) -> None:
@@ -53,7 +53,7 @@ class Eff(Generic[A], Implicits, implicits=True, auto=True):
         => List(Right(Right(Just(Just(5)))))
         => List(Right(Just(Just(5))))
         => List(Right(Just(5)))
-        Note: Task works only as outermost effect, as it cannot sequence
+        Note: IO works only as outermost effect, as it cannot sequence
         '''
         index = List.range(self.depth + 1)
         g = index.fold_left(f)(lambda z, i: lambda a: a.map(z))

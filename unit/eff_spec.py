@@ -3,7 +3,7 @@ import random
 from amino import List, Right, _, Just, Empty, Maybe, Either, Left
 
 from amino.test.spec_spec import Spec
-from amino.io import Task
+from amino.io import IO
 
 
 class EffSpec(Spec):
@@ -23,7 +23,7 @@ class EffSpec(Spec):
 
     def eff_map_io(self):
         a, b = self._r
-        t = Task.now(List(Just(a), Just(b), Empty()))
+        t = IO.now(List(Just(a), Just(b), Empty()))
         target = List(Just(a + b), Just(b + b), Empty())
         res = t.effs(2).map(_ + b)
         res.value.run().should.equal(target)
@@ -45,24 +45,24 @@ class EffSpec(Spec):
 
     def eff_flat_io(self):
         a, b = self._r
-        t = Task.now(List(Right(Just(Right(a)))))
+        t = IO.now(List(Right(Just(Right(a)))))
         target = List(Right(Just(Right(a + b))))
         res = (t.effs(4, List, Either, Maybe, Either)
-               .flat_map(lambda x: Task.now(List(Right(Just(Right(x + b)))))))
+               .flat_map(lambda x: IO.now(List(Right(Just(Right(x + b)))))))
         res.value.run().should.equal(target)
 
     def eff_flat_io_empty(self):
-        t = Task.now(List(Right(Empty())))
+        t = IO.now(List(Right(Empty())))
         target = List(Right(Empty()))
         res = (t.effs(4, List, Either, Maybe, Either)
-               .flat_map(lambda x: Task.now(List(Right(Just(Right(1)))))))
+               .flat_map(lambda x: IO.now(List(Right(Just(Right(1)))))))
         res.value.run().should.equal(target)
 
     def eff_flat_io_left(self):
         a, b = self._r
-        t = Task.now(Left(Just(a)))
+        t = IO.now(Left(Just(a)))
         target = Left(Just(a))
-        res = t.effs(1, Either, Maybe) // (lambda x: Task.now(Right(Just(b))))
+        res = t.effs(1, Either, Maybe) // (lambda x: IO.now(Right(Just(b))))
         res.value.run().should.equal(target)
 
 __all__ = ('EffSpec',)

@@ -11,7 +11,7 @@ from amino.map import Map
 from amino.future import Future
 from amino.func import curried, I
 from amino.env_vars import env
-from amino.io import Try, Task, IO
+from amino.io import Try, IO, IO
 from amino.logging import Logger, log
 from amino.eff import Eff
 from amino.eval import Eval
@@ -26,4 +26,4 @@ boot()
 
 __all__ = ('Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future', 'Boolean', 'development', 'flat_may',
            'curried', '__', 'Left', 'Right', 'Either', 'env', 'Try', 'LazyList', 'Logger', 'log', 'I', 'L', 'Eff',
-           'Task', 'Eval', 'Regex', 'Nothing', 'integration_test', 'Lists', 'do', 'IO', 'Id', 'Nil')
+           'IO', 'Eval', 'Regex', 'Nothing', 'integration_test', 'Lists', 'do', 'IO', 'Id', 'Nil')
