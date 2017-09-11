@@ -14,6 +14,7 @@ from amino.logging import log
 from amino.util.fun import lambda_str, format_funcall
 from amino.util.exception import format_exception, sanitize_tb
 from amino.util.string import ToStr
+from amino.do import do
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -225,6 +226,12 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
 
     def recover(self, f: Callable[[IOException], B]) -> 'IO[B]':
         return IO.delay(lambda: self.attempt).map(__.value_or(f))
+
+    @do
+    def ensure(self, f: Callable[[Either[IOException, A]], 'IO[None]']) -> 'IO[A]':
+        result = yield IO.delay(lambda: self.attempt)
+        yield f(result)
+        yield IO.from_either(result)
 
     @property
     def coro(self) -> Awaitable[Either[IOException, A]]:
