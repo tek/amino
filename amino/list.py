@@ -222,7 +222,7 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
 
     def drop_while(self, pred: Callable[[A], bool]) -> 'List[A]':
         index = self.index_where(lambda a: not pred(a))
-        return index / (lambda a: self[a:]) | self
+        return index / (lambda a: self[a:]) | Nil
 
     def drop_right(self, n: int) -> 'List[A]':
         return self.take(self.length - n)
