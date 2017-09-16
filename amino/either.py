@@ -75,14 +75,17 @@ class Either(Generic[A, B], F[B], implicits=True):
 
     @staticmethod
     def import_file(path: Path) -> 'Either[ImportFailure, ModuleType]':
-        try:
-            spec = importlib.util.spec_from_file_location('temp', str(path))
+        from amino.maybe import Maybe
+        def step2(spec: importlib._bootstrap.ModuleSpec) -> ModuleType:
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
+            return module
+        try:
+            module = Maybe.check(importlib.util.spec_from_file_location('temp', str(path))) / step2
         except Exception as e:
-            return Left(ImportException(path, e))
+            return Left(ImportException(str(path), e))
         else:
-            return Right(module)
+            return module.to_either(InvalidLocator(f'failed to import `{path}`'))
 
     @staticmethod
     @do
