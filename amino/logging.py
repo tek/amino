@@ -76,11 +76,11 @@ class LazyRecord(logging.LogRecord):
 
 class Logger(logging.Logger):
 
-    def test(self, message, *args, **kw):
+    def test(self, message: Any, *args: Any, **kw: Any) -> None:
         if self.isEnabledFor(TEST):
             self._log(TEST, message, args, **kw)
 
-    def verbose(self, message, *args, **kw):
+    def verbose(self, message: Any, *args: Any, **kw: Any) -> None:
         if self.isEnabledFor(VERBOSE):
             self._log(VERBOSE, message, args, **kw)
 
@@ -107,6 +107,9 @@ class Logger(logging.Logger):
     def makeRecord(self, name: str, level: int, fn: str, lno: int, msg: Any, args: Any, exc_info: Any, func: Any=None,
                    extra: Any={}, sinfo: Any=None) -> LogRecord:
         return LazyRecord(name, level, fn, lno, msg, args, exc_info, func, sinfo, extra)
+
+    def stderr(self, message: Any) -> None:
+        amino_stderr_handler.emit(self.makeRecord('stderr', ERROR, '', 0, message, (), None))
 
 
 def install_logger_class() -> None:
@@ -137,6 +140,7 @@ def init_loglevel(handler: logging.Handler, level: int=None) -> None:
     )
 
 amino_stdout_handler = logging.StreamHandler(stream=sys.stdout)
+amino_stderr_handler = logging.StreamHandler()
 
 
 def amino_stdout_logging(level: int=None) -> None:
