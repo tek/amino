@@ -75,7 +75,7 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
             (maybe.Just(self[index]) if len(self) >= -index else maybe.Empty())
         )
 
-    def lift_all(self, index: int, *indexes: int) -> 'List[A]':
+    def lift_all(self, index: int, *indexes: int) -> 'maybe.Maybe[List[A]]':
         def folder(z: maybe.Maybe[List[A]], n: List[maybe.Maybe[A]]) -> maybe.Maybe[List[A]]:
             return n.ap(z / (lambda a: a.cat))
         els = List.wrap(indexes) / self.lift
@@ -223,6 +223,10 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
     def drop_while(self, pred: Callable[[A], bool]) -> 'List[A]':
         index = self.index_where(lambda a: not pred(a))
         return index / (lambda a: self[a:]) | Nil
+
+    def drop_while_or_self(self, pred: Callable[[A], bool]) -> 'List[A]':
+        res = self.drop_while(pred)
+        return self if res == Nil else res
 
     def drop_right(self, n: int) -> 'List[A]':
         return self.take(self.length - n)
