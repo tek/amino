@@ -12,7 +12,7 @@ from amino.future import Future
 from amino.func import curried, I
 from amino.env_vars import env
 from amino.io import Try, IO
-from amino.logging import Logger, amino_root_logger as amino_log
+from amino.logging import Logger, amino_root_logger as amino_log, with_log
 from amino.eff import Eff
 from amino.eval import Eval
 from amino.regex import Regex
@@ -26,4 +26,5 @@ boot()
 
 __all__ = ('Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future', 'Boolean', 'development', 'flat_may',
            'curried', '__', 'Left', 'Right', 'Either', 'env', 'Try', 'LazyList', 'Logger', 'I', 'L', 'Eff',
-           'IO', 'Eval', 'Regex', 'Nothing', 'integration_test', 'Lists', 'do', 'IO', 'Id', 'Nil', 'amino_log')
+           'IO', 'Eval', 'Regex', 'Nothing', 'integration_test', 'Lists', 'do', 'IO', 'Id', 'Nil', 'amino_log',
+           'with_log')

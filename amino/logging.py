@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 import abc
@@ -5,7 +6,7 @@ import logging
 import operator
 from pathlib import Path
 from logging import LogRecord, DEBUG, ERROR
-from typing import Callable, Any, Union, cast, Optional
+from typing import Callable, Any, Union, cast, Optional, TypeVar
 
 from amino.lazy import lazy
 
@@ -129,6 +130,7 @@ def amino_logger(name: str) -> Logger:
 _stdout_logging_initialized = False
 
 env_log_level = EnvOption('AMINO_LOG_LEVEL')
+env_xdg_runtime_dir = EnvOption('XDG_RUNTIME_DIR')
 
 
 def init_loglevel(handler: logging.Handler, level: int=None) -> None:
@@ -151,15 +153,23 @@ def amino_stdout_logging(level: int=None) -> None:
         _stdout_logging_initialized = True
 
 
-default_logfile = Path.home() / '.python' / 'log'
+def log_dir() -> None:
+    return (Path(env_xdg_runtime_dir.value | (lambda: f'/run/user/{os.getuid()}'))) / 'amino'
+
+
+def default_logfile() -> None:
+    return log_dir() / f'log_{os.getpid()}'
+
+
 _file_fmt = ('{asctime} [{levelname} @ {name}:{funcName}:{lineno}] {message}')
 
 
-def amino_file_logging(logger: logging.Logger, level: int=DEBUG, logfile: Path=default_logfile, fmt: str=None
+def amino_file_logging(logger: logging.Logger, level: int=DEBUG, logfile: Path=None, fmt: str=None
                        ) -> logging.Handler:
-    logfile.parent.mkdir(exist_ok=True)
+    file = logfile or default_logfile()
+    file.parent.mkdir(exist_ok=True)
     formatter = logging.Formatter(fmt or _file_fmt, style='{')
-    handler = logging.FileHandler(str(logfile))
+    handler = logging.FileHandler(str(file))
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     init_loglevel(handler, level)
@@ -232,6 +242,14 @@ def print_log_info(out: Callable[[str], None]) -> None:
     out('-------')
     out(str(env_log_level))
     out(str(amino.options.development))
+
+
+A = TypeVar('A')
+
+
+def with_log(f: Callable[[Logger], A], **kw: Any) -> A:
+    amino_root_file_logging(**kw)
+    return f(log)
 
 __all__ = ('amino_root_logger', 'amino_stdout_logging', 'amino_file_logging', 'amino_root_file_logging',
            'print_log_info')
