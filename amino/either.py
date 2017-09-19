@@ -1,5 +1,6 @@
+import abc
 import importlib
-from typing import TypeVar, Generic, Callable, Union, Any, cast, Iterator
+from typing import TypeVar, Generic, Callable, Union, Any, cast, Iterator, Type
 from types import ModuleType  # noqa
 from pathlib import Path
 
@@ -110,6 +111,13 @@ class Either(Generic[A, B], F[B], implicits=True):
             if attr is None else
             Right(attr)
         )
+
+    @staticmethod
+    def catch(f: Callable[[], B], exc: Type[E]) -> 'Either[E, B]':
+        try:
+            return Right(f())
+        except exc as e:
+            return Left(e)
 
     @property
     def is_right(self) -> 'amino.Boolean':
