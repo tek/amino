@@ -11,14 +11,19 @@ from amino.util.mod import unsafe_import_name
 from amino.tc.monoid import Monoid
 from amino.util.string import ToStr
 from amino.do import do
+from amino.util.exception import format_exception
 
 A = TypeVar('A')
 B = TypeVar('B')
 C = TypeVar('C')
+E = TypeVar('E', bound=Exception)
 
 
 class ImportFailure(ToStr):
-    pass
+
+    @abc.abstractproperty
+    def expand(self) -> 'amino.List[str]':
+        ...
 
 
 class ImportException(ImportFailure):
@@ -30,6 +35,10 @@ class ImportException(ImportFailure):
     def _arg_desc(self) -> 'amino.List[str]':
         return amino.List(self.desc, str(self.exc))
 
+    @property
+    def expand(self) -> 'amino.List[str]':
+        return format_exception(self.exc).cons(self.desc)
+
 
 class InvalidLocator(ImportFailure):
 
@@ -37,6 +46,10 @@ class InvalidLocator(ImportFailure):
         self.msg = msg
 
     def _arg_desc(self) -> 'amino.List[str]':
+        return amino.List(self.msg)
+
+    @property
+    def expand(self) -> 'amino.List[str]':
         return amino.List(self.msg)
 
 
