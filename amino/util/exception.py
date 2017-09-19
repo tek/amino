@@ -2,7 +2,8 @@ from typing import Tuple, Callable
 
 from traceback import format_list, format_exception_only, FrameSummary, extract_tb
 
-from amino import List, Lists, Maybe, I
+from amino.list import List, Lists
+from amino.func import I
 
 
 def sanitize_tb(tb: List[str]) -> List[str]:
@@ -22,6 +23,7 @@ def format_one_exception(
 
 
 def format_cause(exc: Exception, **kw) -> List[str]:
+    from amino import Maybe
     return Maybe(exc.__cause__) / (lambda a: format_exception(a, **kw)) / (lambda a: a.cons('Cause:')) | List()
 
 
