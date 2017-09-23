@@ -19,8 +19,12 @@ class Maybe(Generic[A], F[A], implicits=True):
         return Maybe.check(value)
 
     @staticmethod
-    def check(value: Optional[A]) -> 'Maybe[A]':
+    def optional(value: Optional[A]) -> 'Maybe[A]':
         return Nothing if value is None else Just(value)
+
+    @staticmethod
+    def check(value: Optional[A]) -> 'Maybe[A]':
+        return Maybe.optional(value)
 
     @staticmethod
     def typed(value: Union[A, B], tpe: Type[A]) -> 'Maybe[A]':
