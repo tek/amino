@@ -18,6 +18,10 @@ class Boolean:
     def wrap(value):
         return Boolean(value)
 
+    @staticmethod
+    def issubclass(value: A, tpe: type) -> 'Boolean':
+        return Boolean(isinstance(value, type) and issubclass(value, tpe))
+
     def maybe(self, value):
         return maybe.Maybe(value) if self else maybe.Empty()
 
