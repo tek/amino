@@ -119,6 +119,13 @@ class Either(Generic[A, B], F[B], implicits=True):
         except exc as e:
             return Left(e)
 
+    @staticmethod
+    @do
+    def exports(modpath: str) -> 'Either[ImportFailure, amino.list.List[Any]]':
+        from amino.list import Lists
+        exports = yield Either.import_name(modpath, '__all__')
+        yield Lists.wrap(exports).traverse(lambda a: Either.import_name(modpath, a), Either)
+
     @property
     def is_right(self) -> 'amino.Boolean':
         return boolean.Boolean(isinstance(self, Right))
