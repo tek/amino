@@ -131,6 +131,7 @@ _stdout_logging_initialized = False
 
 env_log_level = EnvOption('AMINO_LOG_LEVEL')
 env_xdg_runtime_dir = EnvOption('XDG_RUNTIME_DIR')
+env_amino_log_dir = EnvOption('AMINO_LOG_DIR')
 
 
 def init_loglevel(handler: logging.Handler, level: int=None) -> None:
@@ -154,7 +155,9 @@ def amino_stdout_logging(level: int=None) -> None:
 
 
 def log_dir() -> None:
-    return (Path(env_xdg_runtime_dir.value | (lambda: f'/run/user/{os.getuid()}'))) / 'amino'
+    return env_amino_log_dir.value / Path | (
+    (Path(env_xdg_runtime_dir.value | (lambda: f'/run/user/{os.getuid()}'))) / 'amino'
+    )
 
 
 def default_logfile() -> None:
