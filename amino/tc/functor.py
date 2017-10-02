@@ -2,8 +2,7 @@ import abc
 import re
 from typing import TypeVar, Generic, Callable, Any
 
-import amino.func
-from amino.tc.base import TypeClass
+from amino.tc.base import TypeClass, tc_prop
 from amino.func import ReplaceVal
 
 F = TypeVar('F')
@@ -38,6 +37,10 @@ class Functor(Generic[F], TypeClass[F]):
 
     def replace(self, fa: F, b: B) -> F:
         return self.map(fa, ReplaceVal(b))
+
+    @tc_prop
+    def void(self, fa: F) -> F:
+        return self.replace(fa, None)
 
     def foreach(self, fa: F, f: Callable[[A], Any]) -> F:
         def effect(a: A) -> A:
