@@ -1,5 +1,5 @@
 from types import GeneratorType
-from typing import TypeVar, Callable, Any, Generator, cast, Optional
+from typing import TypeVar, Callable, Any, Generator, cast, Optional, Type
 import functools
 
 from amino.tc.base import F
@@ -29,4 +29,10 @@ def do(f: Callable[..., Generator[G, B, None]]) -> Callable[..., G]:
         return send(cast(B, None))
     return do_loop
 
-__all__ = ('do', 'F')
+
+def tdo(tpe: Type[A]) -> Callable[[Callable[..., Generator]], Callable[..., A]]:
+    def deco(f: Callable[..., Generator]) -> Callable[..., A]:
+        return cast(Callable[[Callable[..., Generator]], Callable[..., A]], do)(f)
+    return deco
+
+__all__ = ('do', 'F', 'tdo')
