@@ -8,9 +8,9 @@ from amino.boolean import Boolean
 from amino.tc.base import Implicits, ImplicitsMeta
 
 A = TypeVar('A')
-B = TypeVar('B')
+B = TypeVar('B', covariant=True)
 C = TypeVar('C')
-D = TypeVar('D')
+D = TypeVar('D', covariant=True)
 
 
 class Map(Generic[A, B], Dict[A, B], Implicits, metaclass=ImplicitsMeta):
