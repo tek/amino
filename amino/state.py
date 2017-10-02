@@ -81,6 +81,10 @@ class StateT(Generic[G, S, A], ToStr, F[A], metaclass=StateTMeta):
     def set(self, s: S) -> 'StateT[G, S, A]':
         return self.modify(lambda s0: s)
 
+    @classmethod
+    def get(self) -> 'StateT[G, S, A]':
+        return self.inspect(lambda a: a)
+
     @property
     def cls(self) -> Type[ST]:
         return cast(Type[ST], type(self))
