@@ -28,5 +28,6 @@ development = EnvOption('AMINO_DEVELOPMENT')
 integration_test = EnvOption('AMINO_INTEGRATION')
 anon_debug = EnvOption('AMINO_ANON_DEBUG')
 io_debug = EnvOption('AMINO_IO_DEBUG')
+env_xdg_data_dir = EnvOption('XDG_DATA_DIR')
 
-__all__ = ('development', 'integration_test', 'anon_debug', 'io_debug')
+__all__ = ('development', 'integration_test', 'anon_debug', 'io_debug', 'env_xdg_data_dir')
