@@ -23,7 +23,7 @@ class Regex:
         else:
             raise AttributeError('Regex has no attribute \'{}\''.format(name))
 
-    def match(self, data: str, *a: Any, **kw: Any) -> Maybe['Match']:
+    def match(self, data: str, *a: Any, **kw: Any) -> Either[str, 'Match']:
         return (
             Maybe(self.rex.match(data, *a, **kw))
             .to_either('`{}` does not match `{}`'.format(data, self.spec)) /
@@ -33,12 +33,15 @@ class Regex:
     def matches(self, data: str, *a: Any, **kw: Any) -> Boolean:
         return self.match(data, *a, **kw).is_right
 
-    def search(self, data: str, *a: Any, **kw: Any) -> Maybe['Match']:
+    def search(self, data: str, *a: Any, **kw: Any) -> Either[str, 'Match']:
         return (
             Maybe(self.rex.search(data, *a, **kw))
             .to_either('`{}` does not contain `{}`'.format(data, self.spec)) /
             L(Match)(self, _, data)
         )
+
+    def contains(self, data: str, *a: Any, **kw: Any) -> Boolean:
+        return self.search(data, *a, **kw).is_right
 
     def __str__(self) -> str:
         return 'Regex({})'.format(self.spec)
