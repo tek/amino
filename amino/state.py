@@ -169,4 +169,10 @@ IdState = State
 
 tcs(Id, State)
 
-__all__ = ('StateT', 'MaybeState', 'EitherState', 'EvalState', 'IdState', 'State')
+
+class IOState(Generic[S, A], StateT[IO, S, A], tpe=IO):
+    pass
+
+tcs(IO, IOState)  # type: ignore
+
+__all__ = ('StateT', 'MaybeState', 'EitherState', 'EvalState', 'IdState', 'State', 'IOState')
