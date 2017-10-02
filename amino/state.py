@@ -5,7 +5,7 @@ from amino.tc.base import ImplicitsMeta, F
 from amino.tc.monad import Monad
 from amino.tc.zip import Zip
 from amino.instances.list import ListTraverse
-from amino import List, Maybe, Either, Eval
+from amino import List, Maybe, Either, Eval, IO, Left
 from amino.id import Id
 from amino.util.string import ToStr
 from amino.tc.traverse import TraverseF, TraverseG
@@ -148,7 +148,10 @@ tcs(Maybe, MaybeState)
 
 
 class EitherState(Generic[S, A], StateT[Either, S, A], tpe=Either):
-    pass
+
+    @classmethod
+    def failed(self, err: B) -> 'StateT[Either, S, A]':
+        return EitherState.lift(Left(err))
 
 tcs(Either, EitherState)
 
