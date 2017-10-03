@@ -57,7 +57,7 @@ j.map(List)
 e.map(_ + 2)
 # Empty()
 
-j.flat_map(L(Just)(_ - 2))
+j.flat_map(lambda a: Just(a - 2))
 # Just(-1)
 ```
 
@@ -110,7 +110,7 @@ The typeclass instances are stored in a global registry, which can be used separ
 ```python
 from amino.tc.monad import Monad
 
-Monad.lookup(List).flat_map(List(1, 2), _ + 5)
+Monad.lookup(List).flat_map(List(1, 2), lambda a: List(a + 5))
 # List(6, 7)
 ```
 
