@@ -86,7 +86,7 @@ The function decorator `do` allows to use generators as do-blocks with any class
 It is implemented by looping until the generator is exhausted, calling `flat_map` on each yielded effect and sending
 its value into the generator.
 
-```
+```python
 from amino import do
 
 @do
