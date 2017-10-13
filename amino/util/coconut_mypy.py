@@ -28,8 +28,7 @@ def update_for(path: Path, files: Files) -> Files:
 
 
 @tdo(Either[str, Entry])
-def substitute(files: Files, path: Path, lnum: int, col: Either[str, int], error: str, coco_path: Path
-               ) -> Either[str, Entry]:
+def substitute(files: Files, path: Path, lnum: int, col: Either[str, int], error: str, coco_path: Path) -> Generator:
     lines = yield files.lift(path).to_either('corrupt state')
     line = yield lines.lift(lnum - 1).to_either(f'invalid line number {lnum} for {path}')
     lnum_match = yield lnum_rex.search(line)
