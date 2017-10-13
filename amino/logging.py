@@ -164,19 +164,25 @@ def default_logfile() -> None:
     return log_dir() / f'log_{os.getpid()}'
 
 
+def file_handler_exists(logger: logging.Logger, file: Path) -> bool:
+    def match(handler: logging.Handler) -> bool:
+        return isinstance(handler, logging.FileHandler) and handler.baseFilename == str(file)
+    return any(map(match, logger.handlers))
+
+
 _file_fmt = ('{asctime} [{levelname} @ {name}:{funcName}:{lineno}] {message}')
 
 
-def amino_file_logging(logger: logging.Logger, level: int=DEBUG, logfile: Path=None, fmt: str=None
-                       ) -> logging.Handler:
+def amino_file_logging(logger: logging.Logger, level: int=DEBUG, logfile: Path=None, fmt: str=None) -> logging.Handler:
     file = logfile or default_logfile()
-    file.parent.mkdir(exist_ok=True)
-    formatter = logging.Formatter(fmt or _file_fmt, style='{')
-    handler = logging.FileHandler(str(file))
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    init_loglevel(handler, level)
-    return handler
+    if not file_handler_exists(logger, file):
+        file.parent.mkdir(exist_ok=True)
+        formatter = logging.Formatter(fmt or _file_fmt, style='{')
+        handler = logging.FileHandler(str(file))
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        init_loglevel(handler, level)
+        return handler
 
 
 def amino_root_file_logging(level: int=DEBUG, **kw: Any) -> logging.Handler:
@@ -235,11 +241,8 @@ def format_logger_tree(tree: 'amino.Map[Logger, Any]', fmt_logger: Callable[[Log
 
 def print_log_info(out: Callable[[str], None]) -> None:
     lname = lambda l: logging.getLevelName(l.getEffectiveLevel())
-    hlname = lambda h: logging.getLevelName(h.level)
-    def handler(h: logging.Handler) -> str:
-        return '{}({})'.format(h.__class__.__name__, hlname(h))
     def logger(l: logging.Logger) -> str:
-        handlers = ','.join(list(map(handler, l.handlers)))
+        handlers = ','.join(list(map(str, l.handlers)))
         return '{}: {} {}'.format(l.name, lname(l), handlers)
     out(format_logger_tree(logger_tree('amino'), logger).join_lines)
     out('-------')
