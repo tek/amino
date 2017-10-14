@@ -1,9 +1,11 @@
 import inspect
-from typing import TypeVar, Type, Any, Generic, GenericMeta, cast
+from typing import TypeVar, Type, Any, Generic, GenericMeta, cast, Generator
 
-from amino import Map, Lists, List, Nil, _
+from amino import Map, Lists, List, Nil, _, Either, Right, Maybe
 from amino.util.string import ToStr
 from amino.func import Val
+from amino.do import tdo
+from amino.lazy import lazy
 
 A = TypeVar('A')
 
@@ -46,25 +48,25 @@ class FieldMutator(Generic[Sub]):
 
 class FieldSetter(Generic[Sub], FieldMutator[Sub]):
 
-    def __call__(self, value):
+    def __call__(self, value) -> Sub:
         return self.target.copy(**{self.name: value})
 
 
 class FieldModifier(Generic[Sub], FieldMutator[Sub]):
 
-    def __call__(self, f):
+    def __call__(self, f) -> Sub:
         return self.target.copy(**{self.name: f(getattr(self.target, self.name))})
 
 
 class FieldAppender(Generic[Sub], FieldMutator[Sub]):
 
-    def __call__(self, value):
+    def __call__(self, value) -> Sub:
         return self.target.mod(self.name, _ + value)
 
 
 class FieldAppender1(Generic[Sub], FieldMutator[Sub]):
 
-    def __call__(self, value):
+    def __call__(self, value) -> Sub:
         return self.target.mod(self.name, _ + List(value))
 
 
@@ -103,6 +105,10 @@ class DatMeta(GenericMeta):
 class Dat(Generic[Sub], metaclass=DatMeta):
     Keep = KeepField()
 
+    @lazy
+    def _dat__values(self) -> List[Any]:
+        return self._dat__fields.traverse(lambda a: Maybe.getattr(self, a.name), Maybe)
+
     def copy(self, **kw: Any) -> Sub:
         updates = Map(kw)
         def update(f: Field) -> Any:
@@ -111,19 +117,25 @@ class Dat(Generic[Sub], metaclass=DatMeta):
         return cast(Dat, type(self)(*updated))
 
     @property
-    def append(self):
+    def append(self) -> FieldProxy:
         return FieldProxy(self, FieldAppender)
 
     @property
-    def append1(self):
+    def append1(self) -> FieldProxy:
         return FieldProxy(self, FieldAppender1)
 
     @property
-    def mod(self):
+    def mod(self) -> FieldProxy:
         return FieldProxy(self, FieldModifier)
 
     @property
-    def set(self):
+    def set(self) -> FieldProxy:
         return FieldProxy(self, FieldSetter)
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, type(self)) and self._dat__values == other._dat__values
+
+    def _lens_setattr(self, name, value):
+        return self.set(name)(value)
 
 __all__ = ('Dat',)

@@ -7,7 +7,7 @@ import amino
 from amino.util.string import snake_case
 from amino.lazy import lazy
 
-from amino.logging import amino_root_logger
+from amino.logging import amino_root_logger, Logging
 
 A = TypeVar('A')
 TC = TypeVar('TC', bound='TypeClass')
@@ -39,8 +39,14 @@ class TypeClassMeta(GenericMeta):
     def m_for(self, a: Any) -> 'amino.maybe.Maybe[TypeClass]':
         return self.m(type(a))
 
+    def e(self, tpe: type) -> 'amino.maybe.Maybe[TypeClass]':
+        return (
+            self.m(tpe)
+            .to_either(f'no `{self.__name__}` instance for {tpe}')
+        )
+
     def e_for(self, a: A) -> 'amino.either.Either[str, TC]':
-        return self.m_for(a).to_either(f'no `{self.__name__}` instance for {type(a)}')
+        return self.e(type(a))
 
     def exists_instance(self, tpe: type) -> bool:
         return self.m(tpe).present
@@ -48,7 +54,7 @@ class TypeClassMeta(GenericMeta):
     exists = exists_instance
 
 
-class TypeClass(Generic[A], metaclass=TypeClassMeta):
+class TypeClass(Generic[A], Logging, metaclass=TypeClassMeta):
     pass
 
 

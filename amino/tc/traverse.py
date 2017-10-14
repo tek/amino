@@ -24,8 +24,7 @@ G0 = TypeVar('G0', bound=TraverseG)
 
 
 class Traverse(Generic[F0], TypeClass[F0]):
-    # FIXME lens functions return index lenses, which is not a property of
-    # Traverse
+    # FIXME lens functions return index lenses, which is not a property of Traverse
 
     @abc.abstractmethod
     def traverse(self, fa: F[G[A]], f: Callable[[A], B], tpe: type) -> G[F[B]]:
