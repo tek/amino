@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Callable, Union, Any
+from typing import TypeVar, Generic, Callable, Any, cast
 import functools
 
 A = TypeVar('A')
@@ -42,8 +42,8 @@ class lazy(Generic[A]):
         self._attr_name = _attr_fmt.format(name or self.func.__name__)
         functools.wraps(self.func)(self)  # type: ignore
 
-    def __get__(self, inst: Any, inst_cls: type) -> Union[A, 'lazy[A]']:
-        return self if inst is None else self._get(inst, inst_cls)  # type: ignore
+    def __get__(self, inst: Any, inst_cls: type) -> A:
+        return cast(A, self if inst is None else self._get(inst, inst_cls))
 
     def _get(self, inst: Any, inst_cls: type) -> A:
         try:
