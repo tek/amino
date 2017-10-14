@@ -1,9 +1,10 @@
 import inspect
-from typing import TypeVar, Type, Any, Generic, GenericMeta, cast, Generator
+from typing import TypeVar, Type, Any, Generic, GenericMeta, cast, Generator, Tuple
 
 from amino import Map, Lists, List, Nil, _, Either, Right, Maybe
 from amino.util.string import ToStr
 from amino.func import Val
+from amino.json import Decoder, JsonError, decode_json_object, Encoder, encode_json, JsonObject, JsonScalar
 from amino.do import tdo
 from amino.lazy import lazy
 
@@ -98,16 +99,40 @@ class DatMeta(GenericMeta):
         fs = Map(namespace).lift('__init__') / inspect.getfullargspec / init_fields | Nil
         inst = super().__new__(cls, name, bases, namespace, **kw)
         if fs:
-            inst._dat__fields = fs
+            inst._dat__fields_value = fs
         return inst
+
+    @property
+    def _dat__fields(self) -> List[Field]:
+        return self._dat__fields_value
 
 
 class Dat(Generic[Sub], metaclass=DatMeta):
     Keep = KeepField()
 
+    @property
+    def _dat__fields(self) -> List[Field]:
+        return type(self)._dat__fields
+
+    @lazy
+    def _dat__names(self) -> List[str]:
+        return self._dat__fields.map(_.name)
+
     @lazy
     def _dat__values(self) -> List[Any]:
-        return self._dat__fields.traverse(lambda a: Maybe.getattr(self, a.name), Maybe)
+        return (
+            self._dat__fields
+            .traverse(lambda a: Maybe.getattr(self, a.name), Maybe)
+            .get_or_fail(f'corupt `Dat`: {self}')
+        )
+
+    @lazy
+    def _dat__items(self) -> List[Tuple[str, Any]]:
+        return self._dat__names.zip(self._dat__values)
+
+    @property
+    def to_map(self) -> Map[str, Any]:
+        return Map(self._dat__items)
 
     def copy(self, **kw: Any) -> Sub:
         updates = Map(kw)
@@ -137,5 +162,23 @@ class Dat(Generic[Sub], metaclass=DatMeta):
 
     def _lens_setattr(self, name, value):
         return self.set(name)(value)
+
+
+class DatDecoder(Decoder, tpe=Dat):
+
+    def decode(self, tpe: Type[Sub], data: Map[str, Any]) -> Either[JsonError, Sub]:
+        @tdo(Either[JsonError, A])
+        def decode_field(field: Field) -> Generator:
+            value = yield data.lift(field.name).to_either(f'missing field {field.name} in json while decoding {tpe}')
+            yield decode_json_object(value) if isinstance(value, dict) else Right(value)
+        return tpe._dat__fields.traverse(decode_field, Either).map(lambda a: tpe(*a))
+
+
+class DatEncoder(Encoder, tpe=Dat):
+
+    @tdo(Either[JsonError, Map])
+    def encode(self, a: Sub) -> Generator:
+        jsons = yield a._dat__values.traverse(encode_json, Either)
+        yield Right(JsonObject(Map(a._dat__names.zip(jsons)).cat(('__type__', JsonScalar(qualified_type(type(a)))))))
 
 __all__ = ('Dat',)
