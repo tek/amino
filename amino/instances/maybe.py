@@ -4,7 +4,7 @@ from typing import Tuple  # NOQA
 from amino.tc.base import tc_prop, ImplicitInstances
 from amino.tc.monad import Monad
 from amino.tc.optional import Optional
-from amino import either, Just, Empty, Maybe, curried, List
+from amino import either, Just, Empty, Maybe, curried, List, Nothing
 from amino.lazy import lazy
 from amino.maybe import call_by_name
 from amino.tc.applicative import Applicative
@@ -39,7 +39,7 @@ class MaybeMonad(Monad):
         return Just(a)
 
     def flat_map(self, fa: Maybe[A], f: Callable[[A], Maybe[B]]) -> Maybe[B]:
-        return fa.cata(lambda v: f(v), Empty())
+        return fa.cata(lambda v: f(v), Nothing)
 
 
 class MaybeOptional(Optional):

@@ -24,7 +24,7 @@ class Map(Generic[A, B], Dict[A, B], Implicits, metaclass=ImplicitsMeta):
         return Dict.get(self, key)
 
     def lift(self, key: str) -> Maybe[B]:
-        return Maybe.check(Dict.get(self, key))
+        return Just(Dict.get(self, key)) if key in self else Nothing
 
     def get_item(self, key):
         return self.get(key) / (lambda a: (key, a))
