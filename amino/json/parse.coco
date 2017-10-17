@@ -1,0 +1,20 @@
+import json
+from typing import Any
+
+from amino import Either, Left, Lists, Map, Try
+from amino.json.data import Json, JsonArray, JsonScalar, JsonObject
+
+
+def to_json(a: Any) -> Json:
+    case a:
+        match a is (list, tuple):
+            result = JsonArray(Lists.wrap(a) / to_json)
+        match a is dict:
+            result = JsonObject(Map(a).valmap(to_json))
+        match a:
+            result = JsonScalar(a)
+    return result
+
+
+def parse_json(payload: str) -> Either[str, Json]:
+    return Try(json.loads, payload) / to_json

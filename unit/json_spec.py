@@ -1,7 +1,10 @@
 from amino.test.spec_spec import Spec
-from amino.json import decode_json, dump_json
 from amino.dat import Dat
-from amino import Right
+from amino import Right, Maybe
+from amino.json.decoder import decode_json
+from amino.json.encoder import dump_json
+import amino.json.decoders  # noqa
+import amino.json.encoders  # noqa
 
 
 class E(Dat['E']):
@@ -19,15 +22,28 @@ class D(Dat['D']):
         self.b = b
 
 
+class M(Dat['M']):
+
+    def __init__(self, a: Maybe[int]) -> None:
+        self.a = a
+
+
+mod = 'unit.json_spec'
+
+
 class JsonSpec(Spec):
 
     def codec_dat(self) -> None:
-        mod = 'unit.json_spec'
         t = "__type__"
         target = D(E(2, 'E'), 1, 'D')
         json = f'{{"e": {{"a": 2, "b": "E", "{t}": "{mod}.E"}}, "a": 1, "b": "D", "{t}": "{mod}.D"}}'
         decoded = decode_json(json)
         decoded.should.equal(Right(target))
         dump_json(target).should.equal(Right(json))
+
+    def codec_maybe(self) -> None:
+        json = f'{{"a": null, "__type__": "{mod}.M"}}'
+        decoded = decode_json(json)
+        (decoded // dump_json).should.equal(Right(json))
 
 __all__ = ('JsonSpec',)

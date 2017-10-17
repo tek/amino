@@ -4,9 +4,11 @@ from typing import TypeVar, Type, Any, Generic, GenericMeta, cast, Generator, Tu
 from amino import Map, Lists, List, Nil, _, Either, Right, Maybe
 from amino.util.string import ToStr
 from amino.func import Val
-from amino.json import Decoder, JsonError, decode_json_object, Encoder, encode_json, JsonObject, JsonScalar
 from amino.do import tdo
 from amino.lazy import lazy
+from amino.json.decoder import Decoder
+from amino.json.data import JsonError, JsonObject, JsonScalar
+from amino.json.encoder import Encoder, encode_json
 
 A = TypeVar('A')
 
@@ -107,7 +109,7 @@ class DatMeta(GenericMeta):
         return self._dat__fields_value
 
 
-class Dat(Generic[Sub], metaclass=DatMeta):
+class Dat(Generic[Sub], ToStr, metaclass=DatMeta):
     Keep = KeepField()
 
     @property
@@ -123,7 +125,7 @@ class Dat(Generic[Sub], metaclass=DatMeta):
         return (
             self._dat__fields
             .traverse(lambda a: Maybe.getattr(self, a.name), Maybe)
-            .get_or_fail(f'corupt `Dat`: {self}')
+            .get_or_fail(lambda: f'corrupt `Dat`: {self}')
         )
 
     @lazy
@@ -163,14 +165,18 @@ class Dat(Generic[Sub], metaclass=DatMeta):
     def _lens_setattr(self, name, value):
         return self.set(name)(value)
 
+    def _arg_desc(self) -> List[str]:
+        return self._dat__values / str
+
 
 class DatDecoder(Decoder, tpe=Dat):
 
-    def decode(self, tpe: Type[Sub], data: Map[str, Any]) -> Either[JsonError, Sub]:
+    def decode(self, tpe: Type[Sub], data: JsonObject) -> Either[JsonError, Sub]:
         @tdo(Either[JsonError, A])
         def decode_field(field: Field) -> Generator:
-            value = yield data.lift(field.name).to_either(f'missing field {field.name} in json while decoding {tpe}')
-            yield decode_json_object(value) if isinstance(value, dict) else Right(value)
+            value = yield data.field(field.name).to_either(f'missing field {field.name} in json while decoding {tpe}')
+            dec = yield Decoder.e(field.tpe)
+            yield dec.decode(field.tpe, value)
         return tpe._dat__fields.traverse(decode_field, Either).map(lambda a: tpe(*a))
 
 
