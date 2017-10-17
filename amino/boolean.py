@@ -1,4 +1,4 @@
-from typing import Union, Any, TypeVar
+from typing import Union, Any, TypeVar, Type
 
 import amino
 from amino import maybe
@@ -19,8 +19,12 @@ class Boolean:
         return Boolean(value)
 
     @staticmethod
-    def issubclass(value: A, tpe: type) -> 'Boolean':
+    def issubclass(value: Type[A], tpe: Type[B]) -> 'Boolean':
         return Boolean(isinstance(value, type) and issubclass(value, tpe))
+
+    @staticmethod
+    def isinstance(value: A, tpe: Type[A]) -> 'Boolean':
+        return Boolean(isinstance(value, tpe))
 
     def maybe(self, value):
         return maybe.Maybe(value) if self else maybe.Empty()
@@ -49,8 +53,8 @@ class Boolean:
     def flat_either_call(self, l, r):
         return r() if self else Left(l)
 
-    def e(self, l: A, r: B) -> Either[A, B]:
-        return Right(call_by_name(r)) if self else Left(call_by_name(l))
+    def e(self, f: A, t: B) -> Either[A, B]:
+        return Right(call_by_name(t)) if self else Left(call_by_name(f))
 
     def flat_e(self, l, r):
         return call_by_name(r) if self else Left(call_by_name(l))
