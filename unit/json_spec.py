@@ -3,8 +3,7 @@ from typing import Any
 from amino.test.spec_spec import Spec
 from amino.dat import Dat
 from amino import Right, Maybe, List
-from amino.json.decoder import decode_json
-from amino.json.encoder import dump_json
+from amino.json import dump_json, decode_json
 
 
 class E(Dat['E']):
