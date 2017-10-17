@@ -15,14 +15,24 @@ TC = TypeVar('TC', bound='TypeClass')
 
 class TypeClassMeta(GenericMeta):
 
-    def __new__(cls: type, name: str, bases: tuple, namespace: dict, tpe: type=None, pred: Callable=None, **kw: dict
-                ) -> type:
+    def __new__(
+            cls: type,
+            name: str,
+            bases: tuple,
+            namespace: dict,
+            tpe: type=None,
+            pred: Callable=None,
+            sub: type=None,
+            **kw: dict
+    ) -> type:
         inst = super().__new__(cls, name, bases, namespace, **kw)  # type: ignore
         if name != 'TypeClass':
             if tpe is not None:
                 Instances.add_auto(tpe, inst())
             elif pred is not None:
                 Instances.add_pred(pred, inst())
+            elif sub is not None:
+                Instances.add_pred(lambda t: issubclass(t, sub), inst())
         return inst
 
     def fatal(self, tpe: type) -> 'TypeClass':
@@ -83,8 +93,7 @@ operators = (
 
 class ImplicitInstancesMeta(abc.ABCMeta):
 
-    def __new__(cls: type, name: str, bases: tuple, namespace: dict,
-                tpe: type=None, **kw: dict) -> type:
+    def __new__(cls: type, name: str, bases: tuple, namespace: dict, tpe: type=None, **kw: dict) -> type:
         inst = super().__new__(cls, name, bases, namespace,  # type: ignore
                                **kw)
         if name != 'ImplicitInstances' and tpe is not None:
