@@ -1,6 +1,8 @@
+from typing import Any
+
 from amino.test.spec_spec import Spec
 from amino.dat import Dat
-from amino import Right, Maybe
+from amino import Right, Maybe, List
 from amino.json.decoder import decode_json
 from amino.json.encoder import dump_json
 import amino.json.decoders  # noqa
@@ -28,6 +30,12 @@ class M(Dat['M']):
         self.a = a
 
 
+class Li(Dat['Li']):
+
+    def __init__(self, a: List[Any]) -> None:
+        self.a = a
+
+
 mod = 'unit.json_spec'
 
 
@@ -43,6 +51,11 @@ class JsonSpec(Spec):
 
     def codec_maybe(self) -> None:
         json = f'{{"a": null, "__type__": "{mod}.M"}}'
+        decoded = decode_json(json)
+        (decoded // dump_json).should.equal(Right(json))
+
+    def codec_list(self) -> None:
+        json = f'{{"a": [1, 2, "string"], "__type__": "{mod}.Li"}}'
         decoded = decode_json(json)
         (decoded // dump_json).should.equal(Right(json))
 

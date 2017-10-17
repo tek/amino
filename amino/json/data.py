@@ -36,6 +36,10 @@ class Json(Generic[A], Algebra, base=True):
     def scalar(self) -> Boolean:
         return Boolean.isinstance(self, JsonScalar)
 
+    @property
+    def array(self) -> Boolean:
+        return Boolean.isinstance(self, JsonArray)
+
 
 class JsonObject(Json[Map[str, Json]]):
 

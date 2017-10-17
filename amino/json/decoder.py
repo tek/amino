@@ -49,8 +49,5 @@ decode = dispatch_alg(Decode(), Json, 'decode_')
 def decode_json(data: str) -> Generator:
     json = yield parse_json(data)
     yield decode(json)
-    # def object_hook(a: dict) -> A:
-    #     return decode_json_object(a).get_or_raise
-    # return Try(json.loads, data, object_hook=object_hook).lmap(lambda err: f'decoding json `{data}`: {err}')
 
 __all__ = ('Decoder', 'decode_json_object', 'decode_json')
