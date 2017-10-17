@@ -1,6 +1,6 @@
 from amino.test.spec_spec import Spec
 
-from amino import Map, Empty, Just, _
+from amino import Map, Empty, Just, _, Right, Either
 
 
 class MapSpec(Spec):
@@ -77,5 +77,10 @@ class MapSpec(Spec):
         f = _ + 1
         g = _ + 2
         Map({1: 2}).bimap(f, g).should.equal(Map({2: 4}))
+
+    def traverse(self) -> None:
+        def f(a: int) -> Either[str, int]:
+            return Right(a * 2)
+        Map({1: 2, 3: 4}).traverse(f, Either).should.equal(Right(Map({1: 4, 3: 8})))
 
 __all__ = ('MapSpec')

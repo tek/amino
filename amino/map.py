@@ -2,7 +2,7 @@ from typing import TypeVar, Dict, Generic, Tuple, Callable
 
 from toolz import dicttoolz
 
-from amino import Maybe, may, Just
+from amino import Maybe, may, Just, Nothing
 from amino.list import List, Lists
 from amino.boolean import Boolean
 from amino.tc.base import Implicits, ImplicitsMeta
@@ -13,7 +13,7 @@ C = TypeVar('C')
 D = TypeVar('D', covariant=True)
 
 
-class Map(Generic[A, B], Dict[A, B], Implicits, metaclass=ImplicitsMeta):
+class Map(Generic[A, B], Dict[A, B], Implicits, metaclass=ImplicitsMeta, implicits=True):
 
     @staticmethod
     def wrap(d: Dict[A, B]) -> 'Map[A, B]':
