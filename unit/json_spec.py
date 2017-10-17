@@ -5,8 +5,6 @@ from amino.dat import Dat
 from amino import Right, Maybe, List
 from amino.json.decoder import decode_json
 from amino.json.encoder import dump_json
-import amino.json.decoders  # noqa
-import amino.json.encoders  # noqa
 
 
 class E(Dat['E']):
