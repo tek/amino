@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xafe99d73
+# __coconut_hash__ = 0x426ea25a
 
 # Compiled with Coconut version 1.3.0 [Dead Parrot]
 
@@ -99,14 +99,14 @@ class Maybe(Generic[A], F[A], implicits=True):  # line 14
     __or__ = get_or_else  # line 68
 
     @_coconut_tco  # line 70
-    def get_or_raise(self, e: 'Exception') -> 'A':  # line 70
+    def get_or_raise(self, e: 'CallByName') -> 'A':  # line 70
         def raise_e() -> 'None':  # line 71
-            raise e  # line 72
+            raise call_by_name(e)  # line 72
         return _coconut_tail_call(self.cata, cast(Callable, I), raise_e)  # line 73
 
     @_coconut_tco  # line 75
     def get_or_fail(self, err: 'CallByName') -> 'A':  # line 75
-        return _coconut_tail_call(self.get_or_raise, Exception(call_by_name(err)))  # line 76
+        return _coconut_tail_call(self.get_or_raise, lambda: Exception(call_by_name(err)))  # line 76
 
     @_coconut_tco  # line 78
     def __contains__(self, v: 'A') -> 'boolean.Boolean':  # line 78
