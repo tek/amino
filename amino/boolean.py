@@ -1,4 +1,4 @@
-from typing import Union, Any, TypeVar, Type
+from typing import Union, Any, TypeVar, Type, Callable
 
 import amino
 from amino import maybe
@@ -25,6 +25,10 @@ class Boolean:
     @staticmethod
     def isinstance(value: A, tpe: Type[A]) -> 'Boolean':
         return Boolean(isinstance(value, tpe))
+
+    @staticmethod
+    def is_a(tpe: Type[A]) -> Callable[[Any], 'Boolean']:
+        return lambda a: Boolean.isinstance(a, tpe)
 
     def maybe(self, value):
         return maybe.Maybe(value) if self else maybe.Empty()
