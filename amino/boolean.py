@@ -116,6 +116,10 @@ class Boolean:
     def json_repr(self):
         return self.value
 
+    @property
+    def to_int(self) -> int:
+        return 1 if self else 0
+
 
 true = Boolean(True)
 false = Boolean(False)
