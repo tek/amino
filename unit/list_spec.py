@@ -12,7 +12,7 @@ class ListSpec(Spec):
 
     def flat_map(self):
         List(1, 2, 3) \
-            .flat_map(lambda v: [v, v + 1]) \
+            .flat_map(lambda v: List(v, v + 1)) \
             .should.equal(List(1, 2, 2, 3, 3, 4))
 
     def join_maybes(self):

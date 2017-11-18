@@ -40,4 +40,7 @@ class EitherSpec(Spec):
         Lists.range(5).fold_m(Right(8))(f).should.contain(18)
         Lists.range(6).fold_m(Right(8))(f).should.be.left
 
+    def list_flat_map(self) -> None:
+        (List(Right(1), Left(2), Right(3)).join).should.equal(List(1, 3))
+
 __all__ = ('EitherSpec',)

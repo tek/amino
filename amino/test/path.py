@@ -72,5 +72,5 @@ def base_dir() -> Path:
 def pkg_dir() -> Path:
     return base_dir().parent
 
-__all__ = ('create_temp_file', 'temp_file', 'temp_path', 'temp_dir', 'fixture_path', 'load_fixture', 'base_dir',
-           'pkg_dir')
+__all__ = ('setup', 'create_temp_file', 'temp_file', 'temp_path', 'temp_dir', 'fixture_path', 'load_fixture',
+           'base_dir', 'pkg_dir')
