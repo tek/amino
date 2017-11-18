@@ -5,16 +5,18 @@ from amino.tc.base import ImplicitsMeta, F
 from amino.tc.monad import Monad
 from amino.tc.zip import Zip
 from amino.instances.list import ListTraverse
-from amino import List, Maybe, Either, Eval, IO, Left
+from amino import List, Maybe, Either, Eval, IO, Left, curried
 from amino.id import Id
 from amino.util.string import ToStr
 from amino.tc.traverse import TraverseF, TraverseG
 
 S = TypeVar('S')
+R = TypeVar('R')
 A = TypeVar('A')
 B = TypeVar('B')
 ST = TypeVar('ST', bound='StateT')
 G = TypeVar('G', bound=F)
+H = TypeVar('H', bound=F)
 
 
 class StateTMeta(ImplicitsMeta, abc.ABCMeta):
@@ -31,9 +33,6 @@ class StateTMeta(ImplicitsMeta, abc.ABCMeta):
 
 
 class StateT(Generic[G, S, A], ToStr, F[A], metaclass=StateTMeta):
-
-    def __init__(self, run_f: F[Callable[[S], F[Tuple[S, A]]]]) -> None:
-        self.run_f = run_f
 
     @classmethod
     def cons(self, run_f: F[Callable[[S], F[Tuple[S, A]]]]) -> 'StateT[G, S, A]':
@@ -85,6 +84,9 @@ class StateT(Generic[G, S, A], ToStr, F[A], metaclass=StateTMeta):
     def get(self) -> 'StateT[G, S, A]':
         return self.inspect(lambda a: a)
 
+    def __init__(self, run_f: F[Callable[[S], F[Tuple[S, A]]]]) -> None:
+        self.run_f = run_f
+
     @property
     def cls(self) -> Type[ST]:
         return cast(Type[ST], type(self))
@@ -114,6 +116,17 @@ class StateT(Generic[G, S, A], ToStr, F[A], metaclass=StateTMeta):
             return fsa.map2(f)
         run_f1 = self.run_f.map(lambda sfsa: lambda a: g(sfsa(a)))
         return self.cls.apply_f(run_f1)
+
+    def transform_s(self, f: Callable[[R], S], g: Callable[[R, S], R]) -> 'StateT[G, R, A]':
+        def trans(sfsa: Callable[[S], F[Tuple[S, A]]], r: R) -> F[Tuple[R, A]]:
+            s = f(r)
+            return sfsa(s).map2(lambda s, a: (g(r, s), a))
+        return StateT.apply_f(self.run_f.map(curried(trans)))
+
+    def transform_f(self, tpe: Type['StateT[H, S, B]'], f: Callable[[G], H]) -> 'StateT[H, S, B]':
+        def trans(s: S) -> H:
+            return f(self.run(s))
+        return tpe.apply(trans)
 
     def modify_(self, f: Callable[[S], S]) -> 'StateT[G, S, A]':
         return self.transform(lambda s, a: (f(s), a))
