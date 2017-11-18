@@ -9,8 +9,8 @@ from amino.state import EvalState, StateT
 class DoSpec(Spec):
 
     def just(self) -> None:
-        @do
-        def run(i: int) -> Generator[Maybe[int], Any, None]:
+        @do(Maybe[int])
+        def run(i: int) -> Generator:
             a = yield Just(i)
             b = yield Just(a + 5)
             c = yield Just(b + 7)
@@ -19,8 +19,8 @@ class DoSpec(Spec):
         run(3).should.equal(Just(45))
 
     def nothing(self) -> None:
-        @do
-        def run(i: int) -> Generator[Maybe[int], Any, None]:
+        @do(Maybe[int])
+        def run(i: int) -> Generator:
             yield Just(i)
             b = yield Nothing
             c = yield Just(b + 7)
@@ -28,8 +28,8 @@ class DoSpec(Spec):
         run(3).should.equal(Nothing)
 
     def eval_state(self) -> None:
-        @do
-        def run() -> Generator[StateT[Eval, str, Any], Any, None]:
+        @do(StateT[Eval, str, Any])
+        def run() -> Generator:
             a = yield EvalState.pure(1)
             yield EvalState.set('state')
             yield EvalState.inspect(lambda s: f'{s}: {a}')
