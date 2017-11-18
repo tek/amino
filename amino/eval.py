@@ -37,6 +37,9 @@ class Eval(Generic[A], F[A], implicits=True, auto=True):
     def memoize(self) -> 'Eval[A]':
         ...
 
+    def evaluate(self) -> A:
+        return self._value()
+
 
 class Now(Generic[A], Eval[A]):
 
