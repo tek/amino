@@ -28,6 +28,11 @@ def decode_list(value: list) -> 'amino.List[str]':
     return amino.List.wrap(value).map(decode)
 
 
+@decode.register(tuple)
+def decode_tuple(value: tuple) -> 'amino.List[str]':
+    return decode_list(value)
+
+
 @decode.register(dict)
 def decode_dict(value: dict) -> 'amino.Map[str, str]':
     return amino.Map.wrap(value).keymap(decode).valmap(decode)
