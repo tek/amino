@@ -1,7 +1,8 @@
+import itertools
 from typing import TypeVar, Callable, Tuple, Optional, cast
 from functools import reduce
 
-from amino import maybe, List, Maybe
+from amino import maybe, List, Maybe, Lists
 from amino.func import curried
 from amino.lazy import lazy
 from amino.tc.monad import Monad
@@ -9,7 +10,6 @@ from amino.tc.base import ImplicitInstances, tc_prop
 from amino.tc.traverse import Traverse, TraverseF, TraverseG
 from amino.tc.applicative import Applicative
 from amino.tc.foldable import Foldable, FoldableABC
-from amino.list import flatten
 from amino.tc.zip import Zip
 from amino.tc.monoid import Monoid
 
@@ -42,7 +42,11 @@ class ListMonad(Monad):
         return List.wrap(map(f, fa))
 
     def flat_map(self, fa: List[A], f: Callable[[A], List[B]]) -> List[B]:
-        return List.wrap(flatten(map(f, fa)))
+        acc = []
+        for a in fa:
+            fb = f(a)
+            acc.append(fb if isinstance(fb, List) else fb.to_list)
+        return Lists.wrap(itertools.chain.from_iterable(acc))
 
 
 class ListTraverse(Traverse):

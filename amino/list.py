@@ -16,10 +16,6 @@ A = TypeVar('A')
 B = TypeVar('B')
 
 
-def flatten(l: Iterable[Iterable[A]]) -> Iterable[A]:
-    return list(itertools.chain.from_iterable(l))
-
-
 class ListMeta(ImplicitsMeta):
 
     def __instancecheck__(self, instance: Any) -> bool:
@@ -165,7 +161,7 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
         l, r = reduce(splitter, self, ((), (),))  # type: ignore
         return List.wrap(l), List.wrap(r)
 
-    def split_type(self, tpe: Type[B]) -> Tuple['List[B]', 'List[A]']:
+    def split_type(self, tpe: Union[Type, Tuple[Type[B]]]) -> Tuple['List[B]', 'List[A]']:
         return self.split(lambda a: isinstance(a, tpe))
 
     def index_of(self, target: Any) -> 'maybe.Maybe[int]':
