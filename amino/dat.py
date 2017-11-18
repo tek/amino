@@ -1,7 +1,7 @@
 import inspect
 from typing import TypeVar, Type, Any, Generic, GenericMeta, cast, Generator, Tuple
 
-from amino import Map, Lists, List, Nil, _, Either, Right, Maybe
+from amino import Map, Lists, List, Nil, _, Either, Right, Maybe, Just
 from amino.util.string import ToStr
 from amino.func import Val
 from amino.do import tdo
@@ -9,6 +9,7 @@ from amino.lazy import lazy
 from amino.json.decoder import Decoder
 from amino.json.data import JsonError, JsonObject, JsonScalar
 from amino.json.encoder import Encoder, encode_json
+from amino.algebra import AlgebraMeta, Algebra
 
 A = TypeVar('A')
 
@@ -64,13 +65,13 @@ class FieldModifier(Generic[Sub], FieldMutator[Sub]):
 class FieldAppender(Generic[Sub], FieldMutator[Sub]):
 
     def __call__(self, value) -> Sub:
-        return self.target.mod(self.name, _ + value)
+        return self.target.mod(self.name)(_ + value)
 
 
 class FieldAppender1(Generic[Sub], FieldMutator[Sub]):
 
     def __call__(self, value) -> Sub:
-        return self.target.mod(self.name, _ + List(value))
+        return self.target.mod(self.name)(_ + List(value))
 
 
 class FieldProxy(Generic[Sub], FieldMutator[Sub]):
@@ -100,13 +101,20 @@ class DatMeta(GenericMeta):
     def __new__(cls: type, name: str, bases: tuple, namespace: dict, **kw) -> type:
         fs = Map(namespace).lift('__init__') / inspect.getfullargspec / init_fields | Nil
         inst = super().__new__(cls, name, bases, namespace, **kw)
-        if fs:
-            inst._dat__fields_value = fs
+        inst._dat__fields_value = fs
         return inst
 
     @property
     def _dat__fields(self) -> List[Field]:
         return self._dat__fields_value
+
+    @property
+    def _field_count_min(self) -> int:
+        return len(self._dat__fields)
+
+    @property
+    def _field_count_max(self) -> Maybe[int]:
+        return Just(len(self._dat__fields))
 
 
 class Dat(Generic[Sub], ToStr, metaclass=DatMeta):
@@ -125,7 +133,7 @@ class Dat(Generic[Sub], ToStr, metaclass=DatMeta):
         return (
             self._dat__fields
             .traverse(lambda a: Maybe.getattr(self, a.name), Maybe)
-            .get_or_fail(lambda: f'corrupt `Dat`: {self}')
+            .get_or_fail(lambda: f'corrupt `Dat`: {type(self)}')
         )
 
     @lazy
@@ -187,4 +195,12 @@ class DatEncoder(Encoder, tpe=Dat):
         jsons = yield a._dat__values.traverse(encode_json, Either)
         yield Right(JsonObject(Map(a._dat__names.zip(jsons)).cat(('__type__', JsonScalar(qualified_type(type(a)))))))
 
-__all__ = ('Dat',)
+
+class ADTMeta(DatMeta, AlgebraMeta):
+    pass
+
+
+class ADT(Generic[Sub], Dat[Sub], Algebra, metaclass=ADTMeta):
+    pass
+
+__all__ = ('Dat', 'ADT')
