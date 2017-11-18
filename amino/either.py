@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x404ec769
+# __coconut_hash__ = 0x11958c37
 
 # Compiled with Coconut version 1.3.0 [Dead Parrot]
 
@@ -25,6 +25,7 @@ from typing import Any  # line 3
 from typing import cast  # line 3
 from typing import Iterator  # line 3
 from typing import Type  # line 3
+from typing import Generator  # line 3
 from types import ModuleType  # line 4
 from pathlib import Path  # line 5
 
@@ -126,8 +127,8 @@ class Either(Generic[A, B], F[B], implicits=True):  # line 58
             return _coconut_tail_call(module.to_either, InvalidLocator(f'failed to import `{path}`'))  # line 100
 
     @staticmethod  # line 102
-    @do  # line 102
-    def import_from_file(path: 'Path', name: 'str') -> 'Either[ImportFailure, B]':  # line 104
+    @do('Either[ImportFailure, B]')  # line 102
+    def import_from_file(path: 'Path', name: 'str') -> 'Generator':  # line 104
         module = yield Either.import_file(path)  # line 105
         attr = getattr(module, name, None)  # line 106
         yield (Left(InvalidLocator(f'{path} has no attribute {name}')) if attr is None else Right(attr))  # line 107
@@ -141,8 +142,8 @@ class Either(Generic[A, B], F[B], implicits=True):  # line 58
             return _coconut_tail_call(Left, e)  # line 118
 
     @staticmethod  # line 120
-    @do  # line 120
-    def exports(modpath: 'str') -> 'Either[ImportFailure, amino.List[Any]]':  # line 122
+    @do('Either[ImportFailure, amino.List[Any]]')  # line 120
+    def exports(modpath: 'str') -> 'Generator':  # line 122
         from amino.list import Lists  # line 123
         exports = yield Either.import_name(modpath, '__all__')  # line 124
         yield Lists.wrap(exports).traverse(lambda a: Either.import_name(modpath, a), Either)  # line 125
