@@ -3,7 +3,7 @@ import time
 import traceback
 import inspect
 import typing
-from typing import Callable, TypeVar, Generic, Any, Union, Tuple, Awaitable
+from typing import Callable, TypeVar, Generic, Any, Union, Tuple, Awaitable, Generator
 
 from fn.recur import tco
 
@@ -227,8 +227,8 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
     def recover(self, f: Callable[[IOException], B]) -> 'IO[B]':
         return IO.delay(lambda: self.attempt).map(__.value_or(f))
 
-    @do
-    def ensure(self, f: Callable[[Either[IOException, A]], 'IO[None]']) -> 'IO[A]':
+    @do('IO[A]')
+    def ensure(self, f: Callable[[Either[IOException, A]], 'IO[None]']) -> Generator:
         result = yield IO.delay(lambda: self.attempt)
         yield f(result)
         yield IO.from_either(result)
