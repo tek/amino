@@ -8,6 +8,7 @@ from amino.tc.monad import Monad
 A = TypeVar('A')
 B = TypeVar('B')
 G = TypeVar('G', bound=F)
+Do = Generator
 
 
 def untyped_do(f: Callable[..., Generator[G, B, None]]) -> Callable[..., G]:
@@ -38,4 +39,4 @@ def tdo(tpe: Type[A]) -> Callable[[Callable[..., Generator]], Callable[..., A]]:
 
 do = tdo
 
-__all__ = ('do', 'F', 'tdo', 'untyped_do')
+__all__ = ('do', 'F', 'tdo', 'untyped_do', 'Do')
