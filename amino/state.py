@@ -121,7 +121,7 @@ class StateT(Generic[G, S, A], ToStr, F[A], metaclass=StateTMeta):
         def trans(sfsa: Callable[[S], F[Tuple[S, A]]], r: R) -> F[Tuple[R, A]]:
             s = f(r)
             return sfsa(s).map2(lambda s, a: (g(r, s), a))
-        return StateT.apply_f(self.run_f.map(curried(trans)))
+        return self.cls.apply_f(self.run_f.map(curried(trans)))
 
     def transform_f(self, tpe: Type['StateT[H, S, B]'], f: Callable[[G], H]) -> 'StateT[H, S, B]':
         def trans(s: S) -> H:
