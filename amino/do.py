@@ -1,5 +1,5 @@
 from types import GeneratorType
-from typing import TypeVar, Callable, Any, Generator, cast, Optional, Type
+from typing import TypeVar, Callable, Any, Generator, cast, Type
 import functools
 
 from amino.tc.base import F
@@ -17,26 +17,23 @@ def untyped_do(f: Callable[..., Generator[G, B, None]]) -> Callable[..., G]:
         itr = f(*a, **kw)
         if not isinstance(itr, GeneratorType):
             raise Exception(f'function `{f.__qualname__}` decorated with `do` does not produce a generator')
-        c: Optional[F] = None
-        m: Optional[Monad[F]] = None
+        init = itr.send(None)
+        m = Monad.fatal_for(init)
         def send(val: B) -> F[B]:
-            nonlocal c, m
             try:
-                c = itr.send(val)
-                if m is None:
-                    m = Monad.fatal_for(c)
-                return c.flat_map(send)
+                return itr.send(val).flat_map(send)
             except StopIteration:
+                nonlocal m
                 return m.pure(val)
-        return send(cast(B, None))
+        return init.flat_map(send)
     return do_loop
 
 
-def tdo(tpe: Type[A]) -> Callable[[Callable[..., Generator]], Callable[..., A]]:
+def do(tpe: Type[A]) -> Callable[[Callable[..., Generator]], Callable[..., A]]:
     def deco(f: Callable[..., Generator]) -> Callable[..., A]:
         return cast(Callable[[Callable[..., Generator]], Callable[..., A]], untyped_do)(f)
     return deco
 
-do = tdo
+tdo = do
 
 __all__ = ('do', 'F', 'tdo', 'untyped_do', 'Do')
