@@ -10,6 +10,7 @@ from amino.json.decoder import Decoder
 from amino.json.data import JsonError, JsonObject, JsonScalar
 from amino.json.encoder import Encoder, encode_json
 from amino.algebra import AlgebraMeta, Algebra
+from amino.tc.base import ImplicitsMeta
 
 A = TypeVar('A')
 
@@ -96,7 +97,7 @@ def init_fields(spec: inspect.FullArgSpec) -> List[Field]:
     return args / field
 
 
-class DatMeta(GenericMeta):
+class DatMeta(ImplicitsMeta):
 
     def __new__(cls: type, name: str, bases: tuple, namespace: dict, **kw) -> type:
         fs = Map(namespace).lift('__init__') / inspect.getfullargspec / init_fields | Nil
@@ -147,7 +148,7 @@ class Dat(Generic[Sub], ToStr, metaclass=DatMeta):
     def copy(self, **kw: Any) -> Sub:
         updates = Map(kw)
         def update(f: Field) -> Any:
-            return updates.lift(f.name) | getattr(self, f.name)
+            return updates.lift(f.name) | (lambda: getattr(self, f.name))
         updated = self._dat__fields / update  # type: ignore
         return cast(Dat, type(self)(*updated))
 
