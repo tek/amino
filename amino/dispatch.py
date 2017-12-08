@@ -12,15 +12,19 @@ TA = TypeVar('TA', bound=AlgebraMeta)
 
 
 def dispatch(obj: B, tpes: typing.List[A], prefix: str, default: Callable[[A], R]=None) -> Callable[[A], R]:
+    def error(o: A) -> None:
+        msg = 'no dispatcher defined for {} on {} {}'
+        raise TypeError(msg.format(o, obj.__class__.__name__, prefix))
     @singledispatch
     def main(o: A, *a: Any, **kw: Any) -> R:
         if default is None:
-            msg = 'no dispatcher defined for {} on {} {}'
-            raise TypeError(msg.format(o, obj.__class__.__name__, prefix))
+            error(o)
         else:
             return default(o, *a, **kw)
     for tpe in tpes:
-        fun = getattr(obj, '{}{}'.format(prefix, snake_case(tpe.__name__)))
+        fun = getattr(obj, '{}{}'.format(prefix, snake_case(tpe.__name__)), None)
+        if fun is None:
+            error(tpe)
         main.register(tpe)(fun)
     return main
 
