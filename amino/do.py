@@ -19,19 +19,19 @@ def untyped_do(f: Callable[..., Generator[G, B, None]]) -> Callable[..., G]:
             raise Exception(f'function `{f.__qualname__}` decorated with `do` does not produce a generator')
         init = itr.send(None)
         m = Monad.fatal_for(init)
-        def send(val: B) -> F[B]:
+        @functools.wraps(f)
+        def loop(val: B) -> F[B]:
             try:
-                return itr.send(val).flat_map(send)
+                return m.flat_map(itr.send(val), loop)
             except StopIteration:
-                nonlocal m
                 return m.pure(val)
-        return init.flat_map(send)
+        return m.flat_map(init, loop)
     return do_loop
 
 
 def do(tpe: Type[A]) -> Callable[[Callable[..., Generator]], Callable[..., A]]:
     def deco(f: Callable[..., Generator]) -> Callable[..., A]:
-        return cast(Callable[[Callable[..., Generator]], Callable[..., A]], untyped_do)(f)
+        return cast(Callable[[Callable[..., Generator]], Callable[..., A]], functools.wraps(f)(untyped_do))(f)
     return deco
 
 tdo = do
