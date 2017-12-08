@@ -176,7 +176,9 @@ tcs(Eval, EvalState)  # type: ignore
 
 
 class State(Generic[S, A], StateT[Id, S, A], tpe=Id):
-    pass
+
+    def to(self, St: Type[StateT[G, S, A]]) -> StateT[G, S, A]:
+        return self.transform_f(St, lambda s: St.monad.pure(s.value))
 
 IdState = State
 
