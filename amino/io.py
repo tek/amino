@@ -7,7 +7,7 @@ from typing import Callable, TypeVar, Generic, Any, Union, Tuple, Awaitable, Gen
 
 from fn.recur import tco
 
-from amino import Either, Right, Left, Maybe, List, __, Just, env, _, Lists, L, Nothing, options
+from amino import Either, Right, Left, Maybe, List, __, Just, _, Lists, L, Nothing, options
 from amino.eval import Eval
 from amino.tc.base import Implicits, ImplicitsMeta
 from amino.logging import log
@@ -89,9 +89,6 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
     debug = options.io_debug.exists
     stack_only_location = True
 
-    def __init__(self) -> None:
-        self.stack = inspect.stack() if IO.debug else []
-
     @staticmethod
     def delay(f: Callable[..., A], *a: Any, **kw: Any) -> 'IO[A]':
         return Suspend(L(f)(*a, **kw) >> Pure, safe_fmt(f, a, kw))
@@ -129,6 +126,9 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
     @staticmethod
     def from_maybe(a: Maybe[A], error: str) -> 'IO[A]':
         return a / IO.now | IO.failed(error)
+
+    def __init__(self) -> None:
+        self.stack = inspect.stack() if IO.debug else []
 
     @abc.abstractmethod
     def _flat_map(self, f: Callable[[A], 'IO[B]'], ts: Eval[str], fs: Eval[str]) -> 'IO[B]':
@@ -184,8 +184,8 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
         except IOException as e:
             return Left(e)
 
-    def unsafe_perform_sync(self) -> Either[IOException, A]:
-        return self.attempt
+    def attempt_run(self) -> Either[IOException, A]:
+        return self._attempt()
 
     @property
     def attempt(self) -> Either[IOException, A]:
