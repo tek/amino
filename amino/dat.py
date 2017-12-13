@@ -102,7 +102,8 @@ class DatMeta(ImplicitsMeta):
     def __new__(cls: type, name: str, bases: tuple, namespace: dict, **kw) -> type:
         fs = Map(namespace).lift('__init__') / inspect.getfullargspec / init_fields | Nil
         inst = super().__new__(cls, name, bases, namespace, **kw)
-        inst._dat__fields_value = fs
+        if not (fs.empty and hasattr(inst, '_dat__fields_value')):
+            inst._dat__fields_value = fs
         return inst
 
     @property
