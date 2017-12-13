@@ -29,7 +29,7 @@ def dispatch(obj: B, tpes: typing.List[A], prefix: str, default: Callable[[A], R
     return main
 
 
-def dispatch_alg(obj: B, alg: Type[TA], prefix: str, default: Callable[[TA], R]=None) -> Callable[[TA], R]:
+def dispatch_alg(obj: B, alg: Type[TA], prefix: str='', default: Callable[[TA], R]=None) -> Callable[[TA], R]:
     return dispatch(obj, alg.sub, prefix, default)
 
 
