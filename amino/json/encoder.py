@@ -1,11 +1,12 @@
 import abc
 import json
-from typing import TypeVar, Generator, Generic
+from typing import TypeVar, Generator, Generic, Type
 
 from amino.tc.base import TypeClass
-from amino import Either, L, _
+from amino import Either, L, _, Map
 from amino.do import tdo
-from amino.json.data import JsonError, Json
+from amino.json.data import JsonError, Json, JsonObject, JsonScalar
+from amino.util.tpe import qualified_type
 
 A = TypeVar('A')
 
@@ -25,5 +26,9 @@ def encode_json(data: A) -> Generator:
 
 def dump_json(data: A) -> Either[JsonError, str]:
     return encode_json(data) / _.native / json.dumps
+
+
+def json_object_with_type(fields: Map[str, JsonObject], tpe: Type[A]) -> Json:
+    return JsonObject(fields.cat(('__type__', JsonScalar(qualified_type(tpe)))))
 
 __all__ = ('Encoder', 'encode_json', 'dump_json')

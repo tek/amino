@@ -1,5 +1,5 @@
 import inspect
-from typing import TypeVar, Type, Any, Generic, GenericMeta, cast, Generator, Tuple
+from typing import TypeVar, Type, Any, Generic, cast, Generator, Tuple
 
 from amino import Map, Lists, List, Nil, _, Either, Right, Maybe, Just
 from amino.util.string import ToStr
@@ -8,19 +8,16 @@ from amino.do import tdo
 from amino.lazy import lazy
 from amino.json.decoder import Decoder
 from amino.json.data import JsonError, JsonObject, JsonScalar
-from amino.json.encoder import Encoder, encode_json
+from amino.json.encoder import Encoder, encode_json, json_object_with_type
 from amino.algebra import AlgebraMeta, Algebra
 from amino.tc.base import ImplicitsMeta
+from amino.util.tpe import qualified_type
 
 A = TypeVar('A')
 
 
 class KeepField:
     pass
-
-
-def qualified_type(tpe: Type) -> str:
-    return tpe.__name__ if tpe.__module__ == 'builtins' else f'{tpe.__module__}.{tpe.__name__}'
 
 
 class Field(ToStr):
@@ -195,7 +192,7 @@ class DatEncoder(Encoder, tpe=Dat):
     @tdo(Either[JsonError, Map])
     def encode(self, a: Sub) -> Generator:
         jsons = yield a._dat__values.traverse(encode_json, Either)
-        yield Right(JsonObject(Map(a._dat__names.zip(jsons)).cat(('__type__', JsonScalar(qualified_type(type(a)))))))
+        yield Right(json_object_with_type(Map(a._dat__names.zip(jsons)), type(a)))
 
 
 class ADTMeta(DatMeta, AlgebraMeta):

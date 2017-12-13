@@ -29,6 +29,10 @@ class Json(Generic[A], Algebra, base=True):
     def native(self) -> Union[dict, list, str, Number, None]:
         ...
 
+    @abc.abstractmethod
+    def field(self, key: str) -> Either[JsonError, 'Json']:
+        ...
+
     def _arg_desc(self) -> List[str]:
         return List(str(self.data))
 
@@ -40,6 +44,9 @@ class Json(Generic[A], Algebra, base=True):
     def array(self) -> Boolean:
         return Boolean.isinstance(self, JsonArray)
 
+    def error(self, msg: Union[str, Exception]) -> JsonError:
+        return JsonError(self.data, msg)
+
 
 class JsonObject(Json[Map[str, Json]]):
 
@@ -48,14 +55,18 @@ class JsonObject(Json[Map[str, Json]]):
         return self.data.valmap(_.native)
 
     @property
-    @tdo(Either[str, type])
+    @tdo(Either[JsonError, type])
     def tpe(self) -> Generator:
-        jtpe = yield self.data.lift('__type__').to_either(f'no `__type__` field in json object {self.data}')
-        tpe_s = yield Right(jtpe.data) if isinstance(jtpe, JsonScalar) else Left('invalid type for `__type__`: {jtpe}')
-        yield Either.import_path(tpe_s)
+        jtpe = yield self.data.lift('__type__').to_either(self.error(f'no `__type__` field in json object'))
+        tpe_s = yield (
+            Right(jtpe.data)
+            if isinstance(jtpe, JsonScalar) else
+            Left(self.error('invalid type for `__type__`: {jtpe}'))
+        )
+        yield Either.import_path(tpe_s).lmap(self.error)
 
-    def field(self, key: str) -> Either[str, Json]:
-        return self.data.lift(key).to_either(f'no field `key` in `self`')
+    def field(self, key: str) -> Either[JsonError, Json]:
+        return self.data.lift(key).to_either(self.error(f'no field `key`'))
 
 
 class JsonArray(Json[List[Json]]):
@@ -64,11 +75,17 @@ class JsonArray(Json[List[Json]]):
     def native(self) -> Union[dict, list, str, Number, None]:
         return self.data.map(_.native)
 
+    def field(self, key: str) -> Either[JsonError, Json]:
+        return Left(self.error('JsonArray has no fields'))
+
 
 class JsonScalar(Json[Union[str, Number, None]]):
 
     @property
     def native(self) -> Union[dict, list, str, Number, None]:
         return self.data
+
+    def field(self, key: str) -> Either[JsonError, Json]:
+        return Left(self.error('JsonScalar has no fields'))
 
 __all__ = ('JsonError', 'Json', 'JsonObject', 'JsonArray', 'JsonScalar')

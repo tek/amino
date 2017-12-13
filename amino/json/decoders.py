@@ -1,8 +1,9 @@
 from typing import Type, TypeVar, Collection
 from numbers import Number
+from uuid import UUID
 
 from amino.json.decoder import Decoder, decode
-from amino import Maybe, Either, List, Lists, Left
+from amino import Maybe, Either, List, Lists, Left, Boolean, Try
 from amino.json.data import JsonError, Json
 
 A = TypeVar('A')
@@ -33,4 +34,17 @@ class MaybeDecoder(Decoder, tpe=Maybe):
     def decode(self, tpe: Type[Maybe], data: Json) -> Either[JsonError, Maybe]:
         return data.scalar.e(f'invalid type for `Maybe`: {data}', Maybe.check(data.data))
 
-__all__ = ('MaybeDecoder',)
+
+class BooleanDecoder(Decoder, tpe=Boolean):
+
+    def decode(self, tpe: Type[Boolean], data: Json) -> Either[JsonError, Boolean]:
+        return data.scalar.e(f'invalid type for `Boolean`: {data}', Boolean(data.data))
+
+
+class UUIDDecoder(Decoder, tpe=UUID):
+
+    def decode(self, tpe: Type[UUID], data: Json) -> Either[JsonError, UUID]:
+        return data.scalar.flat_e(f'invalid type for `UUID`: {data}', Try(UUID, data.data))
+
+
+__all__ = ('MaybeDecoder', 'StringDecoder', 'NumberDecoder', 'ListDecoder', 'BooleanDecoder')
