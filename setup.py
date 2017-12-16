@@ -13,7 +13,6 @@ setup(
     url='https://github.com/tek/amino',
     packages=find_packages(exclude=['unit', 'unit.*']),
     install_requires=[
-        'fn',
         'toolz',
         'lenses==0.1.7',
     ],

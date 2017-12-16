@@ -76,4 +76,27 @@ def tupled2(f: Callable[[A, B], C]) -> Callable[[Tuple[A, B]], C]:
         return f(a[0], a[1])
     return wrap
 
-__all__ = ('curried', 'I', 'flip', 'call_by_name', 'Val', 'ReplaceVal', 'is_not_none', 'tupled2')
+
+class tailrec:
+    __slots__ = 'func',
+
+    def __init__(self, func: Callable[..., Tuple[bool, Union[A, tuple]]]) -> None:
+        self.func = func
+
+    def __call__(self, *a: Any) -> A:
+        args: Union[A, tuple] = a
+        while True:
+            cont, args = self.func(*cast(tuple, args))
+            if not cont:
+                break
+        return cast(A, args)
+
+
+tco = tailrec
+
+
+class mtailrec:
+    __slots__ = 'func',
+
+
+__all__ = ('curried', 'I', 'flip', 'call_by_name', 'Val', 'ReplaceVal', 'is_not_none', 'tupled2', 'tailrec', 'mtailrec')

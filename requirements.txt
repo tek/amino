@@ -1,4 +1,3 @@
-fn
 toolz
 spec
 sure
