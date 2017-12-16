@@ -14,7 +14,7 @@ setup(
     packages=find_packages(exclude=['unit', 'unit.*']),
     install_requires=[
         'toolz',
-        'lenses==0.1.7',
+        'lenses==0.4.0',
     ],
     tests_require=[
         'kallikrein',

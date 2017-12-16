@@ -63,8 +63,7 @@ class LensSpec(Spec):
     def path(self):
         c = C(1, List(C(2), C(3, List(C(4, List(C(5))), C(6))), C(7)))
         t = path_lens_pred(c, _.c, _.a, _ == 5).x
-        mod = lambda a: (a + 10 if isinstance(a, int) else
-                         lens(a).a.modify(_ + 20))
+        mod = lambda a: (a + 10 if isinstance(a, int) else lens(a).a.modify(_ + 20))
         m = t.modify(lambda a: map(mod, a))
         target = C(21, List(C(2), C(23, List(C(24, List(C(15))), C(6))), C(7)))
         m.should.equal(target)
