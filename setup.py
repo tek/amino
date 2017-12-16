@@ -16,7 +16,6 @@ setup(
         'fn',
         'toolz',
         'lenses==0.1.7',
-        'hues',
     ],
     tests_require=[
         'kallikrein',

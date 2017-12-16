@@ -100,4 +100,5 @@ def cyan(a: Any) -> str:
 def magenta(a: Any) -> str:
     return col(a, lambda a: a.magenta)
 
+
 __all__ = ('snake_case', 'decode', 'camelcaseify', 'red', 'green', 'yellow', 'blue', 'cyan', 'magenta', 'camelcase')
