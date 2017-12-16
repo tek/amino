@@ -1,7 +1,7 @@
 '''Stolen from https://github.com/prashnts/hues
 '''
 
-from typing import Union
+from typing import Union, Any, Callable, Type
 from collections import namedtuple
 from functools import reduce, partial
 
@@ -47,10 +47,10 @@ HI_BG = ANSIColors(*range(100, 108))
 SEQ = '\033[%sm'
 
 
-def gen_keywords(*args: Union[ANSIColors, ANSIStyles], **kwargs: Union[ANSIColors, ANSIStyles]):
+def gen_keywords(*args: Union[ANSIColors, ANSIStyles], **kwargs: Union[ANSIColors, ANSIStyles]) -> tuple:
     '''generate single escape sequence mapping.'''
-    fields = tuple()
-    values = tuple()
+    fields: tuple = tuple()
+    values: tuple = tuple()
     for tpl in args:
         fields += tpl._fields
         values += tpl
@@ -62,7 +62,7 @@ def gen_keywords(*args: Union[ANSIColors, ANSIStyles], **kwargs: Union[ANSIColor
 KEYWORDS = gen_keywords(STYLE, FG, bg=BG, bright=HI_FG, bg_bright=HI_BG)
 
 
-def zero_break(stack):
+def zero_break(stack: tuple) -> tuple:
     '''Handle Resets in input stack.
     Breaks the input stack if a Reset operator (zero) is encountered.
     '''
@@ -70,7 +70,7 @@ def zero_break(stack):
     return reduce(reducer, stack, tuple())
 
 
-def annihilate(predicate, stack):
+def annihilate(predicate: tuple, stack: tuple) -> tuple:
     '''Squash and reduce the input stack.
     Removes the elements of input that match predicate and only keeps the last
     match at the end of the stack.
@@ -80,12 +80,12 @@ def annihilate(predicate, stack):
     return extra + (head,) if head else extra
 
 
-def annihilator(predicate):
+def annihilator(predicate: tuple) -> Callable[[tuple], tuple]:
     '''Build a partial annihilator for given predicate.'''
     return partial(annihilate, predicate)
 
 
-def dedup(stack):
+def dedup(stack: tuple) -> tuple:
     '''Remove duplicates from the stack in first-seen order.'''
     # Initializes with an accumulator and then reduces the stack with first match
     # deduplication.
@@ -93,12 +93,9 @@ def dedup(stack):
     return reduce(reducer, stack, tuple())
 
 
-def apply(funcs, stack):
+def apply(funcs: tuple, stack: tuple) -> tuple:
     '''Apply functions to the stack, passing the resulting stack to next state.'''
     return reduce(lambda x, y: y(x), funcs, stack)
-
-
-__all__ = ('zero_break', 'annihilator', 'dedup', 'apply', 'huestr')
 
 
 OPTIMIZATION_STEPS = (
@@ -110,7 +107,7 @@ OPTIMIZATION_STEPS = (
 optimize = partial(apply, OPTIMIZATION_STEPS)
 
 
-def colorize(string, stack):
+def colorize(string: str, stack: tuple) -> str:
     '''Apply optimal ANSI escape sequences to the string.'''
     codes = optimize(stack)
     if len(codes):
@@ -123,14 +120,14 @@ def colorize(string, stack):
 
 class HueString(str):
 
-    def __new__(cls, string, hue_stack=None):
-        return super(HueString, cls).__new__(cls, string)
+    def __new__(cls, string: str, hue_stack: tuple=None) -> Type['HueString']:
+        return super(HueString, cls).__new__(cls)
 
-    def __init__(self, string, hue_stack=tuple()):
+    def __init__(self, string: str, hue_stack: tuple=tuple()) -> None:
         self.__string = string
         self.__hue_stack = hue_stack
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str) -> 'HueString':
         try:
             code = getattr(KEYWORDS, attr)
             hues = self.__hue_stack + (code,)
@@ -139,7 +136,7 @@ class HueString(str):
             raise e
 
     @property
-    def colorized(self):
+    def colorized(self) -> str:
         return colorize(self.__string, self.__hue_stack)
 
 
@@ -147,4 +144,32 @@ def huestr(s: str) -> HueString:
     return HueString(s)
 
 
-__all__ = ('huestr',)
+def col(a: Any, c: Callable[[HueString], HueString]) -> str:
+    return c(huestr(str(a))).colorized
+
+
+def red(a: Any) -> str:
+    return col(a, lambda a: a.red)
+
+
+def green(a: Any) -> str:
+    return col(a, lambda a: a.green)
+
+
+def yellow(a: Any) -> str:
+    return col(a, lambda a: a.yellow)
+
+
+def blue(a: Any) -> str:
+    return col(a, lambda a: a.blue)
+
+
+def cyan(a: Any) -> str:
+    return col(a, lambda a: a.cyan)
+
+
+def magenta(a: Any) -> str:
+    return col(a, lambda a: a.magenta)
+
+
+__all__ = ('huestr', 'red', 'green', 'yellow', 'blue', 'cyan', 'magenta')

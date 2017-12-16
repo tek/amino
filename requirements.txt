@@ -1,4 +1,4 @@
 toolz
 spec
 sure
-git+https://github.com/ingolemo/python-lenses
+lenses
