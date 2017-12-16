@@ -1,8 +1,8 @@
-from lenses import lens
+from lenses import lens, bind
 
 from amino import List, _
 from amino.test.spec_spec import Spec
-from amino.lens.tree import path_lens_pred
+from amino.lenses.tree import path_lens_pred
 
 
 class B:
@@ -50,20 +50,22 @@ class LensSpec(Spec):
         x, y, z = 11, 22, 33
         def mod(a):
             a[0][1].a = B(y)
-            return a[0], B(x), lens(a[2]).b.set(z)
+            return a[0], B(x), bind(a[2]).b.set(z)
         b = List(B(B(0)), B(B(1)), B(B(2)))
         a = A(b)
-        l1 = lens().b
-        l2 = lens().b[0].a
-        l3 = lens().b[2]
-        l = lens(a).tuple_(l1, l2, l3)
+        l1 = lens.GetAttr('b')
+        l2 = lens.GetAttr('b')[0].GetAttr('a')
+        l3 = lens.GetAttr('b')[2]
+        print(l1)
+        print(l2)
+        l = lens.Tuple(l1, l2, l3)
         target = A(List(B(B(x)), B(B(y)), B(B(2), z)))
-        l.modify(mod).should.equal(target)
+        l.modify(mod)(a).should.equal(target)
 
     def path(self):
         c = C(1, List(C(2), C(3, List(C(4, List(C(5))), C(6))), C(7)))
         t = path_lens_pred(c, _.c, _.a, _ == 5).x
-        mod = lambda a: (a + 10 if isinstance(a, int) else lens(a).a.modify(_ + 20))
+        mod = lambda a: (a + 10 if isinstance(a, int) else bind(a).a.modify(_ + 20))
         m = t.modify(lambda a: map(mod, a))
         target = C(21, List(C(2), C(23, List(C(24, List(C(15))), C(6))), C(7)))
         m.should.equal(target)
