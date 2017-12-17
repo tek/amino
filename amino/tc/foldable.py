@@ -2,7 +2,7 @@ import abc
 from typing import TypeVar, Generic, Callable
 import operator
 
-from lenses import lens, Lens
+from lenses import lens, UnboundLens
 
 from amino.tc.base import TypeClass, tc_prop
 from amino.tc.functor import Functor
@@ -95,16 +95,16 @@ class Foldable(Generic[H], TypeClass[H]):
     def contains(self, fa: F[A], v: A) -> Boolean:
         return self.exists(fa, _ == v)
 
-    def lens(self, fa: F[A], f: Callable[[A], bool]) -> Maybe[Lens]:
+    def lens(self, fa: F[A], f: Callable[[A], bool]) -> Maybe[UnboundLens]:
         return self.index_where(fa, f) / (lambda i: lens()[i])
 
-    def find_lens(self, fa: F[A], f: Callable[[A], Maybe[Lens]]) -> Maybe[Lens]:
+    def find_lens(self, fa: F[A], f: Callable[[A], Maybe[UnboundLens]]) -> Maybe[UnboundLens]:
         check = lambda a: f(a[1]) / (lambda b: (a[0], b))
         index = lambda i, l: lens()[i].add_lens(l)
         wi = self.with_index(fa)
         return self.find_map(wi, check).map2(index)
 
-    def find_lens_pred(self, fa: F[A], f: Callable[[A], bool]) -> Maybe[Lens]:
+    def find_lens_pred(self, fa: F[A], f: Callable[[A], bool]) -> Maybe[UnboundLens]:
         g = lambda a: Boolean(f(a)).maybe(lens())
         return self.find_lens(fa, g)
 
