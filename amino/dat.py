@@ -150,6 +150,13 @@ class Dat(Generic[Sub], ToStr, metaclass=DatMeta):
         updated = self._dat__fields / update  # type: ignore
         return cast(Dat, type(self)(*updated))
 
+    def typed_copy(self, **kw: Any) -> Sub:
+        updates = Map(kw)
+        def update(f: Field) -> Any:
+            return updates.lift(f.name).filter_type(f.tpe) | (lambda: getattr(self, f.name))
+        updated = self._dat__fields / update  # type: ignore
+        return cast(Dat, type(self)(*updated))
+
     @property
     def append(self) -> FieldProxy:
         return FieldProxy(self, FieldAppender)
