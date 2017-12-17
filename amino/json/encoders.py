@@ -1,10 +1,10 @@
-from typing import Union, Collection, TypeVar
+from typing import Union, Collection, TypeVar, Mapping, Any
 from numbers import Number
 from uuid import UUID
 
 from amino import Either, List, L, _, Right, Lists, Maybe, Path, Map, Boolean
 from amino.json.encoder import Encoder, encode_json, json_object_with_type
-from amino.json.data import JsonError, Json, JsonArray, JsonScalar
+from amino.json.data import JsonError, Json, JsonArray, JsonScalar, JsonObject
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -14,6 +14,12 @@ class ScalarEncoder(Encoder[Union[Number, str, None]], pred=L(issubclass)(_, (Nu
 
     def encode(self, a: Union[Number, str, None]) -> Either[JsonError, Json]:
         return Right(JsonScalar(a))
+
+
+class MapEncoder(Encoder[List], pred=L(issubclass)(_, Mapping)):
+
+    def encode(self, a: Map[str, Any]) -> Either[JsonError, Json]:
+        return Map(a).traverse(encode_json, Either) / JsonObject
 
 
 class ListEncoder(Encoder[List], pred=L(issubclass)(_, Collection)):
@@ -58,4 +64,4 @@ class BooleanEncoder(Encoder[Boolean], tpe=Boolean):
         return Right(JsonScalar(a.value))
 
 
-__all__ = ('ListEncoder', 'ScalarEncoder', 'MaybeEncoder', 'UUIDEncoder', 'PathEncoder', 'TypeEncoder')
+__all__ = ('ListEncoder', 'ScalarEncoder', 'MaybeEncoder', 'UUIDEncoder', 'PathEncoder', 'TypeEncoder', 'MapEncoder')

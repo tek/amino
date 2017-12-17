@@ -2,9 +2,9 @@ import abc
 from typing import TypeVar, Any, Type, Generic
 
 from amino.tc.base import TypeClass
-from amino import Either, Map, Right, Lists, Do, _, L
+from amino import Either, Map, Right, Lists, Do, _, L, Left
 from amino.do import do
-from amino.json.data import JsonError, JsonObject, JsonArray, JsonScalar, Json
+from amino.json.data import JsonError, JsonObject, JsonArray, JsonScalar, Json, JsonAbsent
 from amino.json.parse import parse_json
 from amino.dispatch import dispatch_alg
 
@@ -35,11 +35,14 @@ class Decode:
         dec = yield Decoder.e(tpe).lmap(L(JsonError)(json, _))
         yield dec.decode(tpe, json)
 
-    def decode_json_array(self, json: JsonArray) -> Either[str, A]:
+    def decode_json_array(self, json: JsonArray) -> Either[JsonError, A]:
         return Lists.wrap(json.data).traverse(decode, Either)
 
-    def decode_json_scalar(self, json: JsonScalar) -> Either[str, A]:
+    def decode_json_scalar(self, json: JsonScalar) -> Either[JsonError, A]:
         return Right(json.data)
+
+    def decode_json_absent(self, json: JsonAbsent) -> Either[JsonError, A]:
+        return Left(json.data)
 
 
 decode = dispatch_alg(Decode(), Json, 'decode_')
@@ -50,4 +53,17 @@ def decode_json(data: str) -> Do:
     json = yield parse_json(data).lmap(lambda e: JsonError(data, e))
     yield decode(json)
 
-__all__ = ('Decoder', 'decode_json_object', 'decode_json', 'decode')
+
+@do(Either[JsonError, A])
+def decode_json_type_json(json: Json, tpe: Type[A]) -> Do:
+    dec = yield Decoder.e(tpe).lmap(L(JsonError)(json, _))
+    yield dec.decode(tpe, json)
+
+
+@do(Either[JsonError, A])
+def decode_json_type(data: str, tpe: Type[A]) -> Do:
+    json = yield parse_json(data).lmap(lambda e: JsonError(data, e))
+    yield decode_json_type_json(json, tpe)
+
+
+__all__ = ('Decoder', 'decode_json_object', 'decode_json', 'decode', 'decode_json_type', 'decode_json_type_json')

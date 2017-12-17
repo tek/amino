@@ -8,6 +8,7 @@ from amino.algebra import Algebra
 from amino.do import tdo
 
 A = TypeVar('A')
+tpe_key = '__type__'
 
 
 class JsonError(ToStr):
@@ -44,6 +45,14 @@ class Json(Generic[A], Algebra, base=True):
     def array(self) -> Boolean:
         return Boolean.isinstance(self, JsonArray)
 
+    @property
+    def object(self) -> Boolean:
+        return Boolean.isinstance(self, JsonObject)
+
+    @property
+    def absent(self) -> Boolean:
+        return Boolean.isinstance(self, JsonAbsent)
+
     def error(self, msg: Union[str, Exception]) -> JsonError:
         return JsonError(self.data, msg)
 
@@ -57,16 +66,20 @@ class JsonObject(Json[Map[str, Json]]):
     @property
     @tdo(Either[JsonError, type])
     def tpe(self) -> Generator:
-        jtpe = yield self.data.lift('__type__').to_either(self.error(f'no `__type__` field in json object'))
+        jtpe = yield self.data.lift(tpe_key).to_either(self.error(f'no `{tpe_key}` field in json object'))
         tpe_s = yield (
             Right(jtpe.data)
             if isinstance(jtpe, JsonScalar) else
-            Left(self.error('invalid type for `__type__`: {jtpe}'))
+            Left(self.error('invalid type for `{type_key}`: {jtpe}'))
         )
         yield Either.import_path(tpe_s).lmap(self.error)
 
     def field(self, key: str) -> Either[JsonError, Json]:
-        return self.data.lift(key).to_either(self.error(f'no field `key`'))
+        return Right(self.data.lift(key) | JsonAbsent(self.error(f'no field `{key}`')))
+
+    @property
+    def has_type(self) -> Boolean:
+        return self.data.contains(tpe_key)
 
 
 class JsonArray(Json[List[Json]]):
@@ -88,4 +101,15 @@ class JsonScalar(Json[Union[str, Number, None]]):
     def field(self, key: str) -> Either[JsonError, Json]:
         return Left(self.error('JsonScalar has no fields'))
 
-__all__ = ('JsonError', 'Json', 'JsonObject', 'JsonArray', 'JsonScalar')
+
+class JsonAbsent(Json[JsonError]):
+
+    @property
+    def native(self) -> Union[dict, list, str, Number, None]:
+        return None
+
+    def field(self, key: str) -> Either[JsonError, Json]:
+        return Right(self)
+
+
+__all__ = ('JsonError', 'Json', 'JsonObject', 'JsonArray', 'JsonScalar', 'JsonAbsent')

@@ -188,7 +188,7 @@ class DatDecoder(Decoder, tpe=Dat):
     def decode(self, tpe: Type[Sub], data: JsonObject) -> Either[JsonError, Sub]:
         @tdo(Either[JsonError, A])
         def decode_field(field: Field) -> Generator:
-            value = yield data.field(field.name).to_either(f'missing field {field.name} in json while decoding {tpe}')
+            value = yield data.field(field.name)
             dec = yield Decoder.e(field.tpe)
             yield dec.decode(field.tpe, value)
         return tpe._dat__fields.traverse(decode_field, Either).map(lambda a: tpe(*a))
