@@ -56,8 +56,6 @@ class LensSpec(Spec):
         l1 = lens.GetAttr('b')
         l2 = lens.GetAttr('b')[0].GetAttr('a')
         l3 = lens.GetAttr('b')[2]
-        print(l1)
-        print(l2)
         l = lens.Tuple(l1, l2, l3)
         target = A(List(B(B(x)), B(B(y)), B(B(2), z)))
         l.modify(mod)(a).should.equal(target)

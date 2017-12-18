@@ -3,10 +3,11 @@ from numbers import Number
 from uuid import UUID
 
 from amino.json.decoder import Decoder, decode, decode_json_type_json
-from amino import Maybe, Either, List, Lists, Left, Boolean, Try, Map, Right, Nothing, Just
+from amino import Maybe, Either, List, Lists, Left, Boolean, Try, Map, Right, Nothing, Just, Path, do, Do
 from amino.json.data import JsonError, Json, JsonObject
 
 A = TypeVar('A')
+B = TypeVar('B')
 
 
 class StringDecoder(Decoder, tpe=str):
@@ -60,6 +61,27 @@ class MaybeDecoder(Decoder, tpe=Maybe):
         )
 
 
+@do(Either[JsonError, Either[A, B]])
+def either_from_object(data: JsonObject, ltype: Type[A], rtype: Type[B]) -> Do:
+    value = yield data.field('value')
+    decoded = yield decode(value)
+    tpe = yield data.tpe
+    yield Right(tpe(decoded))
+
+
+class EitherDecoder(Decoder, tpe=Either):
+
+    @do(Either[JsonError, Either[A, B]])
+    def decode(self, tpe: Type[Either], data: Json) -> Do:
+        err = JsonError(data, f'too few types in Either')
+        ltype, rtype = yield Lists.wrap(tpe.__args__).lift_all(0, 1).to_either(err)
+        yield (
+            either_from_object(data, ltype, rtype)
+            if data.object else
+            Left(JsonError(data, f'invalid type for `Either`'))
+        )
+
+
 class BooleanDecoder(Decoder, tpe=Boolean):
 
     def decode(self, tpe: Type[Boolean], data: Json) -> Either[JsonError, Boolean]:
@@ -72,4 +94,11 @@ class UUIDDecoder(Decoder, tpe=UUID):
         return data.scalar.flat_e(f'invalid type for `UUID`: {data}', Try(UUID, data.data))
 
 
-__all__ = ('MaybeDecoder', 'StringDecoder', 'NumberDecoder', 'ListDecoder', 'BooleanDecoder', 'MapDecoder')
+class PathDecoder(Decoder, tpe=Path):
+
+    def decode(self, tpe: Type[Path], data: Json) -> Either[JsonError, Path]:
+        return data.scalar.flat_e(f'invalid type for `Path`: {data}', Try(Path, data.data))
+
+
+__all__ = ('MaybeDecoder', 'StringDecoder', 'NumberDecoder', 'ListDecoder', 'BooleanDecoder', 'MapDecoder',
+           'PathDecoder')

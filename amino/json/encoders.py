@@ -1,8 +1,8 @@
-from typing import Union, Collection, TypeVar, Mapping, Any
+from typing import Union, Collection, TypeVar, Mapping, Any, List as TList
 from numbers import Number
 from uuid import UUID
 
-from amino import Either, List, L, _, Right, Lists, Maybe, Path, Map, Boolean
+from amino import Either, List, L, _, Right, Lists, Maybe, Path, Map, Boolean, do, Do
 from amino.json.encoder import Encoder, encode_json, json_object_with_type
 from amino.json.data import JsonError, Json, JsonArray, JsonScalar, JsonObject
 
@@ -22,9 +22,9 @@ class MapEncoder(Encoder[List], pred=L(issubclass)(_, Mapping)):
         return Map(a).traverse(encode_json, Either) / JsonObject
 
 
-class ListEncoder(Encoder[List], pred=L(issubclass)(_, Collection)):
+class ListEncoder(Encoder[List], pred=L(issubclass)(_, TList)):
 
-    def encode(self, a: Collection) -> Either[JsonError, Json]:
+    def encode(self, a: TList) -> Either[JsonError, Json]:
         return Lists.wrap(a).traverse(encode_json, Either) / JsonArray
 
 
@@ -36,8 +36,10 @@ class MaybeEncoder(Encoder[Maybe], tpe=Maybe):
 
 class EitherEncoder(Encoder[Either], tpe=Either):
 
-    def encode(self, a: Either[B, A]) -> Either[JsonError, Json]:
-        return Right(json_object_with_type(Map(value=encode_json(a.value)), type(a)))
+    @do(Either[JsonError, Json])
+    def encode(self, a: Either[B, A]) -> Do:
+        json = yield encode_json(a.value)
+        yield Right(json_object_with_type(Map(value=json), type(a)))
 
 
 class UUIDEncoder(Encoder[UUID], tpe=UUID):

@@ -20,6 +20,10 @@ class JsonError(ToStr):
     def _arg_desc(self) -> List[str]:
         return List(self.data, str(self.error))
 
+    @property
+    def exception(self) -> Exception:
+        return self.error if isinstance(self.error, Exception) else Exception(self.error)
+
 
 class Json(Generic[A], Algebra, base=True):
 

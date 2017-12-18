@@ -2,8 +2,8 @@ from typing import Any
 
 from amino.test.spec_spec import Spec
 from amino.dat import Dat
-from amino import Right, Maybe, List
-from amino.json import dump_json, decode_json
+from amino import Right, Maybe, List, Either, Left
+from amino.json import dump_json, decode_json, encode_json
 
 
 class E(Dat['E']):
@@ -33,6 +33,14 @@ class Li(Dat['Li']):
         self.a = a
 
 
+class Ei(Dat['Ei']):
+
+    def __init__(self, a: Either[str, E], b: Either[str, List[int]], c: Either[str, E]) -> None:
+        self.a = a
+        self.b = b
+        self.c = c
+
+
 mod = 'unit.json_spec'
 
 
@@ -55,5 +63,10 @@ class JsonSpec(Spec):
         json = f'{{"a": [1, 2, "string"], "__type__": "{mod}.Li"}}'
         decoded = decode_json(json)
         (decoded // dump_json).should.equal(Right(json))
+
+    def codec_either(self) -> None:
+        v = Ei(Right(E(7, 'value')), Right(List(5, 9)), Left('error'))
+        json = dump_json(v)
+        (json // decode_json).should.equal(Right(v))
 
 __all__ = ('JsonSpec',)

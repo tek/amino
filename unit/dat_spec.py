@@ -1,7 +1,7 @@
 from amino.dat import Dat
 from amino.test.spec_spec import Spec
 
-from lenses import lens
+from lenses import bind
 
 
 class V(Dat['V']):
@@ -37,6 +37,6 @@ class DatSpec(Spec):
         (c1 == c2).should_not.be.ok
 
     def lens(self) -> None:
-        lens(c1).v.a.set(2).should.equal(c2)
+        bind(c1).v.a.set(2).should.equal(c2)
 
 __all__ = ('DatSpec',)

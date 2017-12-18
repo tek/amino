@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x40340b99
+# __coconut_hash__ = 0x1c09273d
 
 # Compiled with Coconut version 1.3.0 [Dead Parrot]
 
@@ -16,41 +16,41 @@ _coconut_sys.path.remove(_coconut_file_path)
 
 # Compiled Coconut: -----------------------------------------------------------
 
-import json
-from typing import Any
+import json  # line 1
+from typing import Any  # line 2
 
-from amino import Either
-from amino import Left
-from amino import Lists
-from amino import Map
-from amino import Try
-from amino.json.data import Json
-from amino.json.data import JsonArray
-from amino.json.data import JsonScalar
-from amino.json.data import JsonObject
-
-
-def to_json(a: 'Any') -> 'Json':
-    _coconut_match_to = a
-    _coconut_match_check = False
-    if _coconut.isinstance(_coconut_match_to, (list, tuple)):
-        a = _coconut_match_to
-        _coconut_match_check = True
-    if _coconut_match_check:
-        result = JsonArray(Lists.wrap(a) / to_json)
-    if not _coconut_match_check:
-        if _coconut.isinstance(_coconut_match_to, dict):
-            a = _coconut_match_to
-            _coconut_match_check = True
-        if _coconut_match_check:
-            result = JsonObject(Map(a).valmap(to_json))
-    if not _coconut_match_check:
-        a = _coconut_match_to
-        _coconut_match_check = True
-        if _coconut_match_check:
-            result = JsonScalar(a)
-    return result
+from amino import Either  # line 4
+from amino import Left  # line 4
+from amino import Lists  # line 4
+from amino import Map  # line 4
+from amino import Try  # line 4
+from amino.json.data import Json  # line 5
+from amino.json.data import JsonArray  # line 5
+from amino.json.data import JsonScalar  # line 5
+from amino.json.data import JsonObject  # line 5
 
 
-def parse_json(payload: 'str') -> 'Either[str, Json]':
-    return Try(json.loads, payload) / to_json
+def to_json(a: 'Any') -> 'Json':  # line 8
+    _coconut_match_to = a  # line 9
+    _coconut_match_check = False  # line 9
+    if _coconut.isinstance(_coconut_match_to, (list, tuple)):  # line 9
+        a = _coconut_match_to  # line 9
+        _coconut_match_check = True  # line 9
+    if _coconut_match_check:  # line 9
+        result = JsonArray(Lists.wrap(a) / to_json)  # line 11
+    if not _coconut_match_check:  # line 12
+        if _coconut.isinstance(_coconut_match_to, dict):  # line 12
+            a = _coconut_match_to  # line 12
+            _coconut_match_check = True  # line 12
+        if _coconut_match_check:  # line 12
+            result = JsonObject(Map(a).valmap(to_json))  # line 13
+    if not _coconut_match_check:  # line 14
+        a = _coconut_match_to  # line 14
+        _coconut_match_check = True  # line 14
+        if _coconut_match_check:  # line 14
+            result = JsonScalar(a)  # line 15
+    return result  # line 16
+
+
+def parse_json(payload: 'str') -> 'Either[str, Json]':  # line 19
+    return Try(json.loads, payload) / to_json  # line 20
