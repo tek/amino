@@ -161,3 +161,28 @@ def state(x: int) -> typing.Generator[StateT[Either, str, int], Any, None]:
 s = state(5)
 s.run('15') # -> Right((25, 5))
 ```
+
+## Data
+The base class `Dat` makes working with pure data types simpler by analyzing a class' `__init__` and creating class attributes containing info about its fields.
+This allows for simple copying (optionally with type check) without intrusive descriptor magic – a `Dat` instance is
+still a plain old python object.
+
+```python
+class Data(Dat['Data'])
+
+    def __init__(a: int, b: List[str]) -> None:
+        self.a = a
+        self.b = b
+
+Data(7, List('one', 'two')).copy(a=3)
+```
+
+## Json
+
+*amino* provides a framework for Json de/encoding based on typeclasses.
+The functions `encode_json`, `dump_json` and `decode_json` look for instances of the typeclasses `Encoder` and `Decoder` to
+process data.
+Codecs for some builtins like `Path` and `UUID` as well as *amino's standard types like `Either` and `Maybe` are provided.
+
+The most convenient aspect of this is that `Dat` will automatically call the corresponding De/Encoder for all its
+fields, making serialization of nested data structures trivial.
