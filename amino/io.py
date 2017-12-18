@@ -5,8 +5,6 @@ import inspect
 import typing
 from typing import Callable, TypeVar, Generic, Any, Union, Tuple, Awaitable, Generator
 
-from fn.recur import tco
-
 from amino import Either, Right, Left, Maybe, List, __, Just, _, Lists, L, Nothing, options
 from amino.eval import Eval
 from amino.tc.base import Implicits, ImplicitsMeta
@@ -15,6 +13,7 @@ from amino.util.fun import lambda_str, format_funcall
 from amino.util.exception import format_exception, sanitize_tb
 from amino.util.string import ToStr
 from amino.do import do
+from amino.func import tailrec
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -154,7 +153,7 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
             raise IOException(self.lambda_str()._value(), self.stack, e)
 
     def run(self) -> A:
-        @tco
+        @tailrec
         def run(t: Union[A, 'IO[A]']) -> Union[Tuple[bool, A], Tuple[bool, Tuple[Union[A, 'IO[A]']]]]:
             if isinstance(t, Pure):
                 return True, (t.value,)

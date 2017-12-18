@@ -1,11 +1,10 @@
 import abc
 from typing import Generic, TypeVar, Callable, Tuple, Any, Union
 
-from fn.recur import tco
-
 from amino.tc.base import F
 from amino.tc.monad import Monad
 from amino import List
+from amino.func import tailrec
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -104,7 +103,7 @@ class Call(Generic[A], Eval[A]):
     def _loop(ev: Eval[A]) -> Eval[A]:
         def loop1(s: Eval[A]) -> Eval[A]:
             return loop(s.run)
-        @tco
+        @tailrec
         def loop(e: Eval[A]) -> Tuple[bool, Tuple[Eval[A]]]:
             if isinstance(e, Call):
                 return True, (e.thunk(),)
@@ -143,7 +142,7 @@ class Compute(Generic[A, B], Eval[A]):
             )
         def loop_other(e: Eval[Any], fs: List[C]) -> Tuple[bool, Union[Tuple[Eval[Any], List[C]], Any]]:
             return fs.detach_head.map2(lambda fh, ft: (True, (fh(e._value()), ft))) | (False, e._value())
-        @tco
+        @tailrec
         def loop(e: Eval[Any], fs: List[C]) -> Tuple[bool, Union[Tuple[Eval[Any], List[C]], Any]]:
             return (
                 loop_compute(e, fs)
