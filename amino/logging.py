@@ -5,6 +5,7 @@ import abc
 import logging
 import operator
 from pathlib import Path
+from datetime import datetime
 from logging import LogRecord, DEBUG, ERROR
 from typing import Callable, Any, Union, cast, Optional, TypeVar
 
@@ -12,7 +13,7 @@ from amino.lazy import lazy
 
 import amino
 import amino.maybe
-from amino.options import EnvOption
+from amino.options import EnvOption, development
 
 VERBOSE = 15
 TEST = 12
@@ -156,12 +157,14 @@ def amino_stdout_logging(level: int=None) -> None:
 
 def log_dir() -> None:
     return env_amino_log_dir.value / Path | (
-    (Path(env_xdg_runtime_dir.value | (lambda: f'/run/user/{os.getuid()}'))) / 'amino'
+        (Path(env_xdg_runtime_dir.value | (lambda: f'/run/user/{os.getuid()}'))) / 'amino'
     )
 
 
 def default_logfile() -> None:
-    return log_dir() / f'log_{os.getpid()}'
+    stamp = datetime.now().strftime('%F-%T')
+    prefix = 'dev_' if development else ''
+    return log_dir() / f'log_{prefix}{stamp}'
 
 
 def file_handler_exists(logger: logging.Logger, file: Path) -> bool:
