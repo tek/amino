@@ -1,5 +1,10 @@
+from typing import Iterable, TypeVar
+
 from lenses.ui import UnboundLens
 from lenses.optics import TrivialIso
+from lenses.hooks.hook_funcs import from_iter
+
+from amino import List, Lists
 
 
 class UnboundLensA(UnboundLens):
@@ -13,5 +18,13 @@ class UnboundLensA(UnboundLens):
 
 
 lens = UnboundLensA(TrivialIso())
+
+A = TypeVar('A')
+
+
+@from_iter.register(List)
+def list_from_iter(self, iterable: Iterable[A]) -> List[A]:
+    return Lists.wrap(iterable)
+
 
 __all__ = ('lens',)
