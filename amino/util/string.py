@@ -1,6 +1,6 @@
 import re
 import abc
-from typing import Any
+from typing import Any, Sized
 from functools import singledispatch
 
 import amino
@@ -71,4 +71,8 @@ class ToStr(abc.ABC):
         return str(self)
 
 
-__all__ = ('snake_case', 'decode', 'camelcaseify', 'camelcase')
+def plural_s(items: Sized) -> str:
+    return '' if len(items) == 1 else 's'
+
+
+__all__ = ('snake_case', 'decode', 'camelcaseify', 'camelcase', 'plural_s')
