@@ -161,10 +161,13 @@ def log_dir() -> None:
     )
 
 
+def log_stamp() -> None:
+    return datetime.now().strftime(f'%F-%T-{os.getpid()}')
+
+
 def default_logfile() -> None:
-    stamp = datetime.now().strftime('%F-%T')
     prefix = 'dev_' if development else ''
-    return log_dir() / f'log_{prefix}{stamp}'
+    return log_dir() / f'log_{prefix}{log_stamp()}'
 
 
 def file_handler_exists(logger: logging.Logger, file: Path) -> bool:
