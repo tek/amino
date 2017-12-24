@@ -1,5 +1,9 @@
 import pathlib
 
+from amino.coco import compile_coco_projects
+
+compile_coco_projects()
+
 from amino.typecheck import boot
 from amino.maybe import Maybe, Just, Empty, may, flat_may, Nothing
 from amino.either import Left, Right, Either
