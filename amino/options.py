@@ -1,7 +1,5 @@
 import os
 
-import amino
-
 
 class EnvOption:
 
@@ -17,6 +15,7 @@ class EnvOption:
 
     @property
     def value(self) -> 'amino.Maybe[str]':
+        import amino
         return amino.env[self.name]
 
     def __str__(self) -> str:

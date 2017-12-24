@@ -1,10 +1,9 @@
 import inspect
-from typing import TypeVar, Type, Any, Generic, cast, Generator, Tuple
+from typing import TypeVar, Type, Any, Generic, cast, Tuple
 
-from amino import Map, Lists, List, Nil, _, Either, Right, Maybe, Just, L
+from amino import Map, Lists, List, Nil, _, Either, Right, Maybe, Just, L, do, Do
 from amino.util.string import ToStr
 from amino.func import Val
-from amino.do import tdo
 from amino.lazy import lazy
 from amino.json.decoder import Decoder
 from amino.json.data import JsonError, JsonObject
@@ -186,8 +185,8 @@ class Dat(Generic[Sub], ToStr, metaclass=DatMeta):
 class DatDecoder(Decoder, tpe=Dat):
 
     def decode(self, tpe: Type[Sub], data: JsonObject) -> Either[JsonError, Sub]:
-        @tdo(Either[JsonError, A])
-        def decode_field(field: Field) -> Generator:
+        @do(Either[JsonError, A])
+        def decode_field(field: Field) -> Do:
             value = yield data.field(field.name)
             dec = yield Decoder.e(field.tpe).lmap(L(JsonError)(data, _))
             yield dec.decode(field.tpe, value)
@@ -196,8 +195,8 @@ class DatDecoder(Decoder, tpe=Dat):
 
 class DatEncoder(Encoder, tpe=Dat):
 
-    @tdo(Either[JsonError, Map])
-    def encode(self, a: Sub) -> Generator:
+    @do(Either[JsonError, Map])
+    def encode(self, a: Sub) -> Do:
         jsons = yield a._dat__values.traverse(encode_json, Either)
         yield Right(json_object_with_type(Map(a._dat__names.zip(jsons)), type(a)))
 

@@ -11,6 +11,8 @@ G = TypeVar('G', bound=F)
 Do = Generator
 
 
+# NOTE ostensibly, this cannot be tailrecced without separating strictly evaluated monadic composition from lazy ones.
+# itr.gi_frame.f_lasti is the instruction pointer and could be used to detect laziness.
 def untyped_do(f: Callable[..., Generator[G, B, None]]) -> Callable[..., G]:
     @functools.wraps(f)
     def do_loop(*a: Any, **kw: Any) -> F[B]:
