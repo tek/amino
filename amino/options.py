@@ -22,6 +22,10 @@ class EnvOption:
         value = self.value.map(lambda a: f'={a}') | ' is unset'
         return f'{self.name}{value}'
 
+    def set(self, value: str) -> None:
+        import amino
+        amino.env[self.name] = value
+
 
 development = EnvOption('AMINO_DEVELOPMENT')
 integration_test = EnvOption('AMINO_INTEGRATION')

@@ -27,7 +27,7 @@ class SpecBase(Logging):
             shutil.rmtree(str(path.temp_path()), ignore_errors=True)
         if self._warnings:
             warnings.resetwarnings()
-        amino.development = True
+        amino.development.set(True)
         amino_stdout_logging()
 
     def teardown(self) -> None:
