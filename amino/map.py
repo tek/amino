@@ -34,6 +34,8 @@ class Map(Generic[A, B], Dict[A, B], Implicits, metaclass=ImplicitsMeta, implici
             return zm // (lambda z: self.get(k) / z.cat)
         return List.wrap(keys).fold_left(Just(List()))(append)
 
+    lift_all = get_all
+
     def get_all_map(self, *keys):
         def append(zm, k):
             return zm // (lambda z: self.get_item(k) / z.cat)
