@@ -8,7 +8,7 @@ from functools import wraps
 from contextlib import contextmanager
 
 import amino
-from amino.logging import amino_stdout_logging, Logging
+from amino.logging import amino_stdout_logging, Logging, amino_root_file_logging
 from amino.test import path
 from amino import Path, List
 
@@ -29,6 +29,7 @@ class SpecBase(Logging):
             warnings.resetwarnings()
         amino.development.set(True)
         amino_stdout_logging()
+        amino_root_file_logging()
 
     def teardown(self) -> None:
         warnings.simplefilter('ignore')
