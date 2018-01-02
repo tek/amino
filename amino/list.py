@@ -274,6 +274,8 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
     def strip_newlines(self) -> 'List[str]':
         return self / (lambda a: a.replace('\n', ''))
 
+    chomp = strip_newlines
+
     @property
     def rstrip_newlines(self) -> 'List[str]':
         return self / (lambda a: a.rstrip('\n'))
