@@ -33,6 +33,7 @@ def untyped_do(f: Callable[..., Generator[G, B, None]]) -> Callable[..., G]:
 
 def do(tpe: Type[A]) -> Callable[[Callable[..., Generator]], Callable[..., A]]:
     def deco(f: Callable[..., Generator]) -> Callable[..., A]:
+        f.tpe = tpe
         return cast(Callable[[Callable[..., Generator]], Callable[..., A]], functools.wraps(f)(untyped_do))(f)
     return deco
 
