@@ -1,3 +1,4 @@
+import inspect
 from typing import Tuple, Callable
 
 from traceback import format_list, format_exception_only, FrameSummary, extract_tb
@@ -32,4 +33,14 @@ def format_exception(exc: Exception, **kw) -> List[str]:
     main = tb + e
     return main + format_cause(exc, **kw)
 
-__all__ = ('sanitize_tb', 'format_exception')
+
+def format_stack(stack: List[inspect.FrameInfo]) -> List[str]:
+    data = stack.map(lambda a: a[1:-2] + tuple(a[-2] or ['<string>']))
+    return sanitize_tb(Lists.wrap(format_list(list(data))))
+
+
+def format_current_stack() -> List[str]:
+    return format_stack(Lists.wrap(inspect.stack()))
+
+
+__all__ = ('sanitize_tb', 'format_exception', 'format_stack', 'format_current_stack')
