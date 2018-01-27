@@ -15,7 +15,7 @@ class DoSpec(Spec):
             b = yield Just(a + 5)
             c = yield Just(b + 7)
             d = yield Just(c * 3)
-            yield Just(d)
+            return d
         run(3).should.equal(Just(45))
 
     def nothing(self) -> None:

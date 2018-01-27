@@ -25,8 +25,8 @@ def untyped_do(f: Callable[..., Generator[G, B, None]]) -> Callable[..., G]:
         def loop(val: B) -> F[B]:
             try:
                 return m.flat_map(itr.send(val), loop)
-            except StopIteration:
-                return m.pure(val)
+            except StopIteration as e:
+                return m.pure(val if e.value is None else e.value)
         return m.flat_map(init, loop)
     return do_loop
 

@@ -89,8 +89,8 @@ its value into the generator.
 ```python
 from amino import do
 
-@do
-def compute() -> typing.Generator[Either[str, int], Any, None]:
+@do(Either[int, int])
+def compute() -> Do:
   user = yield Right('root')
   content = yield IO.delay(Path('/etc/passwd').read_text).attempt
   yield Lists.lines(content).index_where(lambda l: user in l).to_either('not found')
@@ -98,6 +98,8 @@ def compute() -> typing.Generator[Either[str, int], Any, None]:
 
 All yielded values produce an Either, the return value is the found index or the error message from the last statement
 or the `IO` call.
+
+`return a` behaves similar to Haskell, being equivalent to `yield Monad[F].pure(a)`.
 
 ## Typeclasses
 Although these make a lot more sense with a real type system, they provide a nice abstraction for functionality.
