@@ -115,6 +115,7 @@ class DatMeta(ImplicitsMeta):
         return Just(len(self._dat__fields))
 
 
+# TODO typecheck ctor args in development
 class Dat(Generic[Sub], ToStr, metaclass=DatMeta):
     Keep = KeepField()
 
@@ -174,6 +175,9 @@ class Dat(Generic[Sub], ToStr, metaclass=DatMeta):
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, type(self)) and self._dat__values == other._dat__values
+
+    def __iter__(self) -> iter:
+        return iter(self._dat__values)
 
     def _lens_setattr(self, name, value):
         return self.set(name)(value)
