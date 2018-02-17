@@ -47,4 +47,8 @@ class Optional(Generic[F], TypeClass):
     def _unsafe_value(self, fa: F) -> A:
         return cast(A, self.to_maybe(fa)._get)
 
+    def absent(self, msg: str=None) -> F:
+        ...
+
+
 __all__ = ('Optional',)

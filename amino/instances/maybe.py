@@ -58,6 +58,9 @@ class MaybeOptional(Optional):
     def present(self, fa: Maybe):
         return fa.is_just
 
+    def absent(self, msg: str) -> Maybe[A]:
+        return Nothing
+
 
 class MaybeTraverse(Traverse):
 
