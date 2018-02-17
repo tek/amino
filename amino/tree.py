@@ -522,4 +522,4 @@ class SubTreeInvalid(SubTree):
     def show(self) -> LazyList[str]:
         return str(self)
 
-__all__ = ('Node', 'Inode', 'LeafNode')
+__all__ = ('Node', 'Inode', 'LeafNode', 'MapNode', 'LeafNode', 'ListNode')
