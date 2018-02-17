@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import abc
+import inspect
 import logging
 import operator
 from pathlib import Path
@@ -127,6 +128,14 @@ log.propagate = False
 
 def amino_logger(name: str) -> Logger:
     return cast(Logger, amino_root_logger.getChild(name))
+
+
+def module_log() -> Logger:
+    mod = inspect.currentframe()
+    caller = mod.f_back
+    name = caller.f_globals['__name__']
+    return amino_logger(name)
+
 
 _stdout_logging_initialized = False
 
