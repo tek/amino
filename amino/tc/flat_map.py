@@ -67,6 +67,10 @@ class FlatMap(Generic[F], Apply[F]):
         cb = lambda a: fb
         return self.flat_map(fa, cb)
 
+    def and_then(self, fa: F, fb: F) -> F:
+        cb = lambda a: fb
+        return self.flat_map(fa, cb)
+
     @tc_prop
     def join(self, fa: F) -> F:
         return self.flat_map(fa, I)
