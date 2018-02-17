@@ -1,15 +1,15 @@
 import abc
-from typing import TypeVar, Generic, Callable
+from typing import TypeVar, Generic, Callable, Type
 import operator
 
 from lenses import lens, UnboundLens
 
 from amino.tc.base import TypeClass, tc_prop
 from amino.tc.functor import Functor
-from amino.func import curried, I
+from amino.func import curried, I, CallByName
 from amino.maybe import Maybe, Empty, Just
 from amino.boolean import Boolean
-from amino import _
+from amino import _, Either
 from amino.tc.monoid import Monoid
 from amino.tc.monad import Monad
 
@@ -17,6 +17,7 @@ G = TypeVar('G')
 H = TypeVar('H')
 A = TypeVar('A')
 B = TypeVar('B')
+C = TypeVar('C')
 Z = TypeVar('Z')
 
 
@@ -75,8 +76,14 @@ class Foldable(Generic[H], TypeClass[H]):
         return self.fold_left(fa)(mono.empty)(mono.combine)
 
     @abc.abstractmethod
-    def find_map(self, fa: F[A], f: Callable[[A], Maybe[B]]) -> Maybe[B]:
+    def find_map_optional(self, fa: F[A], tpe: Type[F], f: Callable[[A], F[B]], msg: CallByName=None) -> Maybe[B]:
         ...
+
+    def find_map(self, fa: F[A], f: Callable[[A], Maybe[B]], msg: CallByName=None) -> Maybe[B]:
+        return self.find_map_optional(fa, Maybe, f, msg)
+
+    def find_map_e(self, fa: F[A], f: Callable[[A], Either[C, B]], msg: CallByName=None) -> Either[C, B]:
+        return self.find_map_optional(fa, Either, f, msg)
 
     def find_type(self, fa: F[A], tpe: type) -> Maybe[A]:
         pred = lambda a: isinstance(a, tpe)

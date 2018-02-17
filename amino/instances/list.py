@@ -1,17 +1,18 @@
 import itertools
-from typing import TypeVar, Callable, Tuple, Optional, cast
+from typing import TypeVar, Callable, Tuple, Optional as TOptional, Type
 from functools import reduce
 
 from amino import maybe, List, Maybe, Lists
-from amino.func import curried
+from amino.func import curried, call_by_name, CallByName
 from amino.lazy import lazy
 from amino.tc.monad import Monad
-from amino.tc.base import ImplicitInstances, tc_prop
+from amino.tc.base import ImplicitInstances, tc_prop, F
 from amino.tc.traverse import Traverse, TraverseF, TraverseG
 from amino.tc.applicative import Applicative
 from amino.tc.foldable import Foldable, FoldableABC
 from amino.tc.zip import Zip
 from amino.tc.monoid import Monoid
+from amino.tc.optional import Optional
 
 A = TypeVar('A', covariant=True)
 B = TypeVar('B')
@@ -63,7 +64,7 @@ TraverseF.register(List)
 TraverseG.register(List)
 
 
-def _find(fa: List[A], f: Callable[[A], bool]) -> Optional[A]:
+def _find(fa: List[A], f: Callable[[A], bool]) -> TOptional[A]:
     return next(filter(f, fa), None)
 
 
@@ -83,12 +84,12 @@ class ListFoldable(Foldable):
     def find(self, fa: List[A], f: Callable[[A], bool]):
         return Maybe(_find(fa, f))
 
-    def find_map(self, fa: List[A], f: Callable[[A], Maybe[B]]) -> Maybe[B]:
+    def find_map_optional(self, fa: List[A], tpe: Type[F], f: Callable[[A], F[B]], msg: CallByName=None) -> F[B]:
         for el in fa:
             found = f(el)
             if found.present:
                 return found
-        return maybe.Empty()
+        return Optional.fatal(tpe).absent(call_by_name(msg))
 
     def index_where(self, fa: List[A], f: Callable[[A], bool]):
         gen = (maybe.Just(i) for i, a in enumerate(fa) if f(a))

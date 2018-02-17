@@ -60,6 +60,7 @@ class ReplaceVal(Generic[A], Val[A]):
 def flip(a: A, b: B) -> Tuple[B, A]:
     return b, a
 
+
 CallByName = Union[Any, Callable[[], Any]]
 
 

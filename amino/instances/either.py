@@ -1,6 +1,6 @@
-from typing import TypeVar, Callable, Tuple, Any
+from typing import TypeVar, Callable, Tuple, Any, Type
 
-from amino.tc.base import tc_prop, ImplicitInstances
+from amino.tc.base import tc_prop, ImplicitInstances, F
 from amino.tc.optional import Optional
 from amino.tc.monad import Monad
 from amino.tc.traverse import Traverse
@@ -13,6 +13,7 @@ from amino.tc.foldable import Foldable
 from amino import curried, Maybe, Boolean, List
 from amino.tc.zip import Zip
 from amino.instances.list import ListTraverse
+from amino.func import CallByName, call_by_name
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -59,6 +60,9 @@ class EitherOptional(Optional):
     def present(self, fa: Either) -> Boolean:
         return fa.is_right
 
+    def absent(self, msg: str) -> Either[str, B]:
+        return Left(msg or 'not found')
+
 
 class EitherTraverse(Traverse):
 
@@ -84,9 +88,8 @@ class EitherFoldable(Foldable):
     def find(self, fa: Either[A, B], f: Callable[[B], bool]) -> Maybe[B]:
         return fa.to_maybe.find(f)
 
-    def find_map(self, fa: Either[A, B], f: Callable[[B], Either[A, C]]
-                 ) -> Either[A, C]:
-        return fa // f
+    def find_map_optional(self, fa: Either[A, B], tpe: Type[F], f: Callable[[B], F[C]], msg: CallByName=None) -> F[C]:
+        return fa / f | (lambda: fa.absent(call_by_name(msg)))
 
     def index_where(self, fa: Either[A, B], f: Callable[[B], bool]
                     ) -> Maybe[int]:

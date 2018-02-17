@@ -1,7 +1,6 @@
-from typing import TypeVar, Callable, Union
-from typing import Tuple  # NOQA
+from typing import TypeVar, Callable, Union, Type, Tuple
 
-from amino.tc.base import tc_prop, ImplicitInstances
+from amino.tc.base import tc_prop, ImplicitInstances, F
 from amino.tc.monad import Monad
 from amino.tc.optional import Optional
 from amino import either, Just, Empty, Maybe, curried, List, Nothing
@@ -12,9 +11,11 @@ from amino.tc.traverse import Traverse
 from amino.tc.foldable import Foldable
 from amino.tc.zip import Zip
 from amino.instances.list import ListTraverse
+from amino.func import CallByName
 
 A = TypeVar('A')
 B = TypeVar('B')
+C = TypeVar('C')
 
 
 class MaybeInstances(ImplicitInstances):
@@ -82,8 +83,8 @@ class MaybeFoldable(Foldable):
     def find(self, fa: Maybe[A], f: Callable[[A], bool]):
         return self.filter(fa, f)
 
-    def find_map(self, fa: Maybe[A], f: Callable[[A], Maybe[B]]) -> Maybe[B]:
-        return fa // f
+    def find_map_optional(self, fa: Maybe[A], tpe: Type[F], f: Callable[[B], F[C]], msg: CallByName=None) -> F[C]:
+        return fa / f | (lambda: fa.absent(call_by_name(msg)))
 
     def index_where(self, fa: Maybe[A], f: Callable[[A], bool]):
         return fa / f // (lambda a: Just(0) if a else Empty())
