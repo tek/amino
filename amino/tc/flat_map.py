@@ -7,6 +7,7 @@ import amino  # NOQA
 from amino.tc.apply import Apply
 from amino.func import I
 from amino.tc.base import tc_prop
+from amino.tc.functor import apply_n
 
 F = TypeVar('F')
 A = TypeVar('A')
@@ -45,13 +46,7 @@ class FlatMap(Generic[F], Apply[F]):
             return super().__getattr__(name)
 
     def flat_map_n(self, num, fa: F, f: Callable[..., F]) -> F:
-        def wrapper(args):
-            if len(args) != num:
-                msg = 'passed {} args to {}.flat_map{}'
-                name = self.__class__.__name__
-                raise TypeError(msg.format(len(args), name, num))
-            return f(*args)
-        return self.flat_map(fa, wrapper)
+        return apply_n(self, num, fa, f, self.flat_map)
 
     def product_n(self, num: int, fa: F, *fs: Iterable[F]):
         from amino.list import List

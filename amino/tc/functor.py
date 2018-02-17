@@ -1,5 +1,5 @@
-import abc
 import re
+import abc
 from typing import TypeVar, Generic, Callable, Any
 
 from amino.tc.base import TypeClass, tc_prop
@@ -8,6 +8,16 @@ from amino.func import ReplaceVal
 F = TypeVar('F')
 A = TypeVar('A')
 B = TypeVar('B')
+
+
+def apply_n(self: TypeClass, num: int, fa: F, f: Callable[..., B], g: Callable[..., F], *a: Any) -> F:
+    def wrapper(args: tuple):
+        if len(args) != num:
+            name = self.__class__.__name__
+            msg = f'passed {len(args)} args to {name}.{g.__name__}{num}'
+            raise TypeError(msg)
+        return f(*args)
+    return g(fa, wrapper, *a)
 
 
 class Functor(Generic[F], TypeClass[F]):
@@ -27,13 +37,7 @@ class Functor(Generic[F], TypeClass[F]):
         return lambda *a: self.map_n(int(match.group(1)), *a)
 
     def map_n(self, num: int, fa: F, f: Callable[..., B]) -> F:
-        def wrapper(args):
-            if len(args) != num:
-                msg = 'passed {} args to {}.map{}'
-                name = self.__class__.__name__
-                raise TypeError(msg.format(len(args), name, num))
-            return f(*args)
-        return self.map(fa, wrapper)
+        return apply_n(self, num, fa, f, self.map)
 
     def replace(self, fa: F, b: B) -> F:
         return self.map(fa, ReplaceVal(b))
