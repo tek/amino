@@ -13,4 +13,8 @@ class Applicative(Generic[F], Apply[F]):
     def pure(self, a: A) -> F:
         ...
 
+    @property
+    def unit(self) -> F:
+        return self.pure(None)
+
 __all__ = ('Applicative',)
