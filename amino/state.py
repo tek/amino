@@ -1,6 +1,8 @@
 import abc
 from typing import Generic, TypeVar, Callable, Tuple, cast, Type, Any
 
+from lenses import UnboundLens
+
 from amino.tc.base import ImplicitsMeta, F
 from amino.tc.monad import Monad
 from amino.tc.zip import Zip
@@ -131,6 +133,9 @@ class StateT(Generic[G, S, A], ToStr, F[A], metaclass=StateTMeta):
         def trans(s: S) -> H:
             return f(self.run(s))
         return tpe.apply(trans)
+
+    def transform_s_lens(self, l: UnboundLens) -> None:
+        return self.transform_s(l.get(), lambda r, s: l.set(s)(r))
 
     def modify_(self, f: Callable[[S], S]) -> 'StateT[G, S, A]':
         return self.transform(lambda s, a: (f(s), a))
