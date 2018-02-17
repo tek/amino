@@ -31,6 +31,10 @@ class StateTMeta(ImplicitsMeta, abc.ABCMeta):
         else:
             return super().__new__(cls, name, bases, ns, tpe, **kw)
 
+    @property
+    def unit(self) -> 'StateT[G, S, None]':
+        return self.pure(None)
+
 
 class StateT(Generic[G, S, A], ToStr, F[A], metaclass=StateTMeta):
 
