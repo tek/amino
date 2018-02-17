@@ -198,11 +198,15 @@ def tc_prop(f: Callable) -> Callable:
     return f
 
 
+class ImplicitLookupError(Exception):
+    pass
+
+
 class Implicits(metaclass=ImplicitsMeta):
     permanent = True
 
     def _lookup_implicit_attr(self, name: str) -> Optional[Callable]:
-        meta = type(self).instances_meta  # type: ignore
+        meta = type(self).instances_meta
         if meta is not None:
             return next((getattr(inst, name) for inst in meta.instances.v if hasattr(inst, name)), None)
         elif self.auto:
@@ -228,12 +232,14 @@ class Implicits(metaclass=ImplicitsMeta):
             return getattr(self, name)
 
     def __getattr__(self, name: str) -> Callable:
-        imp = self._set_implicit_attr(name) if Implicits.permanent else self._bound_implicit_attr(name)
-        if imp is None:
-            err = '\'{}\' object has no attribute \'{}\''.format(self.__class__.__name__, name)
-            raise AttributeError(err)
-        else:
-            return imp
+        try:
+            imp = self._set_implicit_attr(name) if Implicits.permanent else self._bound_implicit_attr(name)
+            if imp is None:
+                raise AttributeError(f'`{self.__class__.__name__}` object has no attribute `{name}`')
+            else:
+                return imp
+        except (RecursionError, ImplicitLookupError):
+            raise ImplicitLookupError(f'recursion error for implicit attr `{name}` on `{self}`')
 
     def _operator(self, name: str, other: Any) -> Any:
         op = (self._set_implicit_attr(name) if Implicits.permanent else
