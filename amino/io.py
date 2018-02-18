@@ -299,16 +299,10 @@ class Pure(Generic[A], IO[A]):
         return Suspend(L(f)(self.value), (ts & fs).map2('{}.{}'.format))
 
 
-def Try(f: Callable[..., A], *a: Any, **kw: Any) -> Either[Exception, A]:
-    try:
-        return Right(f(*a, **kw))
-    except Exception as e:
-        return Left(e)
-
-
 def io(fun: Callable[..., A]) -> Callable[..., IO[A]]:
     def dec(*a: Any, **kw: Any) -> IO[A]:
         return IO.delay(fun, *a, **kw)
     return dec
 
-__all__ = ('IO', 'Try', 'io')
+
+__all__ = ('IO', 'io')

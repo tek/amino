@@ -278,3 +278,13 @@ class Left(_coconut.collections.namedtuple("Left", "value"), Generic[A, B], Eith
         return isinstance(other, Left) and self._Either__left_value == other._Either__left_value
 
 __all__ = ('Either', 'Left', 'Right', 'ImportFailure', 'ImportException', 'InvalidLocator')
+@_coconut_tco  # line 267
+def Try(f: '_coconut.typing.Callable[[], A]', *a: 'Any', **kw: 'Any') -> 'Either[Exception, A]':  # line 267
+    try:  # line 268
+        return Right(f(*a, **kw))  # line 269
+    except Exception as e:  # line 270
+        return _coconut_tail_call(Left, e)  # line 271
+
+
+@_coconut_tco  # line 267
+__all__ = ('Either', 'Left', 'Right', 'ImportFailure', 'ImportException', 'InvalidLocator', 'Try')  # line 274

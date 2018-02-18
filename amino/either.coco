@@ -233,4 +233,12 @@ data Left(value) from Generic[A, B], Either[A, B]:
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Left) and self._Either__left_value == other._Either__left_value
 
-__all__ = ('Either', 'Left', 'Right', 'ImportFailure', 'ImportException', 'InvalidLocator')
+
+def Try(f: () -> A, *a: Any, **kw: Any) -> Either[Exception, A]:
+    try:
+        return Right(f(*a, **kw))
+    except Exception as e:
+        return Left(e)
+
+
+__all__ = ('Either', 'Left', 'Right', 'ImportFailure', 'ImportException', 'InvalidLocator', 'Try')
