@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xc65d39be
+# __coconut_hash__ = 0x809de57f
 
 # Compiled with Coconut version 1.3.0 [Dead Parrot]
 
@@ -35,6 +35,7 @@ from amino.func import I
 from amino.tc.base import F
 from amino.util.mod import unsafe_import_name
 from amino.tc.monoid import Monoid
+from amino.tc.monad import Monad
 from amino.util.string import ToStr
 from amino.do import do
 from amino.util.exception import format_exception
@@ -230,8 +231,9 @@ class Either(Generic[A, B], F[B], implicits=True):
         return _coconut_tail_call(self.cata, fail, I)
 
     @property
+    @_coconut_tco
     def fatal(self) -> 'B':
-        return self.get_or_raise
+        return _coconut_tail_call(self.get_or_raise)
 
     @_coconut_tco
     def __iter__(self) -> 'Iterator[B]':
@@ -250,11 +252,69 @@ class Either(Generic[A, B], F[B], implicits=True):
     def accum_error(self, b: 'Either[A, C]') -> 'Either[A, C]':
         return _coconut_tail_call(self.accum_error_f, lambda: b)
 
-    def accum_error_f(self, f: '_coconut.typing.Callable[[], Either[A, C]]') -> 'Either[A, C]':
-        @_coconut_tco
-        def acc(v: 'A') -> 'None':
-            return _coconut_tail_call(Monoid.fatal(type(v)).combine, self.__left_value, v)
-        return f().lmap(acc) if self.is_left else self
+    @_coconut_tco
+    def accum_error_f(self, f: '_coconut.typing.Callable[[], Either[A, C]]', *a, **kw) -> 'Either[A, C]':
+        _coconut_match_to = self
+        _coconut_match_check = False
+        if (_coconut.isinstance(_coconut_match_to, Left)) and (_coconut.len(_coconut_match_to) == 1):
+            value = _coconut_match_to[0]
+            _coconut_match_check = True
+        if _coconut_match_check:
+            _coconut_match_to = f(*a, **kw)
+            _coconut_match_check = False
+            if (_coconut.isinstance(_coconut_match_to, Left)) and (_coconut.len(_coconut_match_to) == 1):
+                err = _coconut_match_to[0]
+                _coconut_match_check = True
+            if _coconut_match_check:
+                monoid = Monoid.fatal_for(value)
+                return _coconut_tail_call(Left, monoid.combine(value, err))
+            if not _coconut_match_check:
+                r = _coconut_match_to
+                _coconut_match_check = True
+                if _coconut_match_check:
+                    return r
+        if not _coconut_match_check:
+            r = _coconut_match_to
+            _coconut_match_check = True
+            if _coconut_match_check:
+                return r
+# def acc(v: A) -> Either[A, C]:
+#     monoid = Monoid.fatal_for(self.__left_value)
+#     return monoid.combine(self.__left_value, v)
+# return f(*a, **kw).lmap(acc) if self.is_left else self
+
+    @_coconut_tco
+    def accum_error_lift(self, f: '_coconut.typing.Callable[[], Either[A, C]]', *a, **kw) -> 'Either[A, C]':
+        _coconut_match_to = self
+        _coconut_match_check = False
+        if (_coconut.isinstance(_coconut_match_to, Left)) and (_coconut.len(_coconut_match_to) == 1):
+            value = _coconut_match_to[0]
+            _coconut_match_check = True
+        if _coconut_match_check:
+            _coconut_match_to = f(*a, **kw)
+            _coconut_match_check = False
+            if (_coconut.isinstance(_coconut_match_to, Left)) and (_coconut.len(_coconut_match_to) == 1):
+                err = _coconut_match_to[0]
+                _coconut_match_check = True
+            if _coconut_match_check:
+                monoid = Monoid.fatal_for(value)
+                monad = Monad.fatal_for(value)
+                return _coconut_tail_call(Left, monoid.combine(self.__left_value, monad.pure(err)))
+            if not _coconut_match_check:
+                r = _coconut_match_to
+                _coconut_match_check = True
+                if _coconut_match_check:
+                    return r
+        if not _coconut_match_check:
+            r = _coconut_match_to
+            _coconut_match_check = True
+            if _coconut_match_check:
+                return r
+# def acc(v: A) -> Either[A, C]:
+#     monoid = Monoid.fatal_for(self.__left_value)
+#     monad = Monad.fatal_for(self.__left_value)
+#     return monoid.combine(self.__left_value, monad.pure(v))
+# return f(*a, **kw).lmap(acc) if self.is_left else self
 
     def filter_with(self, f: '_coconut.typing.Callable[[B], bool]', g: '_coconut.typing.Callable[[B], C]') -> 'Either[C, B]':
         return self // (lambda a: Right(a) if f(a) else Left(g(a)))
@@ -277,14 +337,13 @@ class Left(_coconut.collections.namedtuple("Left", "value"), Generic[A, B], Eith
     def __eq__(self, other: 'Any') -> 'bool':
         return isinstance(other, Left) and self._Either__left_value == other._Either__left_value
 
-__all__ = ('Either', 'Left', 'Right', 'ImportFailure', 'ImportException', 'InvalidLocator')
-@_coconut_tco  # line 267
-def Try(f: '_coconut.typing.Callable[[], A]', *a: 'Any', **kw: 'Any') -> 'Either[Exception, A]':  # line 267
-    try:  # line 268
-        return Right(f(*a, **kw))  # line 269
-    except Exception as e:  # line 270
-        return _coconut_tail_call(Left, e)  # line 271
+
+@_coconut_tco
+def Try(f: '_coconut.typing.Callable[[], A]', *a: 'Any', **kw: 'Any') -> 'Either[Exception, A]':
+    try:
+        return Right(f(*a, **kw))
+    except Exception as e:
+        return _coconut_tail_call(Left, e)
 
 
-@_coconut_tco  # line 267
-__all__ = ('Either', 'Left', 'Right', 'ImportFailure', 'ImportException', 'InvalidLocator', 'Try')  # line 274
+__all__ = ('Either', 'Left', 'Right', 'ImportFailure', 'ImportException', 'InvalidLocator', 'Try')

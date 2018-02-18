@@ -10,6 +10,7 @@ from amino.func import I
 from amino.tc.base import F
 from amino.util.mod import unsafe_import_name
 from amino.tc.monoid import Monoid
+from amino.tc.monad import Monad
 from amino.util.string import ToStr
 from amino.do import do
 from amino.util.exception import format_exception
@@ -194,7 +195,7 @@ class Either(Generic[A, B], F[B], implicits=True):
 
     @property
     def fatal(self) -> B:
-        return self.get_or_raise
+        return self.get_or_raise()
 
     def __iter__(self) -> Iterator[B]:
         return iter(self.to_list)
@@ -210,10 +211,39 @@ class Either(Generic[A, B], F[B], implicits=True):
     def accum_error(self, b: Either[A, C]) -> Either[A, C]:
         return self.accum_error_f(() -> b)
 
-    def accum_error_f(self, f: () -> Either[A, C]) -> Either[A, C]:
-        def acc(v: A) -> None:
-            return Monoid.fatal(type(v)).combine(self.__left_value, v)
-        return f().lmap(acc) if self.is_left else self
+    def accum_error_f(self, f: () -> Either[A, C], *a, **kw) -> Either[A, C]:
+        case self:
+            match Left(value):
+                case f(*a, **kw):
+                    match Left(err):
+                        monoid = Monoid.fatal_for(value)
+                        return Left(monoid.combine(value, err))
+                    match r:
+                        return r
+            match r:
+                return r
+        # def acc(v: A) -> Either[A, C]:
+        #     monoid = Monoid.fatal_for(self.__left_value)
+        #     return monoid.combine(self.__left_value, v)
+        # return f(*a, **kw).lmap(acc) if self.is_left else self
+
+    def accum_error_lift(self, f: () -> Either[A, C], *a, **kw) -> Either[A, C]:
+        case self:
+            match Left(value):
+                case f(*a, **kw):
+                    match Left(err):
+                        monoid = Monoid.fatal_for(value)
+                        monad = Monad.fatal_for(value)
+                        return Left(monoid.combine(self.__left_value, monad.pure(err)))
+                    match r:
+                        return r
+            match r:
+                return r
+        # def acc(v: A) -> Either[A, C]:
+        #     monoid = Monoid.fatal_for(self.__left_value)
+        #     monad = Monad.fatal_for(self.__left_value)
+        #     return monoid.combine(self.__left_value, monad.pure(v))
+        # return f(*a, **kw).lmap(acc) if self.is_left else self
 
     def filter_with(self, f: B -> bool, g: B -> C) -> Either[C, B]:
         return self // (a -> Right(a) if f(a) else Left(g(a)))
