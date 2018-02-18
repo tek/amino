@@ -1,70 +1,72 @@
 import abc
 import time
-import traceback
 import inspect
 import typing
 from typing import Callable, TypeVar, Generic, Any, Union, Tuple, Awaitable, Generator
+import traceback
 
-from amino import Either, Right, Left, Maybe, List, __, Just, _, Lists, L, Nothing, options
+from amino import Either, Right, Left, Maybe, List, __, Just, Lists, L, Nothing, options, _, Nil
 from amino.eval import Eval
 from amino.tc.base import Implicits, ImplicitsMeta
 from amino.logging import log
 from amino.util.fun import lambda_str, format_funcall
-from amino.util.exception import format_exception, sanitize_tb
 from amino.util.string import ToStr
 from amino.do import do
 from amino.func import tailrec
+from amino.util.trace import (callsite_info, frame_callsite, callsite_source, tb_callsite, frame_traceback_entry,
+                              non_internal_frame)
+from amino.util.exception import format_exception_error
 
 A = TypeVar('A')
 B = TypeVar('B')
 C = TypeVar('C')
 
 
-class IOException(Exception):
-    remove_pkgs = List('amino', 'fn')
+class IOExceptionBase(Exception, abc.ABC):
 
-    def __init__(self, f, stack, cause) -> None:
+    @abc.abstractproperty
+    def desc(self) -> str:
+        ...
+
+    @abc.abstractproperty
+    def internal_packages(self) -> Maybe[List[str]]:
+        ...
+
+    def __init__(self, f, stack, cause, frame=None) -> None:
         self.f = f
         self.stack = List.wrap(stack)
         self.cause = cause
-
-    @property
-    def location(self):
-        files = List('io', 'anon', 'instances/io', 'tc/base')
-        def filt(entry, name):
-            return entry.filename.endswith('/amino/{}.py'.format(name))
-        stack = self.stack.filter_not(lambda a: files.exists(L(filt)(a, _)))
-        pred = (lambda a: not IOException.remove_pkgs
-                .exists(lambda b: '/{}/'.format(b) in a.filename))
-        return stack.find(pred)
-
-    @property
-    def format_stack(self) -> List[str]:
-        rev = self.stack.reversed
-        def remove_recursion(i):
-            pre = rev[:i + 1]
-            post = rev[i:].drop_while(__.filename.endswith('/amino/io.py'))
-            return pre + post
-        def remove_internal():
-            start = rev.index_where(_.function == 'unsafe_perform_sync')
-            return start / remove_recursion | rev
-        frames = (self.location.to_list if IO.stack_only_location else remove_internal())
-        data = frames / (lambda a: a[1:-2] + tuple(a[-2]))
-        return sanitize_tb(Lists.wrap(traceback.format_list(list(data))))
+        self.frame = frame
 
     @property
     def lines(self) -> List[str]:
-        cause = format_exception(self.cause)
-        suf1 = '' if self.stack.empty else ' at:'
-        tb1 = (List() if self.stack.empty else self.format_stack)
-        return tb1.cons(f'IO exception{suf1}').cat('Cause:') + cause + List(
-            '',
-            'Callback:',
-            f'  {self.f}'
-        )
+        err = List('<erroneous traceback>')
+        try:
+            pkgs = self.internal_packages | None
+            tb = Lists.wrap(traceback.walk_tb(self.cause.__traceback__)) / _[0]
+            error_loc = tb.filter(L(non_internal_frame)(_, pkgs)).flat_traverse(frame_traceback_entry, Either)
+            cs = callsite_info(self.frame, pkgs)
+            return List(self.desc) + cs + (error_loc | err) + format_exception_error(self.cause)
+        except Exception as e:
+            return err
 
     def __str__(self):
         return self.lines.join_lines
+
+    @property
+    def callsite(self) -> Any:
+        return frame_callsite(self.frame)
+
+    @property
+    def callsite_source(self) -> List[str]:
+        return callsite_source(self.frame)
+
+
+class IOException(IOExceptionBase):
+
+    @property
+    def desc(self) -> str:
+        return 'IO exception'
 
 
 class IOMeta(ImplicitsMeta):
