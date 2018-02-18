@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Any, Type, Generic
+from typing import TypeVar, Type, Generic
 
 from amino.tc.base import TypeClass
 from amino import Either, Map, Right, Lists, Do, _, L, Left
@@ -14,7 +14,7 @@ A = TypeVar('A')
 class Decoder(Generic[A], TypeClass):
 
     @abc.abstractmethod
-    def decode(self, tpe: Type[A], data: Map[str, Any]) -> Either[JsonError, A]:
+    def decode(self, tpe: Type[A], data: Json) -> Either[JsonError, A]:
         ...
 
 
