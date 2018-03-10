@@ -1,8 +1,8 @@
-from typing import Generator, Any
+from typing import Any
 
 from amino.test.spec_spec import Spec
 
-from amino import Just, Nothing, Maybe, do, Eval
+from amino import Just, Nothing, Maybe, do, Eval, Do, List
 from amino.state import EvalState, StateT
 
 
@@ -10,7 +10,7 @@ class DoSpec(Spec):
 
     def just(self) -> None:
         @do(Maybe[int])
-        def run(i: int) -> Generator:
+        def run(i: int) -> Do:
             a = yield Just(i)
             b = yield Just(a + 5)
             c = yield Just(b + 7)
@@ -20,7 +20,7 @@ class DoSpec(Spec):
 
     def nothing(self) -> None:
         @do(Maybe[int])
-        def run(i: int) -> Generator:
+        def run(i: int) -> Do:
             yield Just(i)
             b = yield Nothing
             c = yield Just(b + 7)
@@ -29,7 +29,7 @@ class DoSpec(Spec):
 
     def eval_state(self) -> None:
         @do(StateT[Eval, str, Any])
-        def run() -> Generator:
+        def run() -> Do:
             a = yield EvalState.pure(1)
             yield EvalState.set('state')
             yield EvalState.inspect(lambda s: f'{s}: {a}')

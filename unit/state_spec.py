@@ -51,4 +51,7 @@ class StateSpec(Spec):
     def transform_f(self) -> None:
         MaybeState.pure(7).transform_f(EitherState, lambda m: m.to_either('none')).run_a(None).should.equal(Right(7))
 
+    def lift_left(self) -> None:
+        EitherState.lift(Left(1)).run_a(None).should.equal(Left(1))
+
 __all__ = ('StateSpec',)
