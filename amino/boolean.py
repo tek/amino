@@ -112,6 +112,9 @@ class Boolean:
     def __rxor__(self, other: Any) -> 'Boolean':
         return Boolean(bool(self.value ^ bool(other)))
 
+    def __hash__(self) -> int:
+        return hash(self.value)
+
     @property
     def no(self):
         return Boolean(not self.value)
