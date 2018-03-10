@@ -152,4 +152,8 @@ class Map(Generic[A, B], Dict[A, B], Implicits, metaclass=ImplicitsMeta, implici
     def add_maybe(self, key: A, value: Maybe[B]):
         return value / (lambda a: self + (key, a)) | self
 
+    def insert_if_absent(self, key: A, value: Callable[[], B]) -> 'Map[A, B]':
+        return self if key in self else self + (key, value())
+
+
 __all__ = ('Map',)
