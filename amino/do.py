@@ -1,5 +1,5 @@
 from types import GeneratorType
-from typing import TypeVar, Callable, Any, Generator, cast, Type
+from typing import TypeVar, Callable, Any, Generator, Type
 import functools
 
 from amino.tc.base import F
@@ -13,6 +13,8 @@ Do = Generator
 
 # NOTE ostensibly, this cannot be tailrecced without separating strictly evaluated monadic composition from lazy ones.
 # itr.gi_frame.f_lasti is the instruction pointer and could be used to detect laziness.
+# NOTE due to the nature of generators, a do with a lazily evaluated monad cannot be executed twice.
+# NOTE Lists don't work properly because the generator will be consumed by the first element
 def untyped_do(f: Callable[..., Generator[G, B, None]]) -> Callable[..., G]:
     @functools.wraps(f)
     def do_loop(*a: Any, **kw: Any) -> F[B]:
@@ -36,7 +38,7 @@ def do(tpe: Type[A]) -> Callable[[Callable[..., Generator]], Callable[..., A]]:
         f.tpe = tpe
         f.__do = None
         f.__do_original = f
-        return cast(Callable[[Callable[..., Generator]], Callable[..., A]], functools.wraps(f)(untyped_do))(f)
+        return functools.wraps(f)(untyped_do)(f)
     return deco
 
 tdo = do
