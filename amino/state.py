@@ -134,8 +134,15 @@ class StateT(Generic[G, S, A], ToStr, F[A], metaclass=StateTMeta):
             return f(self.run(s))
         return tpe.apply(trans)
 
-    def transform_s_lens(self, l: UnboundLens) -> None:
+    def transform_s_lens(self, l: UnboundLens) -> 'StateT[H, R, A]':
         return self.transform_s(l.get(), lambda r, s: l.set(s)(r))
+
+    zoom = transform_s_lens
+
+    def transform_s_lens_read(self, l: UnboundLens) -> 'StateT[H, R, A]':
+        return self.transform_s(l.get(), lambda r, s: r)
+
+    read_zoom = transform_s_lens_read
 
     def modify_(self, f: Callable[[S], S]) -> 'StateT[G, S, A]':
         return self.transform(lambda s, a: (f(s), a))
