@@ -3,7 +3,7 @@ from typing import Tuple, Callable
 
 from traceback import format_list, format_exception_only, FrameSummary, extract_tb
 
-from amino.list import List, Lists
+from amino.data.list import List, Lists
 from amino.func import I
 
 

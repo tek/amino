@@ -3,7 +3,7 @@ from typing import TypeVar, Dict, Generic, Tuple, Callable
 from toolz import dicttoolz
 
 from amino import Maybe, may, Just, Nothing
-from amino.list import List, Lists
+from amino.data.list import List, Lists
 from amino.boolean import Boolean
 from amino.tc.base import Implicits, ImplicitsMeta
 

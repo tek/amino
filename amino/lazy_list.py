@@ -4,7 +4,7 @@ from typing import Generic, TypeVar, Callable, Union, Any, Iterable, Generator
 
 from toolz import concatv
 
-from amino.list import List
+from amino.data.list import List
 from amino.maybe import Just, Empty, Maybe
 from amino.tc.base import Implicits
 from amino.func import I

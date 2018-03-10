@@ -9,7 +9,7 @@ Path = pathlib.Path
 from amino.typecheck import boot
 from amino.maybe import Maybe, Just, Empty, may, flat_may, Nothing
 from amino.either import Left, Right, Either, Try
-from amino.list import List, Lists, Nil
+from amino.data.list import List, Lists, Nil
 from amino.boolean import Boolean
 from amino.anon.boot import __, L, _
 from amino.lazy_list import LazyList

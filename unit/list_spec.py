@@ -1,6 +1,7 @@
 from amino.test.spec_spec import Spec
 
-from amino import List, Empty, Just, Maybe, _
+from amino import List, Empty, Just, Maybe, _, Lists, __
+from amino.list import replace_one
 
 
 class ListSpec(Spec):
@@ -100,5 +101,12 @@ class ListSpec(Spec):
     def with_index(self):
         l = List(1, 2, 3)
         l.with_index.unzip.should.equal((List.range(3), l))
+
+    def replace_one(self) -> None:
+        l = Lists.range(102)
+        index = 100
+        pred = lambda a: a == index
+        l1 = replace_one(l, pred, 23)._value()
+        l1.flat_map(__.lift(index)).should.just_contain(23)
 
 __all__ = ('ListSpec',)
