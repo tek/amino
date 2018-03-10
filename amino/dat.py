@@ -179,6 +179,9 @@ class Dat(Generic[Sub], ToStr, metaclass=DatMeta):
     def __iter__(self) -> iter:
         return iter(self._dat__values)
 
+    def __hash__(self) -> int:
+        return hash(self._dat__values)
+
     def _lens_setattr(self, name, value):
         return self.set(name)(value)
 
