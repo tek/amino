@@ -2,8 +2,6 @@ from functools import singledispatch, update_wrapper
 import typing
 from typing import Callable, Any, Dict, TypeVar, Type, Generic, GenericMeta
 
-from toolz import merge
-
 from amino.util.string import snake_case
 from amino.algebra import Algebra
 
@@ -49,12 +47,16 @@ def dispatch_with(rules: Dict[type, Callable], default: Callable=None):
 
 
 def patmat_dispatch(cls: type, alg: Type[Alg]) -> dict:
+    has_default = hasattr(cls, 'patmat_default')
     @singledispatch
     def patmat(self, o: A, *a: Any, **kw: Any) -> B:
-        raise TypeError(f'no case defined for {o} on {cls.__name__}')
+        if has_default:
+            return self.patmat_default(o, *a, **kw)
+        else:
+            raise TypeError(f'no case defined for {o} on {cls.__name__}')
     for tpe in alg.sub:
         fun = getattr(cls, snake_case(tpe.__name__), None)
-        if fun is None:
+        if fun is None and not has_default:
             raise TypeError(f'no case defined for {tpe} on {cls.__name__}')
         patmat.register(tpe)(fun)
     def wrapper(*args, **kw):
