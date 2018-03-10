@@ -30,6 +30,10 @@ class Boolean:
     def is_a(tpe: Type[A]) -> Callable[[Any], 'Boolean']:
         return lambda a: Boolean.isinstance(a, tpe)
 
+    @staticmethod
+    def is_a_class(tpe: Type[A]) -> Callable[[Any], 'Boolean']:
+        return lambda a: Boolean.issubclass(a, tpe)
+
     def maybe(self, value):
         return maybe.Maybe(value) if self else maybe.Empty()
 
