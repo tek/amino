@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Generic, Callable, Type
+from typing import TypeVar, Generic, Callable, Type, List
 import operator
 
 from lenses import lens, UnboundLens
@@ -12,6 +12,7 @@ from amino.boolean import Boolean
 from amino import _, Either
 from amino.tc.monoid import Monoid
 from amino.tc.monad import Monad
+from amino.tc.apply_n import ApplyN
 
 G = TypeVar('G')
 H = TypeVar('H')
@@ -24,12 +25,16 @@ Z = TypeVar('Z')
 class FoldableABC(Generic[A], abc.ABC):
     pass
 
+
 F = FoldableABC
 
 
-class Foldable(Generic[H], TypeClass[H]):
+class Foldable(Generic[H], TypeClass[H], ApplyN):
     # FIXME lens functions return index lenses, which is not a property of
     # Foldable
+
+    def apply_n_funcs(self) -> List[str]:
+        return ['filter']
 
     @abc.abstractmethod
     def with_index(self, fa: F[A]) -> F[A]:

@@ -1,22 +1,21 @@
-import re
 import abc
-from typing import Callable, Iterable, TypeVar, Generic
-from functools import partial
+from typing import Callable, Iterable, TypeVar, Generic, List
 
 import amino  # NOQA
 from amino.tc.apply import Apply
 from amino.func import I
 from amino.tc.base import tc_prop
-from amino.tc.functor import apply_n
+from amino.tc.apply_n import ApplyN
 
 F = TypeVar('F')
 A = TypeVar('A')
 B = TypeVar('B')
 
 
-class FlatMap(Generic[F], Apply[F]):
-    _flat_map_re = re.compile('^flat_map(\d+)$')
-    _product_re = re.compile('^product(\d+)$')
+class FlatMap(Generic[F], Apply[F], ApplyN):
+
+    def apply_n_funcs(self) -> List[str]:
+        return super().apply_n_funcs() + ['flat_map', 'product']
 
     def ap(self, fa: F, ff: F):
         f = lambda f: self.map(fa, f)
@@ -34,19 +33,6 @@ class FlatMap(Generic[F], Apply[F]):
         return self.flat_map(fa, f)
 
     __and__ = product
-
-    def __getattr__(self, name):
-        flat_map = self._flat_map_re.match(name)
-        product = self._product_re.match(name)
-        if flat_map is not None:
-            return partial(self.flat_map_n, int(flat_map.group(1)))
-        elif product is not None:
-            return partial(self.product_n, int(product.group(1)))
-        else:
-            return super().__getattr__(name)
-
-    def flat_map_n(self, num, fa: F, f: Callable[..., F]) -> F:
-        return apply_n(self, num, fa, f, self.flat_map)
 
     def product_n(self, num: int, fa: F, *fs: Iterable[F]):
         from amino.list import List
