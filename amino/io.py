@@ -2,20 +2,20 @@ import abc
 import time
 import inspect
 import typing
-from typing import Callable, TypeVar, Generic, Any, Union, Tuple, Awaitable, Generator
+from typing import Callable, TypeVar, Generic, Any, Union, Tuple, Awaitable, Optional
 import traceback
 
-from amino import Either, Right, Left, Maybe, List, __, Just, Lists, L, Nothing, options, _, Nil
+from amino import Either, Right, Left, Maybe, List, __, Just, Lists, L, Nothing, options, _
 from amino.eval import Eval
 from amino.tc.base import Implicits, ImplicitsMeta
 from amino.logging import log
 from amino.util.fun import lambda_str, format_funcall
 from amino.util.string import ToStr
-from amino.do import do
+from amino.do import do, Do
 from amino.func import tailrec
-from amino.util.trace import (callsite_info, frame_callsite, callsite_source, tb_callsite, frame_traceback_entry,
-                              non_internal_frame)
-from amino.util.exception import format_exception_error
+from amino.util.trace import callsite_info, frame_callsite, callsite_source, frame_traceback_entry, non_internal_frame
+from amino.util.exception import format_exception_error, format_exception
+from amino.options import io_debug
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -40,15 +40,35 @@ class IOExceptionBase(Exception, abc.ABC):
 
     @property
     def lines(self) -> List[str]:
-        err = List('<erroneous traceback>')
+        return self.full_trace_lines if io_debug else self.truncated_trace_lines
+
+    def trace_error(self) -> List[str]:
+        return List('<erroneous traceback>')
+
+    @property
+    def _internal_packages_arg(self) -> Optional[List[str]]:
+        return self.internal_packages | None
+
+    @property
+    def full_trace_lines(self) -> List[str]:
+        return self.trace_lines_with(format_exception(self.cause))
+
+    @property
+    def truncated_trace_lines(self) -> List[str]:
         try:
-            pkgs = self.internal_packages | None
             tb = Lists.wrap(traceback.walk_tb(self.cause.__traceback__)) / _[0]
-            error_loc = tb.filter(L(non_internal_frame)(_, pkgs)).flat_traverse(frame_traceback_entry, Either)
-            cs = callsite_info(self.frame, pkgs)
-            return List(self.desc) + cs + (error_loc | err) + format_exception_error(self.cause)
+            error_loc = (
+                tb
+                .filter(L(non_internal_frame)(_, self._internal_packages_arg))
+                .flat_map(frame_traceback_entry)
+            )
+            return self.trace_lines_with((error_loc) + format_exception_error(self.cause))
         except Exception as e:
-            return err
+            return self.trace_error()
+
+    def trace_lines_with(self, extra: List[str]) -> List[str]:
+        cs = callsite_info(self.frame, self._internal_packages_arg)
+        return cs.cons(self.desc) + extra
 
     def __str__(self):
         return self.lines.join_lines
@@ -67,6 +87,10 @@ class IOException(IOExceptionBase):
     @property
     def desc(self) -> str:
         return 'IO exception'
+
+    @property
+    def internal_packages(self) -> Maybe[List[str]]:
+        return Nothing
 
 
 class IOMeta(ImplicitsMeta):
@@ -229,7 +253,7 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
         return IO.delay(lambda: self.attempt).map(__.value_or(f))
 
     @do('IO[A]')
-    def ensure(self, f: Callable[[Either[IOException, A]], 'IO[None]']) -> Generator:
+    def ensure(self, f: Callable[[Either[IOException, A]], 'IO[None]']) -> Do:
         result = yield IO.delay(lambda: self.attempt)
         yield f(result)
         yield IO.from_either(result)
