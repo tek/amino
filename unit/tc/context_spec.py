@@ -45,17 +45,19 @@ class MonadConstraint(PatMat, alg=Al):
 
 
 target = List(2, 6, 3, 7)
-f = lambda a: List(a + 1, a + 5)
 
 
 class ContextSpec(Spec):
 
+    def _f(self, a: int) -> List[int]:
+        return List(a + 1, a + 5)
+
     def func(self) -> None:
-        r = monad_constraint_wrap(A=List)(List(1, 2), f)
+        r = monad_constraint_wrap(A=List)(List(1, 2), self._f)
         r.should.equal(target)
 
     def patmat(self) -> None:
-        r = MonadConstraint(A=List)(1)(Ala(List(1, 2)), f)
+        r = MonadConstraint(A=List)(1)(Ala(List(1, 2)), self._f)
         r.should.equal(target)
 
     def err(self) -> None:

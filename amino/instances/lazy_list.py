@@ -1,16 +1,17 @@
-from typing import TypeVar, Callable, Tuple
+from typing import TypeVar, Callable, Tuple, Type
 import itertools
 
 from amino import Maybe, LazyList, _, __
 from amino.list import List
-from amino.func import curried
+from amino.func import curried, call_by_name, CallByName
 from amino.tc.monad import Monad
-from amino.tc.base import ImplicitInstances, tc_prop
+from amino.tc.base import ImplicitInstances, tc_prop, F
 from amino.lazy import lazy
 from amino.tc.traverse import Traverse
 from amino.tc.foldable import Foldable, FoldableABC
 from amino.tc.zip import Zip
 from amino.instances.list import ListZip
+from amino.tc.optional import Optional
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -82,6 +83,10 @@ class LazyListFoldable(Foldable):
                     ) -> Maybe[int]:
         return fa.strict.index_where(f) | (
             fa._drain_find(f) / (lambda a: len(fa.strict) - 1))
+
+    def find_map_optional(self, fa: List[A], tpe: Type[F], f: Callable[[A], F[B]], msg: CallByName=None) -> F[B]:
+        a = fa.map(f).find(_.present)
+        return a | (lambda: Optional.fatal(tpe).absent(call_by_name(msg)))
 
 
 class LazyListZip(Zip):

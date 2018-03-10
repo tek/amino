@@ -96,19 +96,6 @@ class IOSpec(Spec):
         t = IO.now(1).and_then(IO.delay(f))
         t.attempt.should.contain(v)
 
-    def location(self) -> None:
-        IO.debug = True
-        IOException.remove_pkgs = List('fn')
-        def fail(a: int) -> None:
-            raise Exception(str(a))
-        f = lambda a: a + 2
-        g = lambda a, b: IO.now(a + b)
-        t = IO.delay(f, 1).flat_map(L(g)(_, 3))
-        t2 = t.map(fail)
-        exc = t2._attempt().value
-        code = (exc.location / _.code_context) | ''
-        code[0].should.contain('t.map(fail)')
-
 
 class IOStringSpec(Spec):
 
@@ -135,5 +122,6 @@ class IOStringSpec(Spec):
         t = IO.suspend(IO.now, 5) / (_ + 1)
         target = 'Suspend(Pure(5).map(lambda a: (lambda b: a + b)(1)))'
         str(t.step()).should.equal(target)
+
 
 __all__ = ('IOSpec', 'IOStringSpec')
