@@ -19,6 +19,10 @@ class EnvVars:
     def __setitem__(self, name: str, value: str) -> None:
         os.environ[name] = str(value)
 
+    def __delitem__(self, name: str) -> None:
+        if name in os.environ:
+            del os.environ[name]
+
 env = EnvVars()
 
 __all__ = ('EnvVars', 'env')
