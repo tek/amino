@@ -322,6 +322,10 @@ class Lists:
         return List.wrap(data.rsplit(splitter, maxsplit))
 
     @staticmethod
+    def tokens(data: str) -> List[str]:
+        return Lists.split(data, ' ')
+
+    @staticmethod
     @curried
     def iff(cond: bool, a: Union[A, Callable[[], A]]) -> List[A]:
         return List(call_by_name(a)) if cond else List()
