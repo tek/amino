@@ -3,7 +3,7 @@ from numbers import Number
 from uuid import UUID
 
 from amino.json.decoder import Decoder, decode, decode_json_type_json
-from amino import Maybe, Either, List, Lists, Left, Boolean, Try, Map, Right, Nothing, Just, Path, do, Do
+from amino import Maybe, Either, List, Lists, Left, Boolean, Try, Map, Right, Nothing, Just, Path, do, Do, _, L
 from amino.json.data import JsonError, Json, JsonObject
 
 A = TypeVar('A')
@@ -57,7 +57,10 @@ class MaybeDecoder(Decoder, tpe=Maybe):
             if data.object else
             decode(data) / Just
             if data.array else
-            data.scalar.e(f'invalid type for `Maybe`: {data}', Maybe.check(data.data))
+            inner.cata(
+                lambda a: decode_json_type_json(data, a) / Just,
+                lambda: data.scalar.e(f'invalid type for `Maybe`: {data}', Maybe.check(data.data))
+            )
         )
 
 
