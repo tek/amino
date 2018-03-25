@@ -10,7 +10,8 @@ def compile(path: str) -> None:
 
 
 def compile_coco_projects() -> None:
-    if 'COCO_DIRS' in os.environ and 'AMINO_DEVELOPMENT' in os.environ:
+    return
+    if 'COCO_DIRS' in os.environ and 'AMINO_COMPILE_COCO' in os.environ:
         for dir in os.environ.get('COCO_DIRS', '').split(':'):
             compile(dir)
 

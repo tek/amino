@@ -4,7 +4,7 @@ from typing import TypeVar, Type, Generic
 from amino.tc.base import TypeClass
 from amino import Either, Map, Right, Lists, Do, _, L, Left
 from amino.do import do
-from amino.json.data import JsonError, JsonObject, JsonArray, JsonScalar, Json, JsonAbsent
+from amino.json.data import JsonError, JsonObject, JsonArray, JsonScalar, Json, JsonAbsent, JsonNull
 from amino.json.parse import parse_json
 from amino.dispatch import dispatch_alg
 
@@ -40,6 +40,9 @@ class Decode:
 
     def decode_json_scalar(self, json: JsonScalar) -> Either[JsonError, A]:
         return Right(json.data)
+
+    def decode_json_null(self, json: JsonNull) -> Either[JsonError, A]:
+        return Right(None)
 
     def decode_json_absent(self, json: JsonAbsent) -> Either[JsonError, A]:
         return Left(json.data)

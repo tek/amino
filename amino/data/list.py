@@ -1,4 +1,3 @@
-import itertools
 import typing
 import random
 import string
@@ -9,7 +8,7 @@ from toolz.itertoolz import cons, groupby
 
 from amino import maybe, boolean, Path
 from amino.tc.base import ImplicitsMeta, Implicits
-from amino.func import curried, I, call_by_name, tailrec
+from amino.func import curried, I, call_by_name
 from amino.util.string import safe_string
 
 A = TypeVar('A')

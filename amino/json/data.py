@@ -57,6 +57,10 @@ class Json(Generic[A], Algebra, base=True):
     def absent(self) -> Boolean:
         return Boolean.isinstance(self, JsonAbsent)
 
+    @property
+    def null(self) -> Boolean:
+        return Boolean.isinstance(self, JsonNull)
+
     def error(self, msg: Union[str, Exception]) -> JsonError:
         return JsonError(self.data, msg)
 
@@ -96,14 +100,28 @@ class JsonArray(Json[List[Json]]):
         return Left(self.error('JsonArray has no fields'))
 
 
-class JsonScalar(Json[Union[str, Number, None]]):
+class JsonScalar(Json[Union[str, Number]]):
 
     @property
-    def native(self) -> Union[dict, list, str, Number, None]:
+    def native(self) -> Union[dict, list, str, Number]:
         return self.data
 
     def field(self, key: str) -> Either[JsonError, Json]:
         return Left(self.error('JsonScalar has no fields'))
+
+
+class JsonNull(Json[None]):
+
+    @staticmethod
+    def cons() -> 'Json[None]':
+        return JsonNull(None)
+
+    @property
+    def native(self) -> None:
+        None
+
+    def field(self, key: str) -> Either[JsonError, Json]:
+        return Left(self.error('JsonNull has no fields'))
 
 
 class JsonAbsent(Json[JsonError]):

@@ -57,6 +57,8 @@ class MaybeDecoder(Decoder, tpe=Maybe):
             if data.object else
             decode(data) / Just
             if data.array else
+            Right(Nothing)
+            if data.null else
             inner.cata(
                 lambda a: decode_json_type_json(data, a) / Just,
                 lambda: data.scalar.e(f'invalid type for `Maybe`: {data}', Maybe.check(data.data))

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x1c09273d
+# __coconut_hash__ = 0x69cc20c5
 
 # Compiled with Coconut version 1.3.0 [Dead Parrot]
 
@@ -28,6 +28,7 @@ from amino.json.data import Json  # line 5
 from amino.json.data import JsonArray  # line 5
 from amino.json.data import JsonScalar  # line 5
 from amino.json.data import JsonObject  # line 5
+from amino.json.data import JsonNull  # line 5
 
 
 def to_json(a: 'Any') -> 'Json':  # line 8
@@ -47,10 +48,17 @@ def to_json(a: 'Any') -> 'Json':  # line 8
     if not _coconut_match_check:  # line 14
         a = _coconut_match_to  # line 14
         _coconut_match_check = True  # line 14
+        if _coconut_match_check and not (a == None):  # line 14
+            _coconut_match_check = False  # line 14
         if _coconut_match_check:  # line 14
-            result = JsonScalar(a)  # line 15
-    return result  # line 16
+            result = JsonNull(None)  # line 15
+    if not _coconut_match_check:  # line 16
+        a = _coconut_match_to  # line 16
+        _coconut_match_check = True  # line 16
+        if _coconut_match_check:  # line 16
+            result = JsonScalar(a)  # line 17
+    return result  # line 18
 
 
-def parse_json(payload: 'str') -> 'Either[str, Json]':  # line 19
-    return Try(json.loads, payload) / to_json  # line 20
+def parse_json(payload: 'str') -> 'Either[str, Json]':  # line 21
+    return Try(json.loads, payload) / to_json  # line 22

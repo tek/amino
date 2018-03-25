@@ -4,7 +4,7 @@ from uuid import UUID
 
 from amino import Either, List, L, _, Right, Lists, Maybe, Path, Map, Boolean, do, Do
 from amino.json.encoder import Encoder, encode_json, json_object_with_type
-from amino.json.data import JsonError, Json, JsonArray, JsonScalar, JsonObject
+from amino.json.data import JsonError, Json, JsonArray, JsonScalar, JsonObject, JsonNull
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -31,7 +31,7 @@ class ListEncoder(Encoder[List], pred=L(issubclass)(_, TList)):
 class MaybeEncoder(Encoder[Maybe], tpe=Maybe):
 
     def encode(self, a: Maybe[A]) -> Either[JsonError, Json]:
-        return Right(JsonScalar(a | None))
+        return a.map(encode_json) | (lambda: Right(JsonNull.cons()))
 
 
 class EitherEncoder(Encoder[Either], tpe=Either):
