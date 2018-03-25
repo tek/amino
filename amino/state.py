@@ -69,6 +69,18 @@ class StateT(Generic[G, S, A], ToStr, F[A], metaclass=StateTMeta):
         return self.apply(lambda s: self.monad.pure((s, a)))
 
     @classmethod
+    def reset(self, s: S, a: A) -> 'StateT[G, S, A]':
+        return self.apply(lambda _: self.monad.pure((s, a)))
+
+    @classmethod
+    def reset_t(self, t: Tuple[S, A]) -> 'StateT[G, S, A]':
+        return self.apply(lambda _: self.monad.pure(t))
+
+    @classmethod
+    def delay(self, fa: Callable[..., A], *a: Any, **kw: Any) -> 'StateT[G, S, A]':
+        return self.apply(lambda s: self.monad.pure((s, fa(*a, **kw))))
+
+    @classmethod
     def lift(self, fa: F[A]) -> 'StateT[G, S, A]':
         def g(s: S) -> F[Tuple[S, A]]:
             return fa.map(lambda a: (s, a))
@@ -109,14 +121,6 @@ class StateT(Generic[G, S, A], ToStr, F[A], metaclass=StateTMeta):
     def _arg_desc(self) -> List[str]:
         return List(str(self.run_f))
 
-    def flat_map_f(self, f: Callable[[A], F[B]]) -> 'StateT[G, S, B]':
-        def h(s: S, a: A) -> F[Tuple[S, B]]:
-            return f(a).map(lambda b: (s, b))
-        def g(fsa: F[Tuple[S, A]]) -> F[Tuple[S, B]]:
-            return fsa.flat_map2(h)
-        run_f1 = self.run_f.map(lambda sfsa: lambda a: g(sfsa(a)))
-        return self.cls.apply_f(run_f1)
-
     def transform(self, f: Callable[[Tuple[S, A]], Tuple[S, B]]) -> 'StateT[G, S, B]':
         def g(fsa: F[Tuple[S, A]]) -> F[Tuple[S, B]]:
             return fsa.map2(f)
@@ -148,6 +152,7 @@ class StateT(Generic[G, S, A], ToStr, F[A], metaclass=StateTMeta):
         return self.transform(lambda s, a: (f(s), a))
 
 
+# FIXME this is now most likely unnecessary
 def tcs(tpe: Type[G], state_tpe: Type[ST]) -> None:
     class StateMonad(Monad, tpe=state_tpe):
 
