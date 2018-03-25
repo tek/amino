@@ -153,9 +153,13 @@ class InstancesMetadata:
         return self._instances.instances
 
 
-def _infer_implicits(name: str) -> Tuple[str, str]:
+def infer_implicits_module(name: str) -> str:
     snake = snake_case(name)
-    return 'amino.instances.{}'.format(snake), '{}Instances'.format(name)
+    return 'amino.instances.{}'.format(snake)
+
+
+def infer_implicits_class(name: str) -> str:
+    return '{}Instances'.format(name)
 
 
 class ImplicitsMeta(GenericMeta):
@@ -181,8 +185,10 @@ class ImplicitsMeta(GenericMeta):
             inst.name = name
             ImplicitsMeta._attach_operators(inst)
             if not inst.auto:
-                if imp_mod is None or imp_cls is None:
-                    imp_mod, imp_cls = _infer_implicits(name)
+                if imp_mod is None:
+                    imp_mod = infer_implicits_module(name)
+                if imp_cls is None:
+                    imp_cls = infer_implicits_class(name)
                 meta = InstancesMetadata(name, imp_mod, imp_cls)
                 inst.imp_mod = imp_mod
                 inst.imp_cls = imp_cls
