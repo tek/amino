@@ -3,7 +3,7 @@ from typing import TypeVar, Callable, Any, Generic, Type
 from functools import reduce
 
 from amino import Map, Boolean
-from amino.dispatch import Case
+from amino.case import Case
 from amino.algebra import Algebra
 
 A = TypeVar('A')

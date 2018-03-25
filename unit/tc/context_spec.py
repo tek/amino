@@ -2,7 +2,7 @@ from typing import TypeVar, Callable, Any, Generic
 
 from amino.tc.monad import Monad
 from amino import List, ADT
-from amino.dispatch import Case
+from amino.case import Case
 from amino.algebra import Algebra
 from amino.test.spec_spec import Spec
 from amino.tc.context import context, Bindings
