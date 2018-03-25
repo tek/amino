@@ -67,11 +67,11 @@ class CaseRec(Generic[Alg, A], metaclass=CaseRecMeta):
         return Rec(self, scrutinee, a, kw)
 
 
-class Step(Generic[A], ADT['Step[A]']):
+class RecStep(Generic[Alg, A], ADT['RecStep[Alg, A]']):
     pass
 
 
-class Rec(Generic[Alg, A], Step[A]):
+class Rec(Generic[Alg, A], RecStep[Alg, A]):
 
     def __init__(self, func: CaseRec[Alg, A], scrutinee: Alg, args: list, kwargs: dict) -> None:
         self.func = func
@@ -83,13 +83,13 @@ class Rec(Generic[Alg, A], Step[A]):
         return eval_case_rec(self)
 
 
-class Term(Generic[A], Step[A]):
+class Term(Generic[Alg, A], RecStep[Alg, A]):
 
     def __init__(self, result: A) -> None:
         self.result = result
 
 
-def eval_case_rec(step: Rec) -> None:
+def eval_case_rec(step: Rec[Alg, A]) -> A:
     while True:
         step = step.func.case(step.scrutinee, *step.args, **step.kwargs)
         if isinstance(step, Term):
