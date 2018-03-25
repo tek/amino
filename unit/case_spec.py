@@ -1,5 +1,5 @@
 from amino import ADT
-from amino.patmat import PatMatRec, Term
+from amino.case import CaseRec, Term
 from amino.test.spec_spec import Spec
 
 
@@ -25,7 +25,7 @@ class Prod(Num):
         self.p = p
 
 
-class rec(PatMatRec[int, int], alg=Num):
+class rec(CaseRec[int, int], alg=Num):
 
     def __init__(self, base: int) -> None:
         self.base = base
@@ -40,11 +40,11 @@ class rec(PatMatRec[int, int], alg=Num):
         return Term(n.p + 7)
 
 
-class PatmatSpec(Spec):
+class CaseSpec(Spec):
 
     def test(self) -> None:
         r = rec(5)(Int(6)).eval()
         r.should.equal(37)
 
 
-__all__ = ('PatmatSpec',)
+__all__ = ('CaseSpec',)

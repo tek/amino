@@ -2,7 +2,7 @@ from typing import TypeVar, Callable, Any, Generic
 
 from amino.tc.monad import Monad
 from amino import List, ADT
-from amino.dispatch import PatMat
+from amino.dispatch import Case
 from amino.algebra import Algebra
 from amino.test.spec_spec import Spec
 from amino.tc.context import context, Bindings
@@ -34,7 +34,7 @@ class Ala(Generic[A], Al):
 
 
 @context(A=Monad)
-class MonadConstraint(PatMat, alg=Al):
+class MonadConstraint(Case, alg=Al):
 
     def __init__(self, bindings: Bindings, i: int) -> None:
         self.bindings = bindings
@@ -56,7 +56,7 @@ class ContextSpec(Spec):
         r = monad_constraint_wrap(A=List)(List(1, 2), self._f)
         r.should.equal(target)
 
-    def patmat(self) -> None:
+    def case(self) -> None:
         r = MonadConstraint(A=List)(1)(Ala(List(1, 2)), self._f)
         r.should.equal(target)
 

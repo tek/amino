@@ -3,7 +3,7 @@ from typing import TypeVar, Callable, Any, Generic, Type
 from functools import reduce
 
 from amino import Map, Boolean
-from amino.dispatch import PatMat
+from amino.dispatch import Case
 from amino.algebra import Algebra
 
 A = TypeVar('A')
@@ -24,7 +24,7 @@ def function_bindings_relay(f: Callable) -> Boolean:
     return Boolean(anno.get('bindings', None) is Bindings)
 
 
-def patmat_bindings_relay(pm: Type[PatMat[Alg, B]]) -> Boolean:
+def case_bindings_relay(pm: Type[Case[Alg, B]]) -> Boolean:
     return function_bindings_relay(pm.__init__)
 
 
@@ -65,9 +65,9 @@ class ContextBound(Generic[A]):
         return self.f(*a, **kw)
 
 
-class BoundedPatMat(Generic[Alg, B]):
+class BoundedCase(Generic[Alg, B]):
 
-    def __init__(self, pm: PatMat[Alg, B], bindings: Bindings, relay: Boolean) -> None:
+    def __init__(self, pm: Case[Alg, B], bindings: Bindings, relay: Boolean) -> None:
         self.pm = pm
         self.bindings = bindings
         self.relay = relay
@@ -76,17 +76,17 @@ class BoundedPatMat(Generic[Alg, B]):
         return self.pm(self.bindings, *a, **kw) if self.relay else self.pm(*a, **kw)
 
 
-class PatMatContextBound(Generic[Alg, B]):
+class CaseContextBound(Generic[Alg, B]):
 
-    def __init__(self, pm: Type[PatMat[Alg, B]], bounds: Map) -> None:
+    def __init__(self, pm: Type[Case[Alg, B]], bounds: Map) -> None:
         self.pm = pm
         self.bounds = bounds
-        self.relay = patmat_bindings_relay(pm)
+        self.relay = case_bindings_relay(pm)
 
-    def __call__(self, *a: Bindings, **kw: type) -> PatMat[Alg, B]:
+    def __call__(self, *a: Bindings, **kw: type) -> Case[Alg, B]:
         bindings = reduce(lambda a, b: a ** b.bindings, a, Map(kw))
         check_bounds(self.pm.__name__, self.bounds, bindings)
-        return BoundedPatMat(self.pm, Bindings(bindings), self.relay)
+        return BoundedCase(self.pm, Bindings(bindings), self.relay)
 
     def call(self, *a, **kw) -> A:
         return self.pm(*a, **kw)
@@ -95,8 +95,8 @@ class PatMatContextBound(Generic[Alg, B]):
 def context(*bindings: ContextBound, **tpes: Any) -> Callable:
     def dec(f: Callable) -> Callable:
         return (
-            PatMatContextBound(f, Map(tpes))
-            if isinstance(f, type) and issubclass(f, PatMat) else
+            CaseContextBound(f, Map(tpes))
+            if isinstance(f, type) and issubclass(f, Case) else
             ContextBound(f, Map(tpes))
         )
     return dec
