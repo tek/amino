@@ -27,7 +27,7 @@ from amino.do import do, Do
 from amino.id import Id
 from amino.dat import Dat, ADT
 
-boot()
+# boot()
 
 __all__ = ('Maybe', 'Just', 'Empty', 'may', 'List', 'Map', '_', 'Future', 'Boolean', 'development', 'flat_may',
            'curried', '__', 'Left', 'Right', 'Either', 'env', 'Try', 'LazyList', 'Logger', 'I', 'L', 'Eff',
