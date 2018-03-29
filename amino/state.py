@@ -121,6 +121,14 @@ class StateT(Generic[G, S, A], ToStr, F[A], metaclass=StateTMeta):
     def _arg_desc(self) -> List[str]:
         return List(str(self.run_f))
 
+    def flat_map_f(self, f: Callable[[A], F[B]]) -> 'StateT[G, S, B]':
+        def h(s: S, a: A) -> F[Tuple[S, B]]:
+            return f(a).map(lambda b: (s, b))
+        def g(fsa: F[Tuple[S, A]]) -> F[Tuple[S, B]]:
+            return fsa.flat_map2(h)
+        run_f1 = self.run_f.map(lambda sfsa: lambda a: g(sfsa(a)))
+        return self.cls.apply_f(run_f1)
+
     def transform(self, f: Callable[[Tuple[S, A]], Tuple[S, B]]) -> 'StateT[G, S, B]':
         def g(fsa: F[Tuple[S, A]]) -> F[Tuple[S, B]]:
             return fsa.map2(f)
