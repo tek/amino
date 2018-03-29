@@ -3,47 +3,47 @@ from amino.case import CaseRec, Term
 from amino.test.spec_spec import Spec
 
 
-class Num(ADT['Num']):
+class _Num(ADT['_Num']):
     pass
 
 
-class Int(Num):
+class _Int(_Num):
 
     def __init__(self, i: int) -> None:
         self.i = i
 
 
-class Float(Num):
+class _Float(_Num):
 
     def __init__(self, f: float) -> None:
         self.f = f
 
 
-class Prod(Num):
+class _Prod(_Num):
 
     def __init__(self, p: int) -> None:
         self.p = p
 
 
-class rec(CaseRec[int, int], alg=Num):
+class _rec(CaseRec[int, int], alg=_Num):
 
     def __init__(self, base: int) -> None:
         self.base = base
 
-    def int(self, n: Int) -> int:
-        return self(Prod(self.base * n.i))
+    def _int(self, n: _Int) -> int:
+        return self(_Prod(self.base * n.i))
 
-    def float(self, n: Float) -> int:
-        return self(Int(int(n)))
+    def _float(self, n: _Float) -> int:
+        return self(_Int(int(n)))
 
-    def prod(self, n: Prod) -> int:
+    def _prod(self, n: _Prod) -> int:
         return Term(n.p + 7)
 
 
 class CaseSpec(Spec):
 
-    def test(self) -> None:
-        r = rec(5)(Int(6)).eval()
+    def _rec(self) -> None:
+        r = _rec(5)(_Int(6)).eval()
         r.should.equal(37)
 
 
