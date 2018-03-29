@@ -6,7 +6,7 @@ compile_coco_projects()
 
 Path = pathlib.Path
 
-from amino.typecheck import boot
+# from amino.typecheck import boot
 from amino.maybe import Maybe, Just, Empty, may, flat_may, Nothing
 from amino.either import Left, Right, Either, Try
 from amino.data.list import List, Lists, Nil
