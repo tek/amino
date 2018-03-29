@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x6bbc9d9a
+# __coconut_hash__ = 0xd3cfe6df
 
 # Compiled with Coconut version 1.3.0 [Dead Parrot]
 
@@ -128,11 +128,12 @@ class Either(Generic[A, B], F[B], implicits=True):  # line 59
             return _coconut_tail_call(module.to_either, InvalidLocator(f'failed to import `{path}`'))  # line 101
 
     @staticmethod  # line 103
-    @do('Either[ImportFailure, B]')  # line 103
-    def import_from_file(path: 'Path', name: 'str') -> 'Generator':  # line 105
-        module = yield Either.import_file(path)  # line 106
-        attr = getattr(module, name, None)  # line 107
-        yield (Left(InvalidLocator(f'{path} has no attribute {name}')) if attr is None else Right(attr))  # line 108
+    @_coconut_tco  # line 103
+    def import_from_file(path: 'Path', name: 'str') -> "'Either[ImportFailure, B]'":  # line 104
+        def f(module: 'ModuleType') -> 'None':  # line 105
+            attr = getattr(module, name, None)  # line 106
+            return (Left(InvalidLocator(f'{path} has no attribute {name}')) if attr is None else Right(attr))  # line 107
+        return _coconut_tail_call(Either.import_file(path).flat_map, f)  # line 112
 
     @staticmethod  # line 114
     @_coconut_tco  # line 114

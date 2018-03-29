@@ -101,15 +101,15 @@ class Either(Generic[A, B], F[B], implicits=True):
             return module.to_either(InvalidLocator(f'failed to import `{path}`'))
 
     @staticmethod
-    @do('Either[ImportFailure, B]')
-    def import_from_file(path: Path, name: str) -> Generator:
-        module = yield Either.import_file(path)
-        attr = getattr(module, name, None)
-        yield (
-            Left(InvalidLocator(f'{path} has no attribute {name}'))
-            if attr is None else
-            Right(attr)
-        )
+    def import_from_file(path: Path, name: str) -> 'Either[ImportFailure, B]':
+        def f(module: ModuleType) -> None:
+            attr = getattr(module, name, None)
+            return (
+                Left(InvalidLocator(f'{path} has no attribute {name}'))
+                if attr is None else
+                Right(attr)
+            )
+        return Either.import_file(path).flat_map(f)
 
     @staticmethod
     def catch(f: () -> B, exc: Type[E]) -> Either[E, B]:
