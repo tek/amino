@@ -371,7 +371,7 @@ class AllInstances:
         return next((attach_type(a) for a in map(match, G.__mro__) if a is not None), None)
 
     def lookup_auto_attr(self, tpe: type, name: str) -> Optional[Callable]:
-        def check(t: type) -> 'amino.maybe.Maybe[Callable]':
+        def check(t: type) -> Optional[Callable]:
             if t in self.auto_instances:
                 ins = self.auto_instances[t]
                 return next((getattr(inst, name) for inst in ins.instances.v if hasattr(inst, name)), None)
@@ -390,8 +390,7 @@ class AllInstances:
 
     def _lookup_auto(self, TC: type, G: type) -> Optional[TypeClass]:
         if G in self.auto_instances:
-            return next((b for a, b in self.auto_instances[G].instances.items() if isinstance(b, TC)),  # type: ignore
-                        None)
+            return next((b for a, b in self.auto_instances[G].instances.items() if isinstance(b, TC)), None)
         else:
             return None
 

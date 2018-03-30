@@ -54,4 +54,5 @@ class StateSpec(Spec):
     def lift_left(self) -> None:
         EitherState.lift(Left(1)).run_a(None).should.equal(Left(1))
 
+
 __all__ = ('StateSpec',)

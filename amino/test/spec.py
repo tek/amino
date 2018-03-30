@@ -34,7 +34,7 @@ class SpecBase(Logging):
     def teardown(self) -> None:
         warnings.simplefilter('ignore')
 
-    def _wait(self, seconds: int) -> None:
+    def _wait(self, seconds: float) -> None:
         time.sleep(seconds)
 
 

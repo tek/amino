@@ -147,14 +147,14 @@ class Dat(Generic[Sub], ToStr, metaclass=DatMeta):
         updates = Map(kw)
         def update(f: Field) -> Any:
             return updates.lift(f.name) | (lambda: getattr(self, f.name))
-        updated = self._dat__fields / update  # type: ignore
+        updated = self._dat__fields / update
         return cast(Dat, type(self)(*updated))
 
     def typed_copy(self, **kw: Any) -> Sub:
         updates = Map(kw)
         def update(f: Field) -> Any:
             return updates.lift(f.name).filter_type(f.tpe) | (lambda: getattr(self, f.name))
-        updated = self._dat__fields / update  # type: ignore
+        updated = self._dat__fields / update
         return cast(Dat, type(self)(*updated))
 
     @property
