@@ -34,7 +34,7 @@ class Foldable(Generic[H], TypeClass[H], ApplyN):
     # Foldable
 
     def apply_n_funcs(self) -> List[str]:
-        return ['filter']
+        return ['filter', 'find_map']
 
     @abc.abstractmethod
     def with_index(self, fa: F[A]) -> F[A]:
