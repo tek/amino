@@ -70,7 +70,7 @@ class IOExceptionBase(Exception, abc.ABC):
         cs = callsite_info(self.frame, self._internal_packages_arg)
         return cs.cons(self.desc) + extra
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.lines.join_lines
 
     @property

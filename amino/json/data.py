@@ -25,7 +25,7 @@ class JsonError(ToStr):
         return self.error if isinstance(self.error, Exception) else Exception(self.error)
 
 
-class Json(Generic[A], Algebra, base=True):
+class Json(Generic[A], Algebra):
 
     def __init__(self, data: A) -> None:
         self.data = data

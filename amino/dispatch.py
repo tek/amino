@@ -30,7 +30,7 @@ def dispatch(obj: B, tpes: typing.List[A], prefix: str, default: Callable[[A], R
 
 
 def dispatch_alg(obj: B, alg: Type[Alg], prefix: str='', default: Callable[[Alg], R]=None) -> Callable[[Alg], R]:
-    return dispatch(obj, alg.sub, prefix, default)
+    return dispatch(obj, alg.__algebra_variants__, prefix, default)
 
 
 def dispatch_with(rules: Dict[type, Callable], default: Callable=None):

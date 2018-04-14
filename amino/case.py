@@ -1,40 +1,20 @@
-from typing import Type, Generic, Any, TypeVar, GenericMeta
-from functools import singledispatch, update_wrapper
+from types import SimpleNamespace
+from typing import Type, Generic, Any, TypeVar, GenericMeta, Callable, Tuple
+import inspect
 
 from amino.util.string import snake_case
-from amino import ADT
+from amino import ADT, Map, List, Lists, do, Do, Either, Try, Just, Nothing, Maybe
+from amino.algebra import Algebra
 
-Alg = TypeVar('Alg')
+Alg = TypeVar('Alg', bound=Algebra)
+C = TypeVar('C', bound=Alg)
 A = TypeVar('A')
 B = TypeVar('B')
 
 
-def case_dispatch(cls: type, alg: Type[Alg]) -> dict:
-    has_default = hasattr(cls, 'case_default')
-    @singledispatch
-    def case(self, o: A, *a: Any, **kw: Any) -> B:
-        if has_default:
-            return self.case_default(o, *a, **kw)
-        else:
-            raise TypeError(f'no case defined for {o} on {cls.__name__}')
-    for tpe in alg.sub:
-        fun = getattr(cls, snake_case(tpe.__name__), None)
-        if fun is None and not has_default:
-            raise TypeError(f'no case defined for {tpe} on {cls.__name__}')
-        case.register(tpe)(fun)
-    def wrapper(*args, **kw):
-        return case.dispatch(args[1].__class__)(*args, **kw)
-    wrapper.register = case.register
-    wrapper.dispatch = case.dispatch
-    wrapper.registry = case.registry
-    wrapper._clear_cache = case._clear_cache
-    update_wrapper(wrapper, case)
-    return wrapper
-
-
 class CaseMeta(GenericMeta):
 
-    def __new__(cls, name: str, bases: tuple, namespace: dict, alg: Type[Alg]=None, **kw: Any) -> type:
+    def __new__(cls: type, name: str, bases: tuple, namespace: SimpleNamespace, alg: Type[Alg]=None, **kw: Any) -> type:
         inst = super().__new__(cls, name, bases, namespace, **kw)
         if alg is not None:
             inst.case = case_dispatch(inst, alg)
@@ -44,12 +24,61 @@ class CaseMeta(GenericMeta):
 class Case(Generic[Alg, B], metaclass=CaseMeta):
 
     @classmethod
-    def match(cls, *a, **kw) -> B:
-        obj = cls()
-        return obj.case(*a, **kw)
+    def match(cls, scrutinee: Alg, *a: Any, **kw: Any) -> B:
+        return cls().case(scrutinee, *a, **kw)
 
     def __call__(self, scrutinee: Alg, *a: Any, **kw: Any) -> B:
         return self.case(scrutinee, *a, **kw)
+
+
+def resolve_case(handlers: List[Callable[[Case[C, B]], B]], variant: Type[C]) -> Callable[[Case[C, B]], B]:
+    return handlers[0]
+
+
+def normalize_type(tpe: Type[C]) -> Type[C]:
+    return tpe.__origin__ or tpe
+
+
+def case_list(
+        cls: Type[Case[C, B]],
+        variants: List[Type[C]],
+        alg: Type[C],
+        has_default: bool,
+) -> Map[Type[C], Callable[[Case[C, B]], B]]:
+    @do(Maybe[Tuple[Type[C], Callable[[Case[C, B]], B]]])
+    def is_handler(name: str, f: Callable) -> Do:
+        effective = getattr(f, '__do_original', f)
+        spec = yield Try(inspect.getfullargspec, effective).to_maybe
+        param_name = yield Lists.wrap(spec.args).lift(1)
+        param_type = yield Map(spec.annotations).lift(param_name)
+        yield (
+            Just((normalize_type(param_type), f))
+            if issubclass(param_type, alg) else
+            Nothing
+        )
+    handlers = Lists.wrap(inspect.getmembers(cls, inspect.isfunction)).flat_map2(is_handler)
+    def find_handler(variant: Type[C]) -> Callable[[Case[C, B]], B]:
+        def not_found() -> None:
+            if not has_default:
+                raise Exception(f'no case defined for {variant} on {cls.__name__}')
+        def match_handler(tpe: type, f: Callable) -> Maybe[Callable[[Case[C, B]], B]]:
+            return Just(f) if issubclass(tpe, variant) else Nothing
+        return handlers.find_map2(match_handler).get_or_else(not_found)
+    return variants.map(find_handler)
+
+
+def case_dispatch(cls: Type[Case[C, B]], alg: Type[C]) -> Callable[[Case[C, B], C], B]:
+    def error(func: Case[C, B], variant: Alg, *a: Any, **kw: Any) -> None:
+        raise TypeError(f'no case defined for {variant} on {cls.__name__}')
+    default = getattr(cls, 'case_default', error)
+    has_default = default is not error
+    cases = case_list(cls, alg.__algebra_variants__.sort_by(lambda a: a.__algebra_index__), alg, has_default)
+    length = cases.length
+    def case(func: Case[C, B], scrutinee: C, *a: Any, **kw: Any) -> B:
+        index = getattr(scrutinee, '__algebra_index__', None)
+        handler = (cases[index] or default) if index is not None and index < length else default
+        return handler(func, scrutinee, *a, **kw)
+    return case
 
 
 class CaseRecMeta(GenericMeta):

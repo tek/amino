@@ -1,5 +1,6 @@
 import inspect
-from typing import TypeVar, Type, Any, Generic, cast, Tuple
+from types import SimpleNamespace
+from typing import TypeVar, Type, Any, Generic, cast, Tuple, GenericMeta
 
 from amino import Map, Lists, List, Nil, _, Either, Right, Maybe, Just, L, do, Do
 from amino.util.string import ToStr
@@ -93,9 +94,9 @@ def init_fields(spec: inspect.FullArgSpec) -> List[Field]:
     return args / field
 
 
-class DatMeta(ImplicitsMeta):
+class DatMeta(GenericMeta):
 
-    def __new__(cls: type, name: str, bases: tuple, namespace: dict, **kw) -> type:
+    def __new__(cls: type, name: str, bases: tuple, namespace: SimpleNamespace, **kw) -> type:
         fs = Map(namespace).lift('__init__') / inspect.getfullargspec / init_fields | Nil
         inst = super().__new__(cls, name, bases, namespace, **kw)
         if not (fs.empty and hasattr(inst, '_dat__fields_value')):
@@ -189,6 +190,10 @@ class Dat(Generic[Sub], ToStr, metaclass=DatMeta):
         return self._dat__values / str
 
 
+class DatImplicitsMeta(ImplicitsMeta, DatMeta):
+    pass
+
+
 class DatDecoder(Decoder, tpe=Dat):
 
     def decode(self, tpe: Type[Sub], data: JsonObject) -> Either[JsonError, Sub]:
@@ -212,7 +217,8 @@ class ADTMeta(DatMeta, AlgebraMeta):
     pass
 
 
-class ADT(Generic[Sub], Dat[Sub], Algebra, metaclass=ADTMeta):
+class ADT(Generic[Sub], Algebra, Dat[Sub], metaclass=ADTMeta, algebra_base=True):
     pass
 
-__all__ = ('Dat', 'ADT')
+
+__all__ = ('Dat', 'ADT', 'DatImplicitsMeta')
