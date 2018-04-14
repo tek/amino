@@ -75,8 +75,7 @@ class LazyListFoldable(Foldable):
     def find(self, fa: List[A], f: Callable[[A], bool]) -> Maybe[A]:
         return fa.strict.find(f).o(fa._drain_find(f))
 
-    def find_map(self, fa: LazyList[A], f: Callable[[A], Maybe[B]]
-                 ) -> Maybe[B]:
+    def find_map(self, fa: LazyList[A], f: Callable[[A], Maybe[B]]) -> Maybe[B]:
         return fa.map(f).find(_.is_just)
 
     def index_where(self, fa: LazyList[A], f: Callable[[A], bool]

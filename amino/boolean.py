@@ -1,4 +1,4 @@
-from typing import Union, Any, TypeVar, Type, Callable
+from typing import Union, Any, TypeVar, Type, Callable, Tuple
 
 import amino
 from amino import maybe
@@ -23,11 +23,11 @@ class Boolean:
         return Boolean(isinstance(value, type) and issubclass(value, tpe))
 
     @staticmethod
-    def isinstance(value: A, tpe: Type[A]) -> 'Boolean':
+    def isinstance(value: A, tpe: Union[Type[Any], Tuple[Type[Any], ...]]) -> 'Boolean':
         return Boolean(isinstance(value, tpe))
 
     @staticmethod
-    def is_a(tpe: Type[A]) -> Callable[[Any], 'Boolean']:
+    def is_a(tpe: Union[Type[Any], Tuple[Type[Any], ...]]) -> Callable[[Any], 'Boolean']:
         return lambda a: Boolean.isinstance(a, tpe)
 
     @staticmethod
