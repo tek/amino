@@ -59,6 +59,20 @@ class Maybe(Generic[A], F[A], implicits=True):
             else call_by_name(b)
         )
 
+    def cata_f(self, f: Callable[[A], B], b: Callable[[], B]) -> B:
+        return (
+            f(cast(A, self._get))
+            if self.is_just
+            else b()
+        )
+
+    def cata_strict(self, f: Callable[[A], B], b: B) -> B:
+        return (
+            f(cast(A, self._get))
+            if self.is_just
+            else b
+        )
+
     def filter(self, f: Callable[[A], bool]) -> 'Maybe[A]':
         return self.flat_map(a -> self if f(a) else Nothing)
 

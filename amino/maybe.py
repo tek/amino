@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xac4d897f
+# __coconut_hash__ = 0x707dc200
 
 # Compiled with Coconut version 1.3.0 [Dead Parrot]
 
@@ -88,141 +88,147 @@ class Maybe(Generic[A], F[A], implicits=True):  # line 14
     def cata(self, f: 'Callable[[A], B]', b: 'Union[B, Callable[[], B]]') -> 'B':  # line 55
         return (f(cast(A, self._get)) if self.is_just else call_by_name(b))  # line 56
 
-    @_coconut_tco  # line 62
-    def filter(self, f: 'Callable[[A], bool]') -> "'Maybe[A]'":  # line 62
-        return _coconut_tail_call(self.flat_map, lambda a: self if f(a) else Nothing)  # line 63
+    def cata_f(self, f: 'Callable[[A], B]', b: 'Callable[[], B]') -> 'B':  # line 62
+        return (f(cast(A, self._get)) if self.is_just else b())  # line 63
 
-    @_coconut_tco  # line 65
-    def get_or_else(self, a: 'Union[A, Callable[[], A]]') -> 'A':  # line 65
-        return _coconut_tail_call(self.cata, cast(Callable, I), a)  # line 66
+    def cata_strict(self, f: 'Callable[[A], B]', b: 'B') -> 'B':  # line 69
+        return (f(cast(A, self._get)) if self.is_just else b)  # line 70
 
-    __or__ = get_or_else  # line 68
+    @_coconut_tco  # line 76
+    def filter(self, f: 'Callable[[A], bool]') -> "'Maybe[A]'":  # line 76
+        return _coconut_tail_call(self.flat_map, lambda a: self if f(a) else Nothing)  # line 77
 
-    @_coconut_tco  # line 70
-    def get_or_raise(self, e: 'CallByName') -> 'A':  # line 70
-        def raise_e() -> 'None':  # line 71
-            raise call_by_name(e)  # line 72
-        return _coconut_tail_call(self.cata, cast(Callable, I), raise_e)  # line 73
+    @_coconut_tco  # line 79
+    def get_or_else(self, a: 'Union[A, Callable[[], A]]') -> 'A':  # line 79
+        return _coconut_tail_call(self.cata, cast(Callable, I), a)  # line 80
 
-    @_coconut_tco  # line 75
-    def get_or_fail(self, err: 'CallByName') -> 'A':  # line 75
-        return _coconut_tail_call(self.get_or_raise, lambda: Exception(call_by_name(err)))  # line 76
+    __or__ = get_or_else  # line 82
 
-    @_coconut_tco  # line 78
-    def __contains__(self, v: 'A') -> 'boolean.Boolean':  # line 78
-        return _coconut_tail_call(self.contains, v)  # line 79
+    @_coconut_tco  # line 84
+    def get_or_raise(self, e: 'CallByName') -> 'A':  # line 84
+        def raise_e() -> 'None':  # line 85
+            raise call_by_name(e)  # line 86
+        return _coconut_tail_call(self.cata, cast(Callable, I), raise_e)  # line 87
 
-    def error(self, f: 'Callable[[], Any]') -> "'Maybe[A]'":  # line 81
-        self.cata(cast(Callable, I), f)  # line 82
-        return self  # line 83
+    @_coconut_tco  # line 89
+    def get_or_fail(self, err: 'CallByName') -> 'A':  # line 89
+        return _coconut_tail_call(self.get_or_raise, lambda: Exception(call_by_name(err)))  # line 90
 
-    def observe(self, f: 'Callable[[A], Any]') -> "'Maybe[A]'":  # line 85
-        self.foreach(f)  # line 86
-        return self  # line 87
+    @_coconut_tco  # line 92
+    def __contains__(self, v: 'A') -> 'boolean.Boolean':  # line 92
+        return _coconut_tail_call(self.contains, v)  # line 93
 
-    effect = observe  # line 89
+    def error(self, f: 'Callable[[], Any]') -> "'Maybe[A]'":  # line 95
+        self.cata(cast(Callable, I), f)  # line 96
+        return self  # line 97
 
-    @_coconut_tco  # line 91
-    def __iter__(self) -> 'Iterator':  # line 91
-        return _coconut_tail_call(iter, self.to_list)  # line 92
+    def observe(self, f: 'Callable[[A], Any]') -> "'Maybe[A]'":  # line 99
+        self.foreach(f)  # line 100
+        return self  # line 101
 
-    @property  # line 94
-    @_coconut_tco  # line 94
-    def is_just(self) -> 'boolean.Boolean':  # line 95
-        return _coconut_tail_call(boolean.Boolean, isinstance(self, Just))  # line 96
+    effect = observe  # line 103
 
-    @property  # line 98
-    def is_empty(self) -> 'boolean.Boolean':  # line 99
-        return ~self.is_just  # line 100
+    @_coconut_tco  # line 105
+    def __iter__(self) -> 'Iterator':  # line 105
+        return _coconut_tail_call(iter, self.to_list)  # line 106
 
-    empty = is_empty  # line 102
+    @property  # line 108
+    @_coconut_tco  # line 108
+    def is_just(self) -> 'boolean.Boolean':  # line 109
+        return _coconut_tail_call(boolean.Boolean, isinstance(self, Just))  # line 110
 
-    @property  # line 104
-    @_coconut_tco  # line 104
-    def to_list(self) -> 'TList[A]':  # line 105
-        from amino.list import List  # line 106
-        from amino.list import Nil  # line 106
-        return _coconut_tail_call(self.cata, List, Nil)  # line 107
+    @property  # line 112
+    def is_empty(self) -> 'boolean.Boolean':  # line 113
+        return ~self.is_just  # line 114
 
-    @property  # line 109
-    async def unsafe_await(self) -> "'Maybe[Awaitable]'":  # line 110
-        if self.is_just:  # line 111
-            ret = await cast(Callable[[], Awaitable], self._get)()  # line 112
-            return Maybe(ret)  # line 113
-        else:  # line 114
-            return cast(Maybe[Awaitable], self)  # line 115
+    empty = is_empty  # line 116
 
-    @property  # line 117
-    @_coconut_tco  # line 117
-    def contains_coro(self) -> 'boolean.Boolean':  # line 118
-        return _coconut_tail_call(self.exists, inspect.iscoroutine)  # line 119
+    @property  # line 118
+    @_coconut_tco  # line 118
+    def to_list(self) -> 'TList[A]':  # line 119
+        from amino.list import List  # line 120
+        from amino.list import Nil  # line 120
+        return _coconut_tail_call(self.cata, List, Nil)  # line 121
 
-    @property  # line 121
-    @_coconut_tco  # line 121
-    def json_repr(self) -> 'Optional[A]':  # line 122
-        return _coconut_tail_call(self.cata, cast(Callable, I), lambda: None)  # line 123
+    @property  # line 123
+    async def unsafe_await(self) -> "'Maybe[Awaitable]'":  # line 124
+        if self.is_just:  # line 125
+            ret = await cast(Callable[[], Awaitable], self._get)()  # line 126
+            return Maybe(ret)  # line 127
+        else:  # line 128
+            return cast(Maybe[Awaitable], self)  # line 129
 
+    @property  # line 131
+    @_coconut_tco  # line 131
+    def contains_coro(self) -> 'boolean.Boolean':  # line 132
+        return _coconut_tail_call(self.exists, inspect.iscoroutine)  # line 133
 
-class Just(_coconut_NamedTuple("Just", [("x", 'A')]), Generic[A], Maybe[A]):  # line 126
-    __slots__ = ()  # line 126
-    __ne__ = _coconut.object.__ne__  # line 126
-    @property  # line 126
-    def _get(self) -> 'Optional[A]':  # line 129
-        return self.x  # line 130
-
-    @_coconut_tco  # line 132
-    def __str__(self) -> 'str':  # line 132
-        return _coconut_tail_call('Just({!s})'.format, self.x)  # line 133
-
+    @property  # line 135
     @_coconut_tco  # line 135
-    def __repr__(self) -> 'str':  # line 135
-        return _coconut_tail_call('Just({!r})'.format, self.x)  # line 136
-
-    @_coconut_tco  # line 138
-    def __hash__(self) -> 'int':  # line 138
-        return _coconut_tail_call(hash, self.x)  # line 139
+    def json_repr(self) -> 'Optional[A]':  # line 136
+        return _coconut_tail_call(self.cata, cast(Callable, I), lambda: None)  # line 137
 
 
-class _Nothing(Generic[A], Maybe[A]):  # line 142
-
-    __instance: 'Optional[_Nothing]' = None  # line 144
+class Just(_coconut_NamedTuple("Just", [("x", 'A')]), Generic[A], Maybe[A]):  # line 140
+    __slots__ = ()  # line 140
+    __ne__ = _coconut.object.__ne__  # line 140
+    @property  # line 140
+    def _get(self) -> 'Optional[A]':  # line 143
+        return self.x  # line 144
 
     @_coconut_tco  # line 146
-    def __new__(cls: "Type['_Nothing']", *args: 'Any', **kwargs: 'Any') -> "'_Nothing[A]'":  # line 146
-        if _Nothing.__instance is None:  # line 147
-            _Nothing.__instance = object.__new__(cls)  # line 148
-        return _coconut_tail_call(cast, _Nothing, _Nothing.__instance)  # line 149
+    def __str__(self) -> 'str':  # line 146
+        return _coconut_tail_call('Just({!s})'.format, self.x)  # line 147
 
-    def __str__(self) -> 'str':  # line 151
-        return 'Nothing'  # line 152
+    @_coconut_tco  # line 149
+    def __repr__(self) -> 'str':  # line 149
+        return _coconut_tail_call('Just({!r})'.format, self.x)  # line 150
 
-    __repr__ = __str__  # line 154
-
-    @_coconut_tco  # line 156
-    def __eq__(self, other: 'Any') -> 'bool':  # line 156
-        return _coconut_tail_call(isinstance, other, _Nothing)  # line 157
-
-    @_coconut_tco  # line 159
-    def __hash__(self) -> 'int':  # line 159
-        return _coconut_tail_call(hash, 'Nothing')  # line 160
-
-Empty = _Nothing  # line 162
-Nothing: Maybe = _Nothing()  # line 163
+    @_coconut_tco  # line 152
+    def __hash__(self) -> 'int':  # line 152
+        return _coconut_tail_call(hash, self.x)  # line 153
 
 
-def may(f: 'Callable[..., Optional[A]]') -> 'Callable[..., Maybe[A]]':  # line 166
-    @wraps(f)  # line 167
-    @_coconut_tco  # line 167
-    def wrapper(*a: 'Any', **kw: 'Any') -> 'Maybe[A]':  # line 168
-        return _coconut_tail_call(Maybe.check, f(*a, **kw))  # line 169
-    return wrapper  # line 170
+class _Nothing(Generic[A], Maybe[A]):  # line 156
+
+    __instance: 'Optional[_Nothing]' = None  # line 158
+
+    @_coconut_tco  # line 160
+    def __new__(cls: "Type['_Nothing']", *args: 'Any', **kwargs: 'Any') -> "'_Nothing[A]'":  # line 160
+        if _Nothing.__instance is None:  # line 161
+            _Nothing.__instance = object.__new__(cls)  # line 162
+        return _coconut_tail_call(cast, _Nothing, _Nothing.__instance)  # line 163
+
+    def __str__(self) -> 'str':  # line 165
+        return 'Nothing'  # line 166
+
+    __repr__ = __str__  # line 168
+
+    @_coconut_tco  # line 170
+    def __eq__(self, other: 'Any') -> 'bool':  # line 170
+        return _coconut_tail_call(isinstance, other, _Nothing)  # line 171
+
+    @_coconut_tco  # line 173
+    def __hash__(self) -> 'int':  # line 173
+        return _coconut_tail_call(hash, 'Nothing')  # line 174
+
+Empty = _Nothing  # line 176
+Nothing: Maybe = _Nothing()  # line 177
 
 
-def flat_may(f: 'Callable[..., Maybe[A]]') -> 'Callable[..., Maybe[A]]':  # line 173
-    @wraps(f)  # line 174
-    def wrapper(*a: 'Any', **kw: 'Any') -> 'Maybe[A]':  # line 175
-        res = f(*a, **kw)  # line 176
-        return res if isinstance(res, Maybe) else Nothing  # line 177
-    return wrapper  # line 178
+def may(f: 'Callable[..., Optional[A]]') -> 'Callable[..., Maybe[A]]':  # line 180
+    @wraps(f)  # line 181
+    @_coconut_tco  # line 181
+    def wrapper(*a: 'Any', **kw: 'Any') -> 'Maybe[A]':  # line 182
+        return _coconut_tail_call(Maybe.check, f(*a, **kw))  # line 183
+    return wrapper  # line 184
 
-__all__ = ('Maybe', 'Just', 'Nothing')  # line 180
+
+def flat_may(f: 'Callable[..., Maybe[A]]') -> 'Callable[..., Maybe[A]]':  # line 187
+    @wraps(f)  # line 188
+    def wrapper(*a: 'Any', **kw: 'Any') -> 'Maybe[A]':  # line 189
+        res = f(*a, **kw)  # line 190
+        return res if isinstance(res, Maybe) else Nothing  # line 191
+    return wrapper  # line 192
+
+__all__ = ('Maybe', 'Just', 'Nothing')  # line 194
