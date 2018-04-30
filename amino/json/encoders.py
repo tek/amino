@@ -95,5 +95,5 @@ class TypeEncoder(Encoder[Type], tpe=type):
         return encode_instance_simple(data, Type)
 
 
-__all__ = ('ListEncoder', 'ScalarEncoder', 'MaybeEncoder', 'UUIDEncoder', 'PathEncoder', 'TypeEncoder', 'MapEncoder',
-           'EitherEncoder', 'BooleanEncoder', 'encode_instance', 'FunctionEncoder', 'TupleEncoder')
+__all__ = ('ListEncoder', 'ScalarEncoder', 'MaybeEncoder', 'UUIDEncoder', 'PathEncoder', 'MapEncoder', 'EitherEncoder',
+           'BooleanEncoder', 'encode_instance', 'FunctionEncoder', 'TupleEncoder', 'TypeEncoder')

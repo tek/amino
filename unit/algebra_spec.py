@@ -20,7 +20,7 @@ class A2(Generic[A], Base):
     pass
 
 
-class tostr(Generic[A], Case[Base, str], alg=Base):
+class _tostr(Generic[A], Case[Base, str], alg=Base):
 
     def a1(self, a: A1[A]) -> str:
         return str(a)
@@ -32,7 +32,7 @@ class tostr(Generic[A], Case[Base, str], alg=Base):
 class AlgebraSpec(Spec):
 
     def subclasses(self) -> None:
-        print(tostr.match(A1()))
+        pass
 
 
 __all__ = ('AlgebraSpec',)

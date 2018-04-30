@@ -1,4 +1,4 @@
-from typing import Type, TypeVar, Collection, Mapping, Callable, Tuple
+from typing import Type, TypeVar, Collection, Mapping, Callable, Tuple, Any
 from numbers import Number
 from uuid import UUID
 
@@ -137,12 +137,30 @@ class TupleDecoder(Decoder, tpe=tuple):
         yield Try(tuple, a_data.native)
 
 
-class TypeDecoder(Decoder, tpe=Type):
+@do(Either[JsonError, type])
+def decode_type(data: Json) -> Do:
+    path = yield data.field('path')
+    yield (
+        Right(type(None))
+        if path.native == 'builtins.NoneType'
+        else decode_instance(data, 'type')
+    )
+
+
+class TypeDecoder(Decoder, tpe=type):
 
     @do(Either[JsonError, Type])
     def decode(self, tpe: Type[Type], data: Json) -> Do:
-        yield decode_instance(data, 'Type')
+        yield decode_type(data)
+
+
+class TTypeDecoder(Decoder, tpe=Type):
+
+    @do(Either[JsonError, Type])
+    def decode(self, tpe: Type[Type], data: Json) -> Do:
+        yield decode_type(data)
 
 
 __all__ = ('MaybeDecoder', 'StringDecoder', 'NumberDecoder', 'ListDecoder', 'BooleanDecoder', 'MapDecoder',
-           'PathDecoder')
+           'PathDecoder', 'decode_instance', 'CallableDecoder', 'TupleDecoder', 'decode_type', 'TypeDecoder',
+           'TTypeDecoder')
