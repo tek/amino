@@ -1,4 +1,4 @@
-from typing import Type, TypeVar, Collection, Mapping
+from typing import Type, TypeVar, Collection, Mapping, Callable
 from numbers import Number
 from uuid import UUID
 
@@ -102,7 +102,26 @@ class UUIDDecoder(Decoder, tpe=UUID):
 class PathDecoder(Decoder, tpe=Path):
 
     def decode(self, tpe: Type[Path], data: Json) -> Either[JsonError, Path]:
-        return data.scalar.flat_e(f'invalid type for `Path`: {data}', Try(Path, data.data))
+        return data.scalar.flat_e(lambda: JsonError(data, f'invalid type for `Path`'), Try(Path, data.data))
+
+
+class CallableDecoder(Decoder, tpe=Callable):
+
+    def decode(self, tpe: Callable, data: Json) -> Either[JsonError, Callable]:
+        @do(Either[JsonError, Callable])
+        def run(data: Json) -> Do:
+            path = yield data.field('path')
+            scalar = yield path.as_scalar
+            yield (
+                Either.import_path(scalar.native)
+                if isinstance(scalar.native, str) else
+                Left(JsonError(data, 'path is not a string'))
+            )
+        return (
+            run(data)
+            if data.object else
+            Left(JsonError(data, f'invalid type for `Callable`'))
+        )
 
 
 __all__ = ('MaybeDecoder', 'StringDecoder', 'NumberDecoder', 'ListDecoder', 'BooleanDecoder', 'MapDecoder',

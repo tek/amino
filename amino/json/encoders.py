@@ -1,8 +1,9 @@
-from typing import Union, Collection, TypeVar, Mapping, Any, List as TList
+from typing import Union, TypeVar, Mapping, Any, List as TList, Callable
 from numbers import Number
 from uuid import UUID
+from types import FunctionType
 
-from amino import Either, List, L, _, Right, Lists, Maybe, Path, Map, Boolean, do, Do
+from amino import Either, List, L, _, Right, Lists, Maybe, Path, Map, Boolean, do, Do, Try
 from amino.json.encoder import Encoder, encode_json, json_object_with_type
 from amino.json.data import JsonError, Json, JsonArray, JsonScalar, JsonObject, JsonNull
 
@@ -64,6 +65,16 @@ class BooleanEncoder(Encoder[Boolean], tpe=Boolean):
 
     def encode(self, a: Boolean) -> Either[JsonError, Json]:
         return Right(JsonScalar(a.value))
+
+
+class FunctionEncoder(Encoder[Callable], tpe=FunctionType):
+
+    @do(Either[JsonError, Json])
+    def encode(self, a: Callable) -> Do:
+        path = yield Try(lambda: a.__module__)
+        name = yield Try(lambda: a.__name__)
+        path_json = yield encode_json(f'{path}.{name}')
+        return json_object_with_type(Map(path=path_json, __type__='typing.Callable'), type(a))
 
 
 __all__ = ('ListEncoder', 'ScalarEncoder', 'MaybeEncoder', 'UUIDEncoder', 'PathEncoder', 'TypeEncoder', 'MapEncoder')

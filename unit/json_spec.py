@@ -1,9 +1,9 @@
-from typing import Any
+from typing import Any, Callable
 
 from amino.test.spec_spec import Spec
 from amino.dat import Dat
-from amino import Right, Maybe, List, Either, Left
-from amino.json import dump_json, decode_json, encode_json
+from amino import Right, Maybe, List, Either, Left, do, Do
+from amino.json import dump_json, decode_json
 
 
 class E(Dat['E']):
@@ -41,6 +41,16 @@ class Ei(Dat['Ei']):
         self.c = c
 
 
+def encode_me() -> int:
+    return 5
+
+
+class Fun(Dat['Fun']):
+
+    def __init__(self, f: Callable[[], int]) -> None:
+        self.f = f
+
+
 mod = 'unit.json_spec'
 
 
@@ -68,5 +78,13 @@ class JsonSpec(Spec):
         v = Ei(Right(E(7, 'value')), Right(List(5, 9)), Left('error'))
         json = dump_json(v)
         (json // decode_json).should.equal(Right(v))
+
+    def function(self) -> None:
+        @do(Either[str, int])
+        def run() -> Do:
+            json = yield dump_json(Fun(encode_me))
+            decoded = yield decode_json(json)
+            return decoded.f()
+        run().should.equal(Right(5))
 
 __all__ = ('JsonSpec',)

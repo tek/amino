@@ -64,6 +64,10 @@ class Json(Generic[A], Algebra):
     def error(self, msg: Union[str, Exception]) -> JsonError:
         return JsonError(self.data, msg)
 
+    @property
+    def as_scalar(self) -> Either[JsonError, 'JsonScalar']:
+        return Right(self) if self.scalar else Left(self.error('not a scalar'))
+
 
 class JsonObject(Json[Map[str, Json]]):
 
