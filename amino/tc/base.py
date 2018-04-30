@@ -317,6 +317,10 @@ class PredTypeClass:
         self.tc = tc
 
 
+def unbounded_typevar(v: TypeVar) -> None:
+    raise ImplicitNotFound(f'unbounded TypeVar cannot be used for typeclasses: {v}')
+
+
 class AllInstances:
 
     def __init__(self) -> None:
@@ -368,7 +372,16 @@ class AllInstances:
         def attach_type(tc: TypeClass) -> TypeClass:
             setattr(tc, 'tpe', G)
             return tc
-        return next((attach_type(a) for a in map(match, G.__mro__) if a is not None), None)
+        scrutinee = (
+            (
+                unbounded_typevar(G)
+                if G.__bound__ is None else
+                G.__bound__
+            )
+            if isinstance(G, TypeVar) else
+            G
+        )
+        return next((attach_type(a) for a in map(match, scrutinee.__mro__) if a is not None), None)
 
     def lookup_auto_attr(self, tpe: type, name: str) -> Optional[Callable]:
         def check(t: type) -> Optional[Callable]:
