@@ -13,7 +13,7 @@ from amino.test import path
 from amino import Path, List
 
 
-default_timeout = 20 if 'TRAVIS' in os.environ else 3
+default_timeout = 20 if 'TRAVIS' in os.environ else 5
 
 
 class SpecBase(Logging):

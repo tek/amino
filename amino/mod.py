@@ -25,7 +25,7 @@ def cls_from_module(mod: ModuleType, tpe: Type[AS]) -> Either[str, Type[A]]:
     return object_from_module(mod, pred, f'subclass of `{tpe}`')
 
 
-def instance_from_module(mod: ModuleType, tpe: Type[A]) -> Either[str, A]:
+def instance_from_module(mod: ModuleType, tpe: Type[A]) -> Either[str, Type[A]]:
     pred = lambda a: isinstance(a, tpe)
     return object_from_module(mod, pred, f'instance of `{tpe.__name__}`')
 

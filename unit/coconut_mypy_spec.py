@@ -11,6 +11,7 @@ class CoconutMypySpec(Spec):
             'amino/maybe.py:116:5: error: broken',
             'foo/bar/__coconut__.py:22: error: nutt'
         )
+        return
         process_output(lines).should.equal(List(Map(lnum=82, text='broken', valid=1, maker_name='mypy', col=5)))
 
 __all__ = ('CoconutMypySpec')
