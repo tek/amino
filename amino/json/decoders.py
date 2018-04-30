@@ -137,5 +137,12 @@ class TupleDecoder(Decoder, tpe=tuple):
         yield Try(tuple, a_data.native)
 
 
+class TypeDecoder(Decoder, tpe=Type):
+
+    @do(Either[JsonError, Type])
+    def decode(self, tpe: Type[Type], data: Json) -> Do:
+        yield decode_instance(data, 'Type')
+
+
 __all__ = ('MaybeDecoder', 'StringDecoder', 'NumberDecoder', 'ListDecoder', 'BooleanDecoder', 'MapDecoder',
            'PathDecoder')

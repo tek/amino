@@ -89,5 +89,11 @@ class TupleEncoder(Encoder[Tuple], tpe=tuple):
         return json_object_with_type(Map(data=array), tuple)
 
 
+class TypeEncoder(Encoder[Type], tpe=type):
+
+    def encode(self, data: Type) -> Either[JsonError, Json]:
+        return encode_instance_simple(data, Type)
+
+
 __all__ = ('ListEncoder', 'ScalarEncoder', 'MaybeEncoder', 'UUIDEncoder', 'PathEncoder', 'TypeEncoder', 'MapEncoder',
            'EitherEncoder', 'BooleanEncoder', 'encode_instance', 'FunctionEncoder', 'TupleEncoder')

@@ -58,6 +58,12 @@ mod = 'unit.json_spec'
 A = TypeVar('A')
 
 
+class Tpe(Dat['Tpe']):
+
+    def __init__(self, tpe: Type[A]) -> None:
+        self.tpe = tpe
+
+
 @do(Either[JsonError, A])
 def code_json(a: A) -> Do:
     json = yield dump_json(a)
@@ -119,6 +125,10 @@ class JsonSpec(Spec):
 
     def tuple(self) -> None:
         t = (4, 5, 6)
+        code_json(t).should.equal(Right(t))
+
+    def tpe(self) -> None:
+        t = Tpe(Tpe)
         code_json(t).should.equal(Right(t))
 
     def adt(self) -> None:
