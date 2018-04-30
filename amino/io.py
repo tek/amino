@@ -2,8 +2,9 @@ import abc
 import time
 import inspect
 import typing
-from typing import Callable, TypeVar, Generic, Any, Union, Tuple, Awaitable, Optional
 import traceback
+from threading import Thread
+from typing import Callable, TypeVar, Generic, Any, Union, Tuple, Awaitable, Optional
 
 from amino import Either, Right, Left, Maybe, List, __, Just, Lists, L, Nothing, options, _
 from amino.eval import Eval
@@ -147,6 +148,16 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
     @staticmethod
     def from_either(a: Either[Any, A]) -> 'IO[A]':
         return a.cata(IO.failed, IO.now)
+
+    @staticmethod
+    def fork(f: Callable[..., None], *a: Any, **kw: Any) -> 'IO[None]':
+        def run() -> None:
+            try:
+                f(*a, **kw)
+            except Exception as e:
+                log.caught_exception_error(f'running forked IO', e)
+        thread = Thread(target=run)
+        return IO.delay(thread.start).replace(thread)
 
     @staticmethod
     def from_maybe(a: Maybe[A], error: str) -> 'IO[A]':
