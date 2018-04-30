@@ -13,7 +13,7 @@ tpe_key = '__type__'
 
 class JsonError(ToStr):
 
-    def __init__(self, data: str, error: Union[str, Exception]) -> None:
+    def __init__(self, data: Union['Json', str], error: Union[str, Exception]) -> None:
         self.data = data
         self.error = error
 
@@ -67,6 +67,10 @@ class Json(Generic[A], Algebra):
     @property
     def as_scalar(self) -> Either[JsonError, 'JsonScalar']:
         return Right(self) if self.scalar else Left(self.error('not a scalar'))
+
+    @property
+    def as_array(self) -> Either[JsonError, 'JsonArray']:
+        return Right(self) if self.array else Left(self.error('not an array'))
 
 
 class JsonObject(Json[Map[str, Json]]):

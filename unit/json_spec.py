@@ -1,9 +1,10 @@
-from typing import Any, Callable
+from typing import Any, Callable, TypeVar
 
 from amino.test.spec_spec import Spec
 from amino.dat import Dat
 from amino import Right, Maybe, List, Either, Left, do, Do
 from amino.json import dump_json, decode_json
+from amino.json.data import JsonError
 
 
 class E(Dat['E']):
@@ -53,6 +54,14 @@ class Fun(Dat['Fun']):
 
 mod = 'unit.json_spec'
 
+A = TypeVar('A')
+
+
+@do(Either[JsonError, A])
+def code_json(a: A) -> Do:
+    json = yield dump_json(a)
+    yield decode_json(json)
+
 
 class JsonSpec(Spec):
 
@@ -82,9 +91,12 @@ class JsonSpec(Spec):
     def function(self) -> None:
         @do(Either[str, int])
         def run() -> Do:
-            json = yield dump_json(Fun(encode_me))
-            decoded = yield decode_json(json)
+            decoded = yield code_json(Fun(encode_me))
             return decoded.f()
         run().should.equal(Right(5))
+
+    def tuple(self) -> None:
+        t = (4, 5, 6)
+        code_json(t).should.equal(Right(t))
 
 __all__ = ('JsonSpec',)
