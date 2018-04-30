@@ -1,4 +1,4 @@
-from typing import Union, TypeVar, Mapping, Any, List as TList, Callable, Tuple
+from typing import Union, TypeVar, Mapping, Any, List as TList, Callable, Tuple, Type
 from numbers import Number
 from uuid import UUID
 from types import FunctionType
@@ -55,12 +55,6 @@ class PathEncoder(Encoder[Path], tpe=Path):
         return Right(JsonScalar(str(a)))
 
 
-class TypeEncoder(Encoder[type], tpe=type):
-
-    def encode(self, a: type) -> Either[JsonError, Json]:
-        return Right(json_object_with_type(Map(), a))
-
-
 class BooleanEncoder(Encoder[Boolean], tpe=Boolean):
 
     def encode(self, a: Boolean) -> Either[JsonError, Json]:
@@ -73,13 +67,18 @@ def encode_instance(a: A, tpe: type, mod: str, name: str) -> Do:
     return json_object_with_type(Map(path=path_json), tpe)
 
 
+@do(Either[JsonError, Json])
+def encode_instance_simple(data: A, tpe: type) -> Do:
+    mod = yield Try(lambda: data.__module__)
+    name = yield Try(lambda: data.__name__)
+    yield encode_instance(data, tpe, mod, name)
+
+
 class FunctionEncoder(Encoder[Callable], tpe=FunctionType):
 
     @do(Either[JsonError, Json])
     def encode(self, data: Callable) -> Do:
-        mod = yield Try(lambda: a.__module__)
-        name = yield Try(lambda: data.__name__)
-        yield encode_instance(data, Callable, mod, name)
+        yield encode_instance_simple(data, Callable)
 
 
 class TupleEncoder(Encoder[Tuple], tpe=tuple):

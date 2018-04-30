@@ -105,8 +105,8 @@ class PathDecoder(Decoder, tpe=Path):
         return data.scalar.flat_e(lambda: JsonError(data, f'invalid type for `Path`'), Try(Path, data.data))
 
 
-def decode_instance(data: Json, desc: str) -> None:
-        @do(Either[JsonError, Callable])
+def decode_instance(data: Json, desc: str) -> Either[JsonError, A]:
+        @do(Either[JsonError, A])
         def run(data: Json) -> Do:
             path = yield data.field('path')
             scalar = yield path.as_scalar

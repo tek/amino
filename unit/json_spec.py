@@ -1,10 +1,11 @@
-from typing import Any, Callable, TypeVar
+import abc
+from typing import Any, Callable, TypeVar, Type
 
 from amino.test.spec_spec import Spec
 from amino.dat import Dat
-from amino import Right, Maybe, List, Either, Left, do, Do
+from amino import Right, Maybe, List, Either, Left, do, Do, ADT
 from amino.json import dump_json, decode_json
-from amino.json.data import JsonError
+from amino.json.data import JsonError, tpe_key
 
 
 class E(Dat['E']):
@@ -63,23 +64,44 @@ def code_json(a: A) -> Do:
     yield decode_json(json)
 
 
+class Abstr(ADT['Abstr']):
+
+    @abc.abstractmethod
+    def abs(self, a: int) -> None:
+        ...
+
+
+class Sub1(Abstr):
+
+    def __init__(self, a: int) -> None:
+        self.a = a
+
+    def abs(self, a: int) -> None:
+        pass
+
+
+class Cont(Dat['Cont']):
+
+    def __init__(self, a: Abstr) -> None:
+        self.a = a
+
+
 class JsonSpec(Spec):
 
     def codec_dat(self) -> None:
-        t = "__type__"
         target = D(E(2, 'E'), 1, 'D')
-        json = f'{{"e": {{"a": 2, "b": "E", "{t}": "{mod}.E"}}, "a": 1, "b": "D", "{t}": "{mod}.D"}}'
+        json = f'{{"e": {{"a": 2, "b": "E", "{tpe_key}": "{mod}.E"}}, "a": 1, "b": "D", "{tpe_key}": "{mod}.D"}}'
         decoded = decode_json(json)
         decoded.should.equal(Right(target))
         dump_json(target).should.equal(Right(json))
 
     def codec_maybe(self) -> None:
-        json = f'{{"a": null, "__type__": "{mod}.M"}}'
+        json = f'{{"a": null, "{tpe_key}": "{mod}.M"}}'
         decoded = decode_json(json)
         (decoded // dump_json).should.equal(Right(json))
 
     def codec_list(self) -> None:
-        json = f'{{"a": [1, 2, "string"], "__type__": "{mod}.Li"}}'
+        json = f'{{"a": [1, 2, "string"], "{tpe_key}": "{mod}.Li"}}'
         decoded = decode_json(json)
         (decoded // dump_json).should.equal(Right(json))
 
@@ -98,5 +120,9 @@ class JsonSpec(Spec):
     def tuple(self) -> None:
         t = (4, 5, 6)
         code_json(t).should.equal(Right(t))
+
+    def adt(self) -> None:
+        a = Cont(Sub1(1))
+        code_json(a).should.equal(Right(a))
 
 __all__ = ('JsonSpec',)

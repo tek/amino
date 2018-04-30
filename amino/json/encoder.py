@@ -4,7 +4,7 @@ from typing import TypeVar, Generic, Type
 
 from amino.tc.base import TypeClass
 from amino import Either, L, _, Map, do, Do
-from amino.json.data import JsonError, Json, JsonObject, JsonScalar
+from amino.json.data import JsonError, Json, JsonObject, JsonScalar, tpe_key
 
 A = TypeVar('A')
 
@@ -34,7 +34,7 @@ def json_type(tpe: Type) -> Json:
 
 
 def json_object_with_type(fields: Map[str, JsonObject], tpe: Type[A]) -> Json:
-    return JsonObject(fields.cat(('__type__', json_type(tpe))))
+    return JsonObject(fields.cat((tpe_key, json_type(tpe))))
 
 
 __all__ = ('Encoder', 'encode_json', 'dump_json')
