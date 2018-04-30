@@ -61,7 +61,11 @@ class Either(Generic[A, B], F[B], implicits=True):
     @staticmethod
     def import_name(mod: str, name: str) -> Either[ImportFailure, B]:
         try:
-            value = unsafe_import_name(mod, name)
+            value = (
+                __builtins__[name]
+                if mod == '__builtins__' else
+                unsafe_import_name(mod, name)
+            )
         except Exception as e:
             return Left(ImportException(f'{mod}.{name}', e))
         else:
