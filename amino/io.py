@@ -263,6 +263,9 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
     def recover(self, f: Callable[[IOException], B]) -> 'IO[B]':
         return IO.delay(lambda: self.attempt).map(__.value_or(f))
 
+    def recover_with(self, f: Callable[[IOException], B]) -> 'IO[B]':
+        return IO.delay(lambda: self.attempt).flat_map(__.map(IO.pure).value_or(f))
+
     @do('IO[A]')
     def ensure(self, f: Callable[[Either[IOException, A]], 'IO[None]']) -> Do:
         result = yield IO.delay(lambda: self.attempt)
