@@ -121,8 +121,10 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
         return maybe.Empty() if self.empty else maybe.Just(self[1:])
 
     @property
-    def detach_head(self) -> 'maybe.Maybe[Tuple[A, List[A]]]':
+    def uncons(self) -> 'maybe.Maybe[Tuple[A, List[A]]]':
         return self.head.product(self.tail)
+
+    detach_head = uncons
 
     @property
     def detach_last(self) -> 'maybe.Maybe[Tuple[A, List[A]]]':
