@@ -1,12 +1,13 @@
-from typing import Tuple, TypeVar
+from typing import Tuple, TypeVar, Callable
 
-from amino import curried, Maybe, Just, Nothing
+from amino import Maybe, Just, Nothing
 
 A = TypeVar('A')
 
 
-@curried
-def lift_tuple(index: int, data: Tuple[A, ...]) -> Maybe[A]:
-    return Just(data[index]) if len(data) > index else Nothing
+def lift_tuple(index: int) -> Callable[[Tuple[A, ...]], Maybe[A]]:
+    def lift_tuple(data: Tuple[A, ...]) -> Maybe[A]:
+        return Just(data[index]) if len(data) > index else Nothing
+    return lift_tuple
 
 __all__ = ('lift_tuple',)
