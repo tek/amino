@@ -150,6 +150,9 @@ class Just(Generic[A], Maybe[A]):
     def __hash__(self) -> int:
         return hash(self.x)
 
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Just) and other.x == self.x
+
 
 class _Nothing(Generic[A], Maybe[A]):
 
