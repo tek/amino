@@ -150,14 +150,18 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
         return a.cata(IO.failed, IO.now)
 
     @staticmethod
-    def fork(f: Callable[..., None], *a: Any, **kw: Any) -> 'IO[None]':
+    def fork_io(f: Callable[..., 'IO[None]'], *a: Any, **kw: Any) -> 'IO[None]':
         def run() -> None:
             try:
-                f(*a, **kw)
+                f(*a, **kw).attempt.lmap(lambda a: log.error(f'forked IO failed: {a}'))
             except Exception as e:
                 log.caught_exception_error(f'running forked IO', e)
         thread = Thread(target=run)
         return IO.delay(thread.start).replace(thread)
+
+    @staticmethod
+    def fork(f: Callable[..., None], *a: Any, **kw: Any) -> 'IO[None]':
+        return IO.fork_io(IO.delay, f, *a, **kw)
 
     @staticmethod
     def from_maybe(a: Maybe[A], error: str) -> 'IO[A]':
