@@ -215,7 +215,11 @@ tcs(Id, State)
 
 
 class IOState(Generic[S, A], StateT[IO, S, A], tpe=IO):
-    pass
+
+    @staticmethod
+    def delay(f: Callable[..., A], *a: Any, **kw: Any) -> 'IOState[S, A]':
+        return IOState.lift(IO.delay(f, *a, **kw))
+
 
 tcs(IO, IOState)  # type: ignore
 
