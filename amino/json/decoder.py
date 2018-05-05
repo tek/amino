@@ -36,7 +36,7 @@ class decode(Generic[A], Case[Json, Either[JsonError, A]], alg=Json):
         yield dec.decode(tpe, json)
 
     def decode_json_array(self, json: JsonArray) -> Either[JsonError, A]:
-        return Lists.wrap(json.data).traverse(decode, Either)
+        return Lists.wrap(json.data).traverse(self, Either)
 
     def decode_json_scalar(self, json: JsonScalar) -> Either[JsonError, A]:
         return Right(json.data)
