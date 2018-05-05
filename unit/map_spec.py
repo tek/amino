@@ -5,12 +5,12 @@ from amino import Map, Empty, Just, _, Right, Either
 
 class MapSpec(Spec):
 
-    def get(self):
+    def lift(self):
         key = 'key'
         val = 'value'
         m = Map({key: val})
-        m.get(key).should.equal(Just(val))
-        m.get(key + key).should.equal(Empty())
+        m.lift(key).should.equal(Just(val))
+        m.lift(key + key).should.equal(Empty())
 
     def add(self):
         key = 'key'
@@ -19,8 +19,8 @@ class MapSpec(Spec):
         v2 = 'value2'
         m = Map({key: val})
         m2 = m + (k2, v2)
-        m2.get(k2).should.equal(Just(v2))
-        m.get(k2).should.equal(Empty())
+        m2.lift(k2).should.equal(Just(v2))
+        m.lift(k2).should.equal(Empty())
 
     def add_multi(self):
         key = 'key'
@@ -29,8 +29,8 @@ class MapSpec(Spec):
         v2 = 'value2'
         m = Map({key: val})
         m2 = m ** Map({k2: v2})
-        m2.get(k2).should.equal(Just(v2))
-        m.get(k2).should.equal(Empty())
+        m2.lift(k2).should.equal(Just(v2))
+        m.lift(k2).should.equal(Empty())
 
     def find(self):
         k1 = 'key'

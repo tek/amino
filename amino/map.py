@@ -19,30 +19,24 @@ class Map(Generic[A, B], Dict[A, B], Implicits, metaclass=ImplicitsMeta, implici
     def wrap(d: Dict[A, B]) -> 'Map[A, B]':
         return Map(d)
 
-    @may
-    def get(self, key):
-        return Dict.get(self, key)
-
     def lift(self, key: str) -> Maybe[B]:
         return Just(Dict.get(self, key)) if key in self else Nothing
 
-    def get_item(self, key):
-        return self.get(key) / (lambda a: (key, a))
+    def lift_item(self, key):
+        return self.lift(key) / (lambda a: (key, a))
 
-    def get_all(self, *keys):
+    def lift_all(self, *keys):
         def append(zm, k):
-            return zm // (lambda z: self.get(k) / z.cat)
+            return zm // (lambda z: self.lift(k) / z.cat)
         return List.wrap(keys).fold_left(Just(List()))(append)
-
-    lift_all = get_all
 
     def get_all_map(self, *keys):
         def append(zm, k):
             return zm // (lambda z: self.get_item(k) / z.cat)
         return List.wrap(keys).fold_left(Just(Map()))(append)
 
-    def get_or_else(self, key, default: Callable[[], C]):
-        return self.get(key).get_or_else(default)
+    def lift_or_else(self, key, default: Callable[[], C]):
+        return self.lift(key).get_or_else(default)
 
     def set_if_missing(self, key: A, default: Callable[[], B]):
         if key in self:
@@ -142,7 +136,7 @@ class Map(Generic[A, B], Dict[A, B], Implicits, metaclass=ImplicitsMeta, implici
         return self.keyfilter(lambda a: a in keys)
 
     def values_at(self, *keys):
-        return List.wrap(keys) // self.get
+        return List.wrap(keys) // self.lift
 
     def has_key(self, name):
         return Boolean(name in self)

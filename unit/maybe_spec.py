@@ -23,7 +23,7 @@ class MaybeSpec(Spec):
         a = 'start'
         b = 'end'
         Maybe.optional(a).flat_map(lambda v: Maybe.optional(v + b)).should.contain(a + b)
-        f = L(Maybe)(_).flat_map(lambda c: Monad.fatal(Maybe).pure(c + b))
+        f = lambda a: Maybe.optional(a).flat_map(lambda c: Monad.fatal(Maybe).pure(c + b))
         f(a).should.contain(a + b)
 
     def join(self) -> None:

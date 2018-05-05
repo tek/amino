@@ -6,7 +6,6 @@ from amino import Either, Map, Right, Lists, Do, _, L, Left
 from amino.do import do
 from amino.json.data import JsonError, JsonObject, JsonArray, JsonScalar, Json, JsonAbsent, JsonNull, tpe_key
 from amino.json.parse import parse_json
-from amino.dispatch import dispatch_alg
 from amino.case import Case
 
 A = TypeVar('A')
@@ -22,7 +21,7 @@ class Decoder(Generic[A], TypeClass):
 @do(Either[str, A])
 def decode_json_object(data: dict) -> Do:
     m = Map(data)
-    tpe_s = yield m.get(tpe_key).to_either(f'no `{tpe_key}` attr in json object {m}')
+    tpe_s = yield m.lift(tpe_key).to_either(f'no `{tpe_key}` attr in json object {m}')
     tpe = yield Either.import_path(tpe_s)
     dec = yield Decoder.e(tpe)
     yield dec.decode(tpe, m)

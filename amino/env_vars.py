@@ -22,7 +22,7 @@ class EnvVars:
         return self.get(name)
 
     def get(self, name: str) -> Either[str, str]:
-        return self.vars.get(name).to_either(f'env var {name} is unset')
+        return self.vars.lift(name).to_either(f'env var {name} is unset')
 
     def __setitem__(self, name: str, value: str) -> None:
         self.set(name, value)

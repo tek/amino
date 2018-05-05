@@ -63,7 +63,7 @@ class Match:
     def group(self, id: str) -> Either[str, str]:
         return (
             self.group_map
-            .get(id)
+            .lift(id)
             .to_either('no group `{}` in {}'.format(id, self))
         )
 
