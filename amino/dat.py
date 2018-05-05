@@ -6,9 +6,6 @@ from amino import Map, Lists, List, Nil, _, Either, Right, Maybe, Just, L, do, D
 from amino.util.string import ToStr
 from amino.func import Val
 from amino.lazy import lazy
-from amino.json.decoder import Decoder
-from amino.json.data import JsonError, JsonObject, tpe_key, Json
-from amino.json.encoder import Encoder, encode_json, json_object_with_type
 from amino.algebra import AlgebraMeta, Algebra
 from amino.tc.base import ImplicitsMeta
 from amino.util.tpe import qualified_type
@@ -194,49 +191,12 @@ class DatImplicitsMeta(ImplicitsMeta, DatMeta):
     pass
 
 
-def decode_field(data: Json) -> Do:
-    @do(Either[JsonError, A])
-    def decode_field(field: Field) -> Do:
-        value = yield data.field(field.name)
-        dec = yield Decoder.e(field.tpe).lmap(L(JsonError)(data, _))
-        yield dec.decode(field.tpe, value)
-    return decode_field
-
-
-def decode_dat(tpe: Type[A], data: Json) -> Either[JsonError, A]:
-    return tpe._dat__fields.traverse(decode_field(data), Either).map(lambda a: tpe(*a))
-
-
-class DatDecoder(Decoder, tpe=Dat):
-
-    def decode(self, tpe: Type[Sub], data: Json) -> Either[JsonError, Sub]:
-        return decode_dat(tpe, data)
-
-
-class DatEncoder(Encoder, tpe=Dat):
-
-    @do(Either[JsonError, Map])
-    def encode(self, a: Sub) -> Do:
-        jsons = yield a._dat__values.traverse(encode_json, Either)
-        yield Right(json_object_with_type(Map(a._dat__names.zip(jsons)), type(a)))
-
-
 class ADTMeta(DatMeta, AlgebraMeta):
     pass
 
 
 class ADT(Generic[Sub], Algebra, Dat[Sub], metaclass=ADTMeta, algebra_base=True):
     pass
-
-
-class ADTDecoder(Decoder, tpe=ADT):
-
-    @do(Either[JsonError, Sub])
-    def decode(self, tpe: Type[Sub], data: JsonObject) -> Do:
-        sub_json = yield data.field(tpe_key)
-        sub = yield sub_json.as_scalar
-        sub_type = yield Either.import_path(sub.native)
-        yield decode_dat(sub_type, data)
 
 
 __all__ = ('Dat', 'ADT', 'DatImplicitsMeta')

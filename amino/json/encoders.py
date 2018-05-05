@@ -3,12 +3,13 @@ from numbers import Number
 from uuid import UUID
 from types import FunctionType
 
-from amino import Either, List, L, _, Right, Lists, Maybe, Path, Map, Boolean, do, Do, Try
+from amino import Either, List, L, _, Right, Lists, Maybe, Path, Map, Boolean, do, Do, Try, Dat
 from amino.json.encoder import Encoder, encode_json, json_object_with_type
 from amino.json.data import JsonError, Json, JsonArray, JsonScalar, JsonObject, JsonNull
 
 A = TypeVar('A')
 B = TypeVar('B')
+Sub = TypeVar('Sub', bound=Dat)
 
 
 class ScalarEncoder(Encoder[Union[Number, str, None]], pred=L(issubclass)(_, (Number, str, type(None)))):
@@ -95,5 +96,13 @@ class TypeEncoder(Encoder[Type], tpe=type):
         return encode_instance_simple(data, Type)
 
 
+class DatEncoder(Encoder, tpe=Dat):
+
+    @do(Either[JsonError, Map])
+    def encode(self, a: Sub) -> Do:
+        jsons = yield a._dat__values.traverse(encode_json, Either)
+        yield Right(json_object_with_type(Map(a._dat__names.zip(jsons)), type(a)))
+
+
 __all__ = ('ListEncoder', 'ScalarEncoder', 'MaybeEncoder', 'UUIDEncoder', 'PathEncoder', 'MapEncoder', 'EitherEncoder',
-           'BooleanEncoder', 'encode_instance', 'FunctionEncoder', 'TupleEncoder', 'TypeEncoder')
+           'BooleanEncoder', 'encode_instance', 'FunctionEncoder', 'TupleEncoder', 'TypeEncoder', 'DatEncoder',)

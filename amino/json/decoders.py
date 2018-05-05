@@ -1,13 +1,16 @@
-from typing import Type, TypeVar, Collection, Mapping, Callable, Tuple, Any
+from typing import Type, TypeVar, Collection, Mapping, Callable, Tuple
 from numbers import Number
 from uuid import UUID
 
 from amino.json.decoder import Decoder, decode, decode_json_type_json
-from amino import Maybe, Either, List, Lists, Left, Boolean, Try, Map, Right, Nothing, Just, Path, do, Do, _, L
-from amino.json.data import JsonError, Json, JsonObject
+from amino import (Maybe, Either, List, Lists, Left, Boolean, Try, Map, Right, Nothing, Just, Path, do, Do, _, L, ADT,
+                   Dat)
+from amino.json.data import JsonError, Json, JsonObject, tpe_key
+from amino.dat import Field
 
 A = TypeVar('A')
 B = TypeVar('B')
+Sub = TypeVar('Sub', bound=Dat)
 
 
 class StringDecoder(Decoder, tpe=str):
@@ -26,7 +29,7 @@ class MapDecoder(Decoder, sub=Mapping):
 
     def decode(self, tpe: Type[Mapping], data: Json) -> Either[JsonError, Map[str, A]]:
         def dec() -> Either[JsonError, Map[str, A]]:
-            return Map(data.data).traverse(decode, Either)
+            return Map(data.data).traverse(decode.match, Either)
         return data.object.c(dec, lambda: Left(f'invalid type for `Map`: {data}'))
 
 
@@ -34,13 +37,13 @@ class ListDecoder(Decoder, sub=Collection):
 
     def decode(self, tpe: Type[Collection], data: Json) -> Either[JsonError, List[A]]:
         def dec() -> Either[JsonError, List[A]]:
-            return Lists.wrap(data.data).traverse(decode, Either)
+            return Lists.wrap(data.data).traverse(decode.match, Either)
         return data.array.c(dec, lambda: Left(f'invalid type for `List`: {data}'))
 
 
 def maybe_from_object(data: JsonObject, inner: Maybe[Type[A]]) -> Either[JsonError, Maybe[A]]:
     return (
-        decode(data) / Just
+        decode.match(data) / Just
         if data.has_type else
         inner.traverse(lambda a: decode_json_type_json(data, a), Either)
     )
@@ -55,7 +58,7 @@ class MaybeDecoder(Decoder, tpe=Maybe):
             if data.absent else
             maybe_from_object(data, inner)
             if data.object else
-            decode(data) / Just
+            decode.match(data) / Just
             if data.array else
             Right(Nothing)
             if data.null else
@@ -69,7 +72,7 @@ class MaybeDecoder(Decoder, tpe=Maybe):
 @do(Either[JsonError, Either[A, B]])
 def either_from_object(data: JsonObject, ltype: Type[A], rtype: Type[B]) -> Do:
     value = yield data.field('value')
-    decoded = yield decode(value)
+    decoded = yield decode.match(value)
     tpe = yield data.tpe
     yield Right(tpe(decoded))
 
@@ -161,6 +164,35 @@ class TTypeDecoder(Decoder, tpe=Type):
         yield decode_type(data)
 
 
+def decode_field(data: Json) -> Do:
+    @do(Either[JsonError, A])
+    def decode_field(field: Field) -> Do:
+        value = yield data.field(field.name)
+        dec = yield Decoder.e(field.tpe).lmap(L(JsonError)(data, _))
+        yield dec.decode(field.tpe, value)
+    return decode_field
+
+
+def decode_dat(tpe: Type[A], data: Json) -> Either[JsonError, A]:
+    return tpe._dat__fields.traverse(decode_field(data), Either).map(lambda a: tpe(*a))
+
+
+class DatDecoder(Decoder, tpe=Dat):
+
+    def decode(self, tpe: Type[Sub], data: Json) -> Either[JsonError, Sub]:
+        return decode_dat(tpe, data)
+
+
+class ADTDecoder(Decoder, tpe=ADT):
+
+    @do(Either[JsonError, Sub])
+    def decode(self, tpe: Type[Sub], data: JsonObject) -> Do:
+        sub_json = yield data.field(tpe_key)
+        sub = yield sub_json.as_scalar
+        sub_type = yield Either.import_path(sub.native)
+        yield decode_dat(sub_type, data)
+
+
 __all__ = ('MaybeDecoder', 'StringDecoder', 'NumberDecoder', 'ListDecoder', 'BooleanDecoder', 'MapDecoder',
            'PathDecoder', 'decode_instance', 'CallableDecoder', 'TupleDecoder', 'decode_type', 'TypeDecoder',
-           'TTypeDecoder')
+           'TTypeDecoder', 'ADTDecoder',)

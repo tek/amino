@@ -7,6 +7,7 @@ from amino.do import do
 from amino.json.data import JsonError, JsonObject, JsonArray, JsonScalar, Json, JsonAbsent, JsonNull, tpe_key
 from amino.json.parse import parse_json
 from amino.dispatch import dispatch_alg
+from amino.case import Case
 
 A = TypeVar('A')
 
@@ -27,7 +28,7 @@ def decode_json_object(data: dict) -> Do:
     yield dec.decode(tpe, m)
 
 
-class Decode:
+class decode(Generic[A], Case[Json, Either[JsonError, A]], alg=Json):
 
     @do(Either[JsonError, A])
     def decode_json_object(self, json: JsonObject) -> Do:
@@ -48,13 +49,10 @@ class Decode:
         return Left(json.data)
 
 
-decode = dispatch_alg(Decode(), Json, 'decode_')
-
-
 @do(Either[JsonError, A])
 def decode_json(data: str) -> Do:
-    json = yield parse_json(data).lmap(lambda e: JsonError(data, e))
-    yield decode(json)
+    json = yield parse_json(data)
+    yield decode.match(json)
 
 
 @do(Either[JsonError, A])
@@ -65,7 +63,7 @@ def decode_json_type_json(json: Json, tpe: Type[A]) -> Do:
 
 @do(Either[JsonError, A])
 def decode_json_type(data: str, tpe: Type[A]) -> Do:
-    json = yield parse_json(data).lmap(lambda e: JsonError(data, e))
+    json = yield parse_json(data)
     yield decode_json_type_json(json, tpe)
 
 
