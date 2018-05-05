@@ -1,9 +1,5 @@
 import pathlib
 
-from amino.coco import compile_coco_projects
-
-compile_coco_projects()
-
 Path = pathlib.Path
 
 # from amino.typecheck import boot

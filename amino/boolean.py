@@ -35,7 +35,7 @@ class Boolean:
         return lambda a: Boolean.issubclass(a, tpe)
 
     def maybe(self, value):
-        return maybe.Maybe(value) if self else maybe.Empty()
+        return maybe.Maybe.optional(value) if self else maybe.Empty()
 
     def flat_maybe(self, value: 'Maybe'):  # type: ignore
         return value if self else maybe.Empty()
@@ -44,7 +44,7 @@ class Boolean:
         return maybe.Just(f(*a, **kw)) if self else maybe.Empty()
 
     def m(self, v):
-        return maybe.Maybe(call_by_name(v)) if self else maybe.Empty()
+        return maybe.Maybe.optional(call_by_name(v)) if self else maybe.Empty()
 
     def flat_maybe_call(self, f, *a, **kw):
         return f(*a, **kw) if self else maybe.Empty()

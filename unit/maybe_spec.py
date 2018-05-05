@@ -8,21 +8,21 @@ from amino.tc.monad import Monad
 class MaybeSpec(Spec):
 
     def none(self) -> None:
-        Maybe(None).is_just.should_not.be.ok
+        Maybe.optional(None).is_just.should_not.be.ok
 
     def just(self) -> None:
-        Maybe('value').is_just.should.be.ok
+        Maybe.optional('value').is_just.should.be.ok
 
     def map(self) -> None:
         a = 'start'
         b = 'end'
-        Maybe(a).map(_ + b)._get.should.equal(a + b)
-        (Maybe(a) / (_ + b))._get.should.equal(a + b)
+        Maybe.optional(a).map(_ + b)._get.should.equal(a + b)
+        (Maybe.optional(a) / (_ + b))._get.should.equal(a + b)
 
     def flat_map(self) -> None:
         a = 'start'
         b = 'end'
-        Maybe(a).flat_map(lambda v: Maybe(v + b)).should.contain(a + b)
+        Maybe.optional(a).flat_map(lambda v: Maybe.optional(v + b)).should.contain(a + b)
         f = L(Maybe)(_).flat_map(lambda c: Monad.fatal(Maybe).pure(c + b))
         f(a).should.contain(a + b)
 
@@ -31,8 +31,8 @@ class MaybeSpec(Spec):
 
     def contains(self) -> None:
         a = 'start'
-        Maybe(a).contains(a).should.be.ok
-        Maybe(a + a).contains(a).should_not.be.ok
+        Maybe.optional(a).contains(a).should.be.ok
+        Maybe.optional(a + a).contains(a).should_not.be.ok
         Empty().contains(a).should_not.be.ok
 
     def get_or_else(self) -> None:
@@ -78,9 +78,9 @@ class MaybeSpec(Spec):
     def optional(self) -> None:
         a = 'a'
         b = 'b'
-        Maybe(a).to_maybe.should.just_contain(a)
+        Maybe.optional(a).to_maybe.should.just_contain(a)
         Empty().to_maybe.should.be.a(Empty)
-        Maybe(a).to_either(b).should.equal(Right(a))
+        Maybe.optional(a).to_either(b).should.equal(Right(a))
         Empty().to_either(b).should.equal(Left(b))
         Empty().to_either(lambda: b).should.equal(Left(b))
 

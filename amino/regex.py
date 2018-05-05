@@ -25,7 +25,7 @@ class Regex:
 
     def match(self, data: str, *a: Any, **kw: Any) -> Either[str, 'Match']:
         return (
-            Maybe(self.rex.match(data, *a, **kw))
+            Maybe.optional(self.rex.match(data, *a, **kw))
             .to_either('`{}` does not match `{}`'.format(data, self.spec)) /
             L(Match)(self, _, data)
         )
@@ -35,7 +35,7 @@ class Regex:
 
     def search(self, data: str, *a: Any, **kw: Any) -> Either[str, 'Match']:
         return (
-            Maybe(self.rex.search(data, *a, **kw))
+            Maybe.optional(self.rex.search(data, *a, **kw))
             .to_either('`{}` does not contain `{}`'.format(data, self.spec)) /
             L(Match)(self, _, data)
         )

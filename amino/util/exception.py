@@ -29,7 +29,7 @@ def format_one_exception(
 
 def format_cause(exc: Exception, **kw) -> List[str]:
     from amino import Maybe
-    return Maybe(exc.__cause__) / (lambda a: format_exception(a, **kw)) / (lambda a: a.cons('Cause:')) | List()
+    return Maybe.optional(exc.__cause__) / (lambda a: format_exception(a, **kw)) / (lambda a: a.cons('Cause:')) | List()
 
 
 def format_exception(exc: Exception, **kw) -> List[str]:

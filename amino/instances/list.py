@@ -82,7 +82,7 @@ class ListFoldable(Foldable):
         return reduce(f, fa, z)
 
     def find(self, fa: List[A], f: Callable[[A], bool]):
-        return Maybe(_find(fa, f))
+        return Maybe.optional(_find(fa, f))
 
     def find_map_optional(self, fa: List[A], tpe: Type[F], f: Callable[[A], F[B]], msg: CallByName=None) -> F[B]:
         for el in fa:
