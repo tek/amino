@@ -64,6 +64,7 @@ class Match:
         return (
             self.group_map
             .lift(id)
+            .flat_map(lambda a: Maybe.optional(a).to_either_f(lambda: f'group `{id}` did not match'))
             .to_either('no group `{}` in {}'.format(id, self))
         )
 

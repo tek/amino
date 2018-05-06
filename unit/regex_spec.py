@@ -1,6 +1,6 @@
 from amino.test.spec_spec import Spec
 from amino.regex import Regex
-from amino import List
+from amino import List, Left
 
 
 class RegexSpec(Spec):
@@ -22,5 +22,11 @@ class RegexSpec(Spec):
         m.g(n2).should.be.empty
         m.l.should.equal(List(g1, g2, g3))
         m.match.should.equal(whole)
+
+    def optional(self) -> None:
+        r = Regex('(?P<path>.*?\.py)(:(?P<lnum>\d+))?$')
+        m = r.match('/foo/bar/file.py')
+        m.should.be.right
+        m.value.group('lnum').should.equal(Left('group `lnum` did not match'))
 
 __all__ = ('RegexSpec',)
