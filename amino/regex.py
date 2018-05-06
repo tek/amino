@@ -77,7 +77,7 @@ class Match:
     l = groups
 
     def all_groups(self, *ids: str) -> Either[str, List[str]]:
-        return (self.group_map.get_all(*ids)
+        return (self.group_map.lift_all(*ids)
                 .to_either('not all groups `{}` in {}'.format(ids, self)))
 
     @property
