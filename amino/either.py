@@ -118,13 +118,6 @@ class Either(Generic[A, B], F[B], implicits=True):
         return run()
 
     @staticmethod
-    def catch(f: Callable[[], B], exc: Type[E]) -> 'Either[E, B]':
-        try:
-            return Right(f())
-        except exc as e:
-            return Left(e)
-
-    @staticmethod
     def exports(modpath: str) -> 'Either[ImportFailure, amino.List[Any]]':
         @do(Either[ImportFailure, amino.List[Any]])
         def run() -> Do:
@@ -132,6 +125,10 @@ class Either(Generic[A, B], F[B], implicits=True):
             exports = yield Either.import_name(modpath, '__all__')
             yield Lists.wrap(exports).traverse(lambda a: Either.import_name(modpath, a), Either)
         return run()
+
+    @staticmethod
+    def getattr(obj: Any, attr: str) -> 'Either[str, A]':
+        return Right(getattr(obj, attr)) if hasattr(obj, attr) else Left(f'`{obj}` has no attribute `{attr}`')
 
     @property
     def is_right(self) -> 'amino.boolean.Boolean':
