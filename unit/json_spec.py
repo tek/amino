@@ -102,6 +102,13 @@ class TV(Generic[Ab], Dat['Ab']):
         self.a = a
 
 
+class _SM:
+
+    @staticmethod
+    def cons() -> int:
+        return 65
+
+
 class JsonSpec(Spec):
 
     def codec_dat(self) -> None:
@@ -132,6 +139,13 @@ class JsonSpec(Spec):
             decoded = yield _code_json(Fun(encode_me))
             return decoded.f()
         run().should.equal(Right(5))
+
+    def staticmethod(self) -> None:
+        @do(Either[str, int])
+        def run() -> Do:
+            decoded = yield _code_json(_SM.cons)
+            return decoded()
+        run().should.equal(Right(65))
 
     def tuple(self) -> None:
         t = (4, 5, 6)

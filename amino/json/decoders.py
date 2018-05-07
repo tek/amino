@@ -111,13 +111,17 @@ class PathDecoder(Decoder, tpe=Path):
 def decode_instance(data: Json, desc: str) -> Either[JsonError, A]:
         @do(Either[JsonError, A])
         def run(data: Json) -> Do:
-            path = yield data.field('path')
-            scalar = yield path.as_scalar
-            yield (
-                Either.import_path(scalar.native)
-                if isinstance(scalar.native, str) else
-                Left(JsonError(data, 'path is not a string'))
+            mod_field = yield data.field('mod')
+            mod_path = yield mod_field.as_scalar
+            names_field = yield data.field('names')
+            names_json = yield names_field.as_array
+            names = Lists.wrap(names_json.native)
+            mod = yield (
+                Either.import_module(mod_path.native)
+                if isinstance(mod_path.native, str) else
+                Left(JsonError(data, 'module is not a string'))
             )
+            yield names.fold_m(Right(mod))(Either.getattr)
         return (
             run(data)
             if data.object else
@@ -142,10 +146,11 @@ class TupleDecoder(Decoder, tpe=tuple):
 
 @do(Either[JsonError, type])
 def decode_type(data: Json) -> Do:
-    path = yield data.field('path')
+    mod = yield data.field('mod')
+    names = yield data.field('names')
     yield (
         Right(type(None))
-        if path.native == 'builtins.NoneType'
+        if mod.native == 'builtins' and names.native == ['NoneType']
         else decode_instance(data, 'type')
     )
 

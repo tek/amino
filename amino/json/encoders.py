@@ -63,16 +63,17 @@ class BooleanEncoder(Encoder[Boolean], tpe=Boolean):
 
 
 @do(Either[JsonError, Json])
-def encode_instance(a: A, tpe: type, mod: str, name: str) -> Do:
-    path_json = yield encode_json(f'{mod}.{name}')
-    return json_object_with_type(Map(path=path_json), tpe)
+def encode_instance(a: A, tpe: type, mod: str, names: list) -> Do:
+    mod_json = yield encode_json(mod)
+    names_json = yield encode_json(names)
+    return json_object_with_type(Map(mod=mod_json, names=names_json), tpe)
 
 
 @do(Either[JsonError, Json])
 def encode_instance_simple(data: A, tpe: type) -> Do:
     mod = yield Try(lambda: data.__module__)
-    name = yield Try(lambda: data.__name__)
-    yield encode_instance(data, tpe, mod, name)
+    names = yield Try(lambda: data.__qualname__.split('.'))
+    yield encode_instance(data, tpe, mod, names)
 
 
 class FunctionEncoder(Encoder[Callable], tpe=FunctionType):
