@@ -167,6 +167,10 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
     def from_maybe(a: Maybe[A], error: str) -> 'IO[A]':
         return a / IO.now | IO.failed(error)
 
+    @staticmethod
+    def sleep(duration: float) -> 'IO[None]':
+        return IO.delay(time.sleep, duration)
+
     def __init__(self) -> None:
         self.stack = inspect.stack() if IO.debug else []
 
