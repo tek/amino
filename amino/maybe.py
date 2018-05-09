@@ -80,6 +80,9 @@ class Maybe(Generic[A], F[A], implicits=True):
     def get_or(self, f: Callable[..., A], *a: Any, **kw: Any) -> A:
         return self.cata_f(lambda a: a, f, *a, **kw)
 
+    def get_or_strict(self, a: A) -> A:
+        return self.cata_strict(lambda a: a, a)
+
     def get_or_raise(self, e: CallByName) -> A:
         def raise_e() -> None:
             raise call_by_name(e)
