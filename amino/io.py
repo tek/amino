@@ -3,6 +3,7 @@ import time
 import inspect
 import typing
 import traceback
+from pathlib import Path
 from threading import Thread
 from typing import Callable, TypeVar, Generic, Any, Union, Tuple, Awaitable, Optional
 
@@ -170,6 +171,10 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
     @staticmethod
     def sleep(duration: float) -> 'IO[None]':
         return IO.delay(time.sleep, duration)
+
+    @staticmethod
+    def file(path: Path) -> 'IO[List[str]]':
+        return IO.delay(path.read_text).map(Lists.lines)
 
     def __init__(self) -> None:
         self.stack = inspect.stack() if IO.debug else []
