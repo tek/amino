@@ -112,26 +112,22 @@ class _SM:
 class JsonSpec(Spec):
 
     def codec_dat(self) -> None:
-        target = D(E(2, 'E'), 1, 'D')
-        json = f'{{"e": {{"a": 2, "b": "E", "{tpe_key}": "{mod}.E"}}, "a": 1, "b": "D", "{tpe_key}": "{mod}.D"}}'
-        decoded = decode_json(json)
-        decoded.should.equal(Right(target))
-        dump_json(target).should.equal(Right(json))
+        a = D(E(2, 'E'), 1, 'D')
+        _code_json(a).should.equal(Right(a))
 
     def codec_maybe(self) -> None:
-        json = f'{{"a": null, "{tpe_key}": "{mod}.M"}}'
+        json = f'{{"a": null, "{tpe_key}": {{"module": "{mod}", "names": ["M"]}}}}'
         decoded = decode_json(json)
         (decoded // dump_json).should.equal(Right(json))
 
     def codec_list(self) -> None:
-        json = f'{{"a": [1, 2, "string"], "{tpe_key}": "{mod}.Li"}}'
+        json = f'{{"a": [1, 2, "string"], "{tpe_key}": {{"module": "{mod}", "names": ["Li"]}}}}'
         decoded = decode_json(json)
         (decoded // dump_json).should.equal(Right(json))
 
     def codec_either(self) -> None:
-        v = Ei(Right(E(7, 'value')), Right(List(5, 9)), Left('error'))
-        json = dump_json(v)
-        (json // decode_json).should.equal(Right(v))
+        a = Ei(Right(E(7, 'value')), Right(List(5, 9)), Left('error'))
+        _code_json(a).should.equal(Right(a))
 
     def function(self) -> None:
         @do(Either[str, int])
@@ -148,7 +144,7 @@ class JsonSpec(Spec):
         run().should.equal(Right(65))
 
     def tuple(self) -> None:
-        t = (4, 5, 6)
+        t = (4, E(9, 'nine'), 6)
         _code_json(t).should.equal(Right(t))
 
     def tpe(self) -> None:

@@ -2,7 +2,8 @@ from typing import Type, TypeVar, Collection, Mapping, Callable, Tuple
 from numbers import Number
 from uuid import UUID
 
-from amino.json.decoder import Decoder, decode, decode_json_type_json
+from amino.json.decoder import (Decoder, decode, decode_json_type_json, type_info, TypeInfo, select_type,
+                                decode_type_info)
 from amino import (Maybe, Either, List, Lists, Left, Boolean, Try, Map, Right, Nothing, Just, Path, do, Do, _, L, ADT,
                    Dat)
 from amino.json.data import JsonError, Json, JsonObject, tpe_key
@@ -73,7 +74,7 @@ class MaybeDecoder(Decoder, tpe=Maybe):
 def either_from_object(data: JsonObject, ltype: Type[A], rtype: Type[B]) -> Do:
     value = yield data.field('value')
     decoded = yield decode.match(value)
-    tpe = yield data.tpe
+    tpe = yield type_info(data)
     yield Right(tpe(decoded))
 
 
@@ -109,24 +110,15 @@ class PathDecoder(Decoder, tpe=Path):
 
 
 def decode_instance(data: Json, desc: str) -> Either[JsonError, A]:
-        @do(Either[JsonError, A])
-        def run(data: Json) -> Do:
-            mod_field = yield data.field('mod')
-            mod_path = yield mod_field.as_scalar
-            names_field = yield data.field('names')
-            names_json = yield names_field.as_array
-            names = Lists.wrap(names_json.native)
-            mod = yield (
-                Either.import_module(mod_path.native)
-                if isinstance(mod_path.native, str) else
-                Left(JsonError(data, 'module is not a string'))
-            )
-            yield names.fold_m(Right(mod))(Either.getattr)
-        return (
-            run(data)
-            if data.object else
-            Left(JsonError(data, f'invalid type for `{desc}`'))
-        )
+    @do(Either[JsonError, A])
+    def run(data: Json) -> Do:
+        type_info = yield decode_json_type_json(data, TypeInfo)
+        yield select_type(type_info)
+    return (
+        run(data)
+        if data.object else
+        Left(JsonError(data, f'invalid type for `{desc}`'))
+    )
 
 
 class CallableDecoder(Decoder, tpe=Callable):
@@ -141,16 +133,16 @@ class TupleDecoder(Decoder, tpe=tuple):
     def decode(self, tpe: Type[Tuple], data: Json) -> Do:
         t_data = yield data.field('data')
         a_data = yield t_data.as_array
-        yield Try(tuple, a_data.native)
+        data = yield decode.match(a_data)
+        yield Try(tuple, data)
 
 
 @do(Either[JsonError, type])
 def decode_type(data: Json) -> Do:
-    mod = yield data.field('mod')
-    names = yield data.field('names')
+    info = yield decode_type_info(data)
     yield (
         Right(type(None))
-        if mod.native == 'builtins' and names.native == ['NoneType']
+        if info.module in ['builtins', '__builtins__'] and info.names == ['NoneType']
         else decode_instance(data, 'type')
     )
 
@@ -192,9 +184,7 @@ class ADTDecoder(Decoder, tpe=ADT):
 
     @do(Either[JsonError, Sub])
     def decode(self, tpe: Type[Sub], data: JsonObject) -> Do:
-        sub_json = yield data.field(tpe_key)
-        sub = yield sub_json.as_scalar
-        sub_type = yield Either.import_path(sub.native)
+        sub_type = yield type_info(data)
         yield decode_dat(sub_type, data)
 
 

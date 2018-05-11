@@ -1,11 +1,10 @@
 import abc
-from typing import TypeVar, Union, Generic, Generator
+from typing import TypeVar, Union, Generic
 from numbers import Number
 
 from amino import Map, List, _, Either, Right, Left, Boolean
 from amino.util.string import ToStr
 from amino.algebra import Algebra
-from amino.do import tdo
 
 A = TypeVar('A')
 tpe_key = '__type__'
@@ -72,23 +71,16 @@ class Json(Generic[A], Algebra):
     def as_array(self) -> Either[JsonError, 'JsonArray']:
         return Right(self) if self.array else Left(self.error('not an array'))
 
+    @property
+    def as_object(self) -> Either[JsonError, 'JsonObject']:
+        return Right(self) if self.object else Left(self.error('not an object'))
+
 
 class JsonObject(Json[Map[str, Json]]):
 
     @property
     def native(self) -> Union[dict, list, str, Number, None]:
         return self.data.valmap(_.native)
-
-    @property
-    @tdo(Either[JsonError, type])
-    def tpe(self) -> Generator:
-        jtpe = yield self.data.lift(tpe_key).to_either(self.error(f'no `{tpe_key}` field in json object'))
-        tpe_s = yield (
-            Right(jtpe.data)
-            if isinstance(jtpe, JsonScalar) else
-            Left(self.error('invalid type for `{type_key}`: {jtpe}'))
-        )
-        yield Either.import_path(tpe_s).lmap(self.error)
 
     def field(self, key: str) -> Either[JsonError, Json]:
         return Right(self.data.lift(key) | JsonAbsent(self.error(f'no field `{key}`')))

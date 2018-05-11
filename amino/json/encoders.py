@@ -63,10 +63,10 @@ class BooleanEncoder(Encoder[Boolean], tpe=Boolean):
 
 
 @do(Either[JsonError, Json])
-def encode_instance(a: A, tpe: type, mod: str, names: list) -> Do:
-    mod_json = yield encode_json(mod)
+def encode_instance(a: A, tpe: type, module: str, names: list) -> Do:
+    mod_json = yield encode_json(module)
     names_json = yield encode_json(names)
-    return json_object_with_type(Map(mod=mod_json, names=names_json), tpe)
+    return json_object_with_type(Map(module=mod_json, names=names_json), tpe)
 
 
 @do(Either[JsonError, Json])

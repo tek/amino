@@ -3,10 +3,12 @@ import json
 from typing import TypeVar, Generic, Type
 
 from amino.tc.base import TypeClass
-from amino import Either, L, _, Map, do, Do
-from amino.json.data import JsonError, Json, JsonObject, JsonScalar, tpe_key
+from amino import Either, L, _, Map, do, Do, Lists
+from amino.json.data import JsonError, Json, JsonObject, JsonScalar, tpe_key, JsonArray
+from amino.logging import module_log
 
 A = TypeVar('A')
+log = module_log()
 
 
 class Encoder(Generic[A], TypeClass):
@@ -30,7 +32,8 @@ def dump_json(data: A) -> Do:
 
 def json_type(tpe: Type) -> Json:
     mod = '__builtins__' if tpe.__module__ == 'builtins' else tpe.__module__
-    return JsonScalar(f'{mod}.{tpe.__name__}')
+    names = Lists.split(tpe.__qualname__, '.').map(JsonScalar)
+    return JsonObject(Map(module=JsonScalar(mod), names=JsonArray(names)))
 
 
 def json_object_with_type(fields: Map[str, JsonObject], tpe: Type[A]) -> Json:
