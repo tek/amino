@@ -19,6 +19,9 @@ class Optional(Generic[F], TypeClass):
     def get_or_else(self, fa: F, a: Union[A, Callable[[], A]]):
         return self.to_maybe(fa).get_or_else(a)
 
+    def get_or_strict(self, fa: F, a: A) -> A:
+        return self.to_maybe(fa).get_or_strict(a)
+
     @abc.abstractmethod
     def to_either(self, fb: F, left: Union[A, Callable[[], A]]) -> 'Either[A, B]':
         ...
