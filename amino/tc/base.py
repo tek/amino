@@ -287,8 +287,9 @@ TC = GlobalTypeClasses()
 
 class ImplicitNotFound(Exception):
 
-    def __init__(self, tc: type, a: type) -> None:
-        msg = 'no type class found for {}[{}]'.format(tc, a)
+    def __init__(self, tc: type, tpe: type, msg: str=None) -> None:
+        explanation = '' if msg is None else f': {msg}'
+        msg = f'no type class found for {tc}[{tpe}]{explanation}'
         super().__init__(msg)
 
 
@@ -317,8 +318,8 @@ class PredTypeClass:
         self.tc = tc
 
 
-def unbounded_typevar(v: TypeVar) -> None:
-    raise ImplicitNotFound(f'unbounded TypeVar cannot be used for typeclasses: {v}')
+def unbounded_typevar(tc: type, v: TypeVar) -> None:
+    raise ImplicitNotFound(tc, v, f'unbounded TypeVar cannot be used for typeclasses')
 
 
 class AllInstances:
@@ -374,7 +375,7 @@ class AllInstances:
             return tc
         scrutinee = (
             (
-                unbounded_typevar(G)
+                unbounded_typevar(TC, G)
                 if G.__bound__ is None else
                 G.__bound__
             )
