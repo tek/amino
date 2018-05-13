@@ -160,6 +160,17 @@ class StateT(Generic[G, S, A], ToStr, F[A], metaclass=StateTMeta):
         return self.transform(lambda s, a: (f(s), a))
 
 
+
+def run_function(s: StateT[G, S, A]) -> F[Callable[[S], F[Tuple[S, A]]]]:
+    try:
+        return s.run_f
+    except Exception as e:
+        if not isinstance(s, StateT):
+            raise TypeError(f'flatMapped {s} into StateT')
+        else:
+            raise
+
+
 # FIXME this is now most likely unnecessary
 def tcs(tpe: Type[G], state_tpe: Type[ST]) -> None:
     class StateMonad(Monad, tpe=state_tpe):
@@ -174,7 +185,7 @@ def tcs(tpe: Type[G], state_tpe: Type[ST]) -> None:
                 return fsa.flat_map2(h)
             def i(sfsa: Callable[[S], F[Tuple[S, A]]]) -> Callable[[S], F[Tuple[S, B]]]:
                 return lambda a: g(sfsa(a))
-            run_f1 = fa.run_f.map(i)
+            run_f1 = run_function(fa).map(i)
             return state_tpe.apply_f(run_f1)
     class StateZip(Zip, tpe=state_tpe):
 
