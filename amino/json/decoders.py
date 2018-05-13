@@ -6,9 +6,11 @@ from amino.json.decoder import (Decoder, decode, decode_json_type_json, type_inf
                                 decode_type_info)
 from amino import (Maybe, Either, List, Lists, Left, Boolean, Try, Map, Right, Nothing, Just, Path, do, Do, _, L, ADT,
                    Dat)
-from amino.json.data import JsonError, Json, JsonObject, tpe_key
+from amino.json.data import JsonError, Json, JsonObject
 from amino.dat import Field
+from amino.logging import module_log
 
+log = module_log()
 A = TypeVar('A')
 B = TypeVar('B')
 Sub = TypeVar('Sub', bound=Dat)
@@ -161,12 +163,21 @@ class TTypeDecoder(Decoder, tpe=Type):
         yield decode_type(data)
 
 
+@do(Either[JsonError, A])
+def decode_field_type(tpe: type, data: Json) -> Do:
+    dec = yield Decoder.e(tpe).lmap(L(JsonError)(data, _))
+    yield dec.decode(tpe, data)
+
+
 def decode_field(data: Json) -> Do:
     @do(Either[JsonError, A])
     def decode_field(field: Field) -> Do:
         value = yield data.field(field.name)
-        dec = yield Decoder.e(field.tpe).lmap(L(JsonError)(data, _))
-        yield dec.decode(field.tpe, value)
+        yield (
+            decode.match(value)
+            if isinstance(field.tpe, TypeVar) else
+            decode_field_type(field.tpe, value)
+        )
     return decode_field
 
 

@@ -109,6 +109,12 @@ class _SM:
         return 65
 
 
+class _Gen(Generic[A], Dat['_Gen[A]']):
+
+    def __init__(self, a: A) -> None:
+        self.a = a
+
+
 class JsonSpec(Spec):
 
     def codec_dat(self) -> None:
@@ -157,6 +163,10 @@ class JsonSpec(Spec):
 
     def type_var(self) -> None:
         a = TV(_Sub1(1))
+        _code_json(a).should.equal(Right(a))
+
+    def generic(self) -> None:
+        a = _Gen(E(5, '55'))
         _code_json(a).should.equal(Right(a))
 
 __all__ = ('JsonSpec',)
