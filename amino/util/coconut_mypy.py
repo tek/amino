@@ -3,7 +3,7 @@ from typing import Tuple, Generator, Any
 from amino import List, Map, Lists, _, Regex, Either, Right, Left, Id, Path
 from amino.state import EitherState, State
 from amino.regex import Match
-from amino.do import tdo
+from amino.do import do
 from amino.util.numeric import parse_int
 
 Files = Map[Path, List[str]]
@@ -13,7 +13,7 @@ error_rex = Regex('(?P<path>[^:]*):(?P<lnum>\d+)(:(?P<col>\d+))?: (error|note): 
 lnum_rex = Regex('# line (?P<lnum>\d+)')
 
 
-@tdo(Either[str, Tuple[str, int, Either[str, int], str]])
+@do(Either[str, Tuple[str, int, Either[str, int], str]])
 def extract(match: Match) -> Generator:
     path = yield match.group('path')
     lnum = yield match.group('lnum')
@@ -27,7 +27,7 @@ def update_for(path: Path, files: Files) -> Files:
     return files if path in files else files + (path, Lists.lines(path.read_text()))
 
 
-@tdo(Either[str, Entry])
+@do(Either[str, Entry])
 def substitute(files: Files, path: Path, lnum: int, col: Either[str, int], error: str, coco_path: Path) -> Generator:
     lines = yield files.lift(path).to_either('corrupt state')
     line = yield lines.lift(lnum - 1).to_either(f'invalid line number {lnum} for {path}')
@@ -38,14 +38,14 @@ def substitute(files: Files, path: Path, lnum: int, col: Either[str, int], error
     yield Right(Map(lnum=coco_lnum_i, text=error, valid=1, maker_name='mypy') ** col_map)
 
 
-@tdo(EitherState[Files, Entry])
+@do(EitherState[Files, Entry])
 def handle_coco(path: Path, lnum: int, col: Either[str, int], error: str, coco_path: Path) -> Generator:
     yield EitherState.modify(lambda s: update_for(path, s))
     files = yield EitherState.get()
     yield EitherState.lift(substitute(files, path, lnum, col, error, coco_path))
 
 
-@tdo(EitherState[Files, Entry])
+@do(EitherState[Files, Entry])
 def line(l: str) -> Generator:
     r = excludes.traverse(lambda a: a.search(l).swap, Either)
     yield EitherState.lift(r)
