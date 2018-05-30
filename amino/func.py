@@ -100,4 +100,9 @@ class mtailrec:
     __slots__ = 'func',
 
 
-__all__ = ('curried', 'I', 'flip', 'call_by_name', 'Val', 'ReplaceVal', 'is_not_none', 'tupled2', 'tailrec', 'mtailrec')
+def const(a: A) -> Callable[[B], A]:
+    return lambda b: a
+
+
+__all__ = ('curried', 'I', 'flip', 'call_by_name', 'Val', 'ReplaceVal', 'is_not_none', 'tupled2', 'tailrec', 'mtailrec',
+           'const',)
