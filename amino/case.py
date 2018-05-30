@@ -5,7 +5,9 @@ import inspect
 from amino.util.string import snake_case
 from amino import ADT, Map, List, Lists, do, Do, Either, Try, Just, Nothing, Maybe
 from amino.algebra import Algebra
+from amino.logging import module_log
 
+log = module_log()
 Alg = TypeVar('Alg', bound=Algebra)
 C = TypeVar('C', bound=Alg)
 A = TypeVar('A')
@@ -29,10 +31,6 @@ class Case(Generic[Alg, B], metaclass=CaseMeta):
 
     def __call__(self, scrutinee: Alg, *a: Any, **kw: Any) -> B:
         return self.case(scrutinee, *a, **kw)
-
-
-def resolve_case(handlers: List[Callable[[Case[C, B]], B]], variant: Type[C]) -> Callable[[Case[C, B]], B]:
-    return handlers[0]
 
 
 def normalize_type(tpe: Type[C]) -> Type[C]:
@@ -67,6 +65,7 @@ def case_list(
     return variants.map(find_handler)
 
 
+# TODO determine default case from param type being the ADT
 def case_dispatch(cls: Type[Case[C, B]], alg: Type[C]) -> Callable[[Case[C, B], C], B]:
     def error(func: Case[C, B], variant: Alg, *a: Any, **kw: Any) -> None:
         raise TypeError(f'no case defined for {variant} on {cls.__name__}')
