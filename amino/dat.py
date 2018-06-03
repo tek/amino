@@ -199,4 +199,8 @@ class ADT(Generic[Sub], Algebra, Dat[Sub], metaclass=ADTMeta, algebra_base=True)
     pass
 
 
-__all__ = ('Dat', 'ADT', 'DatImplicitsMeta')
+class ADTImplicitsMeta(ImplicitsMeta, ADTMeta):
+    pass
+
+
+__all__ = ('Dat', 'ADT', 'DatImplicitsMeta', 'ADTImplicitsMeta',)
