@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Generic, Callable, Union, cast
+from typing import TypeVar, Generic, Callable, Union, cast, Any
 
 from amino.tc.base import TypeClass, tc_prop
 from amino import maybe  # NOQA
@@ -22,8 +22,8 @@ class Optional(Generic[F], TypeClass):
     def get_or_strict(self, fa: F, a: A) -> A:
         return self.to_maybe(fa).get_or_strict(a)
 
-    def get_or(self, fa: F, f: Callable[[], A]) -> A:
-        return self.to_maybe(fa).get_or(f)
+    def get_or(self, fa: F, f: Callable[[], A], *a: Any, **kw: Any) -> A:
+        return self.to_maybe(fa).get_or(f, *a, **kw)
 
     @abc.abstractmethod
     def to_either(self, fb: F, left: Union[A, Callable[[], A]]) -> 'Either[A, B]':
@@ -42,6 +42,9 @@ class Optional(Generic[F], TypeClass):
         return fa if self.present(fa) else maybe.call_by_name(a)
 
     o = or_else
+
+    def or_else_call(self, fa: F, f: Callable[[], F], *a: Any, **kw: Any):
+        return fa if self.present(fa) else f(*a, **kw)
 
     def io(self, fa: F, err: str=''):
         from amino.io import IO
