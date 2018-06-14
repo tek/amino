@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Any
 
 from typing import Type, TypeVar
 
@@ -9,6 +9,10 @@ A = TypeVar('A')
 
 def qualified_type(tpe: Type[A]) -> str:
     return tpe.__name__ if tpe.__module__ == 'builtins' else f'{tpe.__module__}.{tpe.__name__}'
+
+
+def qualified_name(inst: Any) -> str:
+    return inst.__name__ if inst.__module__ == 'builtins' else f'{inst.__module__}.{inst.__name__}'
 
 
 @do(Either[str, type])
@@ -24,4 +28,4 @@ def first_type_arg(tpe: type) -> Either[str, type]:
     return type_arg(tpe, 0)
 
 
-__all__ = ('qualified_type', 'type_arg', 'first_type_arg')
+__all__ = ('qualified_type', 'type_arg', 'first_type_arg', 'qualified_name',)
