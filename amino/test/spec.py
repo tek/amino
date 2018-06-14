@@ -72,25 +72,4 @@ def callers(limit=20):
     return ''.join(traceback.format_list(data))
 
 
-def timed(f):
-    @wraps(f)
-    def wrap(*a, **kw):
-        import time
-        start = time.time()
-        v = f(*a, **kw)
-        from amino.logging import log
-        log.info('{}: {:.3}'.format(f.__name__, time.time() - start))
-        return v
-    return wrap
-
-
-@contextmanager
-def timer(name='timer'):
-    import time
-    start = time.time()
-    v = yield
-    from ribosome.logging import log
-    log.info('{}: {}'.format(name, time.time() - start))
-    return v
-
-__all__ = ('SpecBase', 'profiled', 'timed', 'timer', 'IntegrationSpecBase')
+__all__ = ('SpecBase', 'profiled', 'IntegrationSpecBase')
