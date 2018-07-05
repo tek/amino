@@ -78,6 +78,9 @@ def tupled2(f: Callable[[A, B], C]) -> Callable[[Tuple[A, B]], C]:
     return wrap
 
 
+TailrecResult = Tuple[bool, Union[A, tuple]]
+
+
 class tailrec:
     __slots__ = 'func',
 
@@ -105,4 +108,4 @@ def const(a: A) -> Callable[[B], A]:
 
 
 __all__ = ('curried', 'I', 'flip', 'call_by_name', 'Val', 'ReplaceVal', 'is_not_none', 'tupled2', 'tailrec', 'mtailrec',
-           'const',)
+           'const', 'TailrecResult',)
