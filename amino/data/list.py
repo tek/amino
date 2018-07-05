@@ -8,7 +8,7 @@ from toolz.itertoolz import cons, groupby
 
 from amino import maybe, boolean, Path
 from amino.tc.base import ImplicitsMeta, Implicits
-from amino.func import curried, I, call_by_name
+from amino.func import curried, I, call_by_name, tailrec, TailrecResult
 from amino.util.string import safe_string
 
 A = TypeVar('A')
@@ -339,6 +339,14 @@ class Lists:
     @staticmethod
     def file(path: Path) -> List[str]:
         return Lists.lines(path.read_text())
+
+    @staticmethod
+    def find_str_matches(data: str, target: str) -> List[int]:
+        @tailrec
+        def find(current: int, result: List[int]) -> TailrecResult[List[int]]:
+            match = data.find(target, current)
+            return (False, result) if match == -1 else (True, (match + 1, result.cat(match)))
+        return find(0, Nil)
 
 Nil = Lists.empty
 
