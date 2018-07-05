@@ -75,4 +75,9 @@ def plural_s(items: Sized) -> str:
     return '' if len(items) == 1 else 's'
 
 
-__all__ = ('snake_case', 'decode', 'camelcaseify', 'camelcase', 'plural_s')
+def indent(data: str, count: int=2) -> str:
+    ws = ' ' * count
+    return f'{ws}{data}'
+
+
+__all__ = ('snake_case', 'decode', 'camelcaseify', 'camelcase', 'plural_s', 'indent',)
