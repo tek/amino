@@ -1,6 +1,4 @@
-from typing import Iterable, Any
-
-from typing import Type, TypeVar
+from typing import Iterable, Any, Type, TypeVar, _GenericAlias
 
 from amino import do, Either, Do, Maybe, Right, Left, Lists
 
@@ -28,6 +26,14 @@ def first_type_arg(tpe: type) -> Either[str, type]:
     return type_arg(tpe, 0)
 
 
+def normalize_generic_type(tpe: type) -> type:
+    return (
+        tpe.__origin__
+        if isinstance(tpe, _GenericAlias) else
+        tpe
+    )
+
+
 def qualname(a: Any) -> str:
     return (
         a.__qualname__
@@ -38,4 +44,17 @@ def qualname(a: Any) -> str:
     )
 
 
-__all__ = ('qualified_type', 'type_arg', 'first_type_arg', 'qualified_name', 'qualname',)
+def is_subclass(tpe: Any, base: type) -> bool:
+    def error():
+        raise TypeError(f'argument `{tpe}` to `is_subclass({base})` is neither TypeVar nor type')
+    return (
+        False
+        if isinstance(tpe, TypeVar) else
+        issubclass(normalize_generic_type(tpe), base)
+        if isinstance(tpe, (type, _GenericAlias)) else
+        error()
+    )
+
+
+__all__ = ('qualified_type', 'type_arg', 'first_type_arg', 'qualified_name', 'qualname', 'normalize_generic_type',
+           'is_subclass',)

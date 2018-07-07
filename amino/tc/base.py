@@ -13,7 +13,7 @@ A = TypeVar('A')
 TC = TypeVar('TC', bound='TypeClass')
 
 
-def regularize_type(tpe: type) -> type:
+def normalize_type(tpe: type) -> type:
     return (
         tpe.__origin__
         if isinstance(tpe, _GenericAlias) else
@@ -58,10 +58,10 @@ class TypeClassMeta(type):
         return self.m(type(a))
 
     def e(self, tpe: type) -> 'amino.maybe.Maybe[TypeClass]':
-        reg = regularize_type(tpe)
+        normalized = normalize_type(tpe)
         return (
-            self.m(reg)
-            .to_either(f'no `{self.__name__}` instance for {reg} ({tpe})')
+            self.m(normalized)
+            .to_either(f'no `{self.__name__}` instance for {normalized} ({tpe})')
         )
 
     def e_for(self, a: A) -> 'amino.either.Either[str, TC]':
