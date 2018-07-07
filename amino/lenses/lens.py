@@ -26,6 +26,6 @@ def list_from_iter(self, iterable: Iterable[A]) -> List[A]:
     return Lists.wrap(iterable)
 
 
-from_iter.register(List[Any])(list_from_iter)
+from_iter.register(list)(list_from_iter)
 
 __all__ = ('lens',)

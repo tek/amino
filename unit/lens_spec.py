@@ -70,5 +70,10 @@ class LensSpec(Spec):
         m2 = t.get()
         t.set(map(mod, m2)).should.equal(target)
 
+    def list(self) -> None:
+        fa = List(1, 2, 3)
+        lns = lens.Each().modify(lambda a: a + 1)
+        lns(fa).should.be.a(List)
+
 
 __all__ = ('LensSpec',)
