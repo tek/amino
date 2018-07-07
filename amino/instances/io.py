@@ -19,7 +19,7 @@ class IOInstances(ImplicitInstances):
         return Map({Monad: IOMonad()})
 
 
-class IOMonad(Monad[IO]):
+class IOMonad(Monad):
 
     def pure(self, a: A) -> IO[A]:
         return IO.now(a)

@@ -70,4 +70,5 @@ class LensSpec(Spec):
         m2 = t.get()
         t.set(map(mod, m2)).should.equal(target)
 
+
 __all__ = ('LensSpec',)

@@ -6,7 +6,7 @@ from amino.tc.base import TypeClass
 F = TypeVar('F')
 
 
-class Monoidal(Generic[F], TypeClass[F]):
+class Monoidal(TypeClass):
 
     @abc.abstractmethod
     def product(self, fa: F, fb: F) -> F:

@@ -31,4 +31,5 @@ def sub(inc: int) -> Callable[[int], int]:
         return z - inc
     return sub
 
+
 __all__ = ('try_convert_int', 'parse_int', 'add',)

@@ -269,7 +269,7 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
             )
         return self.flat_map(f, fs=Just(Eval.now('join_either')))
 
-    def with_stack(self, s: typing.List[inspect.FrameInfo]) -> 'IO[A]':
+    def with_stack(self, s: List[inspect.FrameInfo]) -> 'IO[A]':
         self.stack = s
         return self
 

@@ -28,4 +28,14 @@ def first_type_arg(tpe: type) -> Either[str, type]:
     return type_arg(tpe, 0)
 
 
-__all__ = ('qualified_type', 'type_arg', 'first_type_arg', 'qualified_name',)
+def qualname(a: Any) -> str:
+    return (
+        a.__qualname__
+        if hasattr(a, '__qualname__') else
+        a.__origin__.__qualname__
+        if hasattr(a, '__origin__') else
+        a.__qualname__
+    )
+
+
+__all__ = ('qualified_type', 'type_arg', 'first_type_arg', 'qualified_name', 'qualname',)

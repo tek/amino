@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Generic, Callable, Any, List
+from typing import TypeVar, Callable, Any, List
 
 from amino.tc.base import TypeClass, tc_prop
 from amino.func import ReplaceVal
@@ -10,7 +10,7 @@ A = TypeVar('A')
 B = TypeVar('B')
 
 
-class Functor(Generic[F], TypeClass[F], ApplyN):
+class Functor(TypeClass, ApplyN):
 
     def apply_n_funcs(self) -> List[str]:
         return ['map']

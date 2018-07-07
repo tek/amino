@@ -21,7 +21,7 @@ class Id(Generic[A], F[A], ToStr, implicits=True, auto=True):
         return List(str(self.value))
 
 
-class IdMonad(Monad[Id], tpe=Id):
+class IdMonad(Monad, tpe=Id):
 
     def pure(self, a: A) -> Id[A]:
         return Id(a)

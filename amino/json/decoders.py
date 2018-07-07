@@ -1,3 +1,4 @@
+import collections
 from typing import Type, TypeVar, Collection, Mapping, Callable, Tuple
 from numbers import Number
 from uuid import UUID
@@ -123,7 +124,7 @@ def decode_instance(data: Json, desc: str) -> Either[JsonError, A]:
     )
 
 
-class CallableDecoder(Decoder, tpe=Callable):
+class CallableDecoder(Decoder, tpe=collections.abc.Callable):
 
     def decode(self, tpe: Type[Callable], data: Json) -> Either[JsonError, Callable]:
         return decode_instance(data, 'Callable')

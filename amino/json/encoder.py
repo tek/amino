@@ -6,6 +6,7 @@ from amino.tc.base import TypeClass
 from amino import Either, L, _, Map, do, Do, Lists
 from amino.json.data import JsonError, Json, JsonObject, JsonScalar, tpe_key, JsonArray
 from amino.logging import module_log
+from amino.util.tpe import qualname
 
 A = TypeVar('A')
 log = module_log()
@@ -32,7 +33,7 @@ def dump_json(data: A) -> Do:
 
 def json_type(tpe: Type) -> Json:
     mod = '__builtins__' if tpe.__module__ == 'builtins' else tpe.__module__
-    names = Lists.split(tpe.__qualname__, '.').map(JsonScalar)
+    names = Lists.split(qualname(tpe), '.').map(JsonScalar)
     return JsonObject(Map(module=JsonScalar(mod), names=JsonArray(names)))
 
 

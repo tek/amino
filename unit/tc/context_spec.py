@@ -23,11 +23,11 @@ def monad_constraint_wrap(bindings: Bindings, a: A, f: Callable[[A], A]) -> None
     return monad_constraint(**bindings.bindings)(a, f)
 
 
-class Al(ADT['Al']):
+class Al(Generic[A], ADT['Al']):
     pass
 
 
-class Ala(Generic[A], Al):
+class Ala(Al[A]):
 
     def __init__(self, a: A) -> None:
         self.a = a

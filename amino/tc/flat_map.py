@@ -12,7 +12,7 @@ A = TypeVar('A')
 B = TypeVar('B')
 
 
-class FlatMap(Generic[F], Apply[F], ApplyN):
+class FlatMap(Apply, ApplyN):
 
     def apply_n_funcs(self) -> List[str]:
         return super().apply_n_funcs() + ['flat_map', 'product']

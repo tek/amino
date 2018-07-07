@@ -1,8 +1,7 @@
-import typing
 import random
 import string
 from functools import reduce
-from typing import TypeVar, Callable, Generic, Iterable, Any, Union, Tuple, Type
+from typing import TypeVar, Callable, Generic, Iterable, Any, Union, Tuple, Type, List as TList
 
 from toolz.itertoolz import cons, groupby
 
@@ -28,10 +27,10 @@ def _rand_str(chars: str, num: int=10) -> str:
     return ''.join(random.choice(chars) for i in range(num))
 
 
-class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=ListMeta):
+class List(TList[A], list, Implicits, implicits=True, metaclass=ListMeta):
 
     def __init__(self, *elements: A) -> None:
-        typing.List.__init__(self, elements)
+        list.__init__(self, elements)
 
     def __getitem__(self, arg):  # type: ignore
         s = super().__getitem__(arg)
@@ -145,8 +144,8 @@ class List(Generic[A], typing.List[A], Implicits, implicits=True, metaclass=List
                 return False
         return List.wrap(x for x in self if not pred(x))
 
-    def add(self, other: typing.List[A]) -> 'List[A]':
-        return List.wrap(typing.List.__add__(self, other))
+    def add(self, other: TList[A]) -> 'List[A]':
+        return List.wrap(list.__add__(self, other))
 
     __add__ = add
 

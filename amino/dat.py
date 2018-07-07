@@ -1,6 +1,7 @@
+import abc
 import inspect
 from types import SimpleNamespace
-from typing import TypeVar, Type, Any, Generic, cast, Tuple, GenericMeta
+from typing import TypeVar, Type, Any, Generic, cast, Tuple
 
 from amino import Map, Lists, List, Nil, _, Maybe, Just, L
 from amino.util.string import ToStr
@@ -91,7 +92,7 @@ def init_fields(spec: inspect.FullArgSpec) -> List[Field]:
     return args / field
 
 
-class DatMeta(GenericMeta):
+class DatMeta(abc.ABCMeta):
 
     def __new__(cls: type, name: str, bases: tuple, namespace: SimpleNamespace, **kw) -> type:
         fs = Map(namespace).lift('__init__') / inspect.getfullargspec / init_fields | Nil
@@ -195,7 +196,7 @@ class ADTMeta(DatMeta, AlgebraMeta):
     pass
 
 
-class ADT(Generic[Sub], Algebra, Dat[Sub], metaclass=ADTMeta, algebra_base=True):
+class ADT(Algebra, Dat[Sub], metaclass=ADTMeta, algebra_base=True):
     pass
 
 

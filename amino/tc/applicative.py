@@ -7,7 +7,7 @@ F = TypeVar('F')
 A = TypeVar('A')
 
 
-class Applicative(Generic[F], Apply[F]):
+class Applicative(Apply):
 
     @abc.abstractmethod
     def pure(self, a: A) -> F:

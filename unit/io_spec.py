@@ -1,4 +1,4 @@
-from amino.io import IO, IOException
+from amino.io import IO
 from amino.test.spec_spec import Spec
 from amino import List, Right, L, _, Just
 

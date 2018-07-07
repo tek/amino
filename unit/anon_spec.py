@@ -6,9 +6,9 @@ from amino.anon.debug import AnonError
 from amino.logging import amino_root_logger
 from amino.list import Lists
 from amino.test.spec_spec import Spec
-from amino.test.spec import timed
 from amino.anon.prod import MethodLambdaInst as prod__, AttrLambdaInst as prod_, ComplexLambdaInst as prodL
 from amino.anon.debug import MethodLambdaInst as debug__, AttrLambdaInst as debug_, ComplexLambdaInst as debugL
+from amino.test.time import timed
 
 
 class _Inner:

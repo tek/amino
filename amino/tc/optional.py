@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Generic, Callable, Union, cast, Any
+from typing import TypeVar, Callable, Union, cast, Any
 
 from amino.tc.base import TypeClass, tc_prop
 from amino import maybe  # NOQA
@@ -10,7 +10,7 @@ A = TypeVar('A')
 B = TypeVar('B')
 
 
-class Optional(Generic[F], TypeClass):
+class Optional(TypeClass):
 
     @abc.abstractmethod
     def to_maybe(self, fa: F) -> 'maybe.Maybe[B]':

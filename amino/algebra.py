@@ -1,9 +1,11 @@
-import typing
-from typing import GenericMeta, Any
+import abc
+from typing import Any, Generic, TypeVar
 from types import SimpleNamespace
 
 from amino import List, Lists, Nil, Maybe
 from amino.util.string import ToStr
+
+A = TypeVar('A')
 
 
 def is_algebra(bases: List[type]) -> bool:
@@ -36,18 +38,18 @@ def setup_algebraic_type(name: str, inst: type, bases: List[type]) -> None:
     )
 
 
-class AlgebraMeta(GenericMeta):
+class AlgebraMeta(abc.ABCMeta):
 
     def __new__(
             cls,
             name: str,
-            bases: typing.List[type],
+            bases: list,
             namespace: SimpleNamespace,
             algebra_base: bool=False,
             **kw: Any,
     ) -> None:
         inst = super().__new__(cls, name, bases, namespace, **kw)
-        if inst.__args__ is None:
+        if not hasattr(inst, '__args__') or inst.__args__ is None:
             if algebra_base:
                 inst.__algebra_base__ = None
             else:
@@ -55,7 +57,7 @@ class AlgebraMeta(GenericMeta):
         return inst
 
 
-class Algebra(ToStr, metaclass=AlgebraMeta, algebra_base=True):
+class Algebra(Generic[A], ToStr, metaclass=AlgebraMeta, algebra_base=True):
     pass
 
 

@@ -10,7 +10,7 @@ B = TypeVar('B')
 Z = TypeVar('Z')
 
 
-class Apply(Generic[F], Functor[F], Monoidal[F]):
+class Apply(Functor, Monoidal):
 
     @abc.abstractmethod
     def ap(self, fa: F, f: F) -> F:

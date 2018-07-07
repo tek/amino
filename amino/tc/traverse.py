@@ -10,11 +10,11 @@ A = TypeVar('A')
 B = TypeVar('B')
 
 
-class TraverseF(Generic[A]):
+class TraverseF(Generic[A], abc.ABC):
     pass
 
 
-class TraverseG(Generic[A]):
+class TraverseG(Generic[A], abc.ABC):
     pass
 
 F = TraverseF
@@ -24,10 +24,10 @@ F0 = TypeVar('F0', bound=TraverseF)
 G0 = TypeVar('G0', bound=TraverseG)
 
 
-class Traverse(Generic[F0], TypeClass[F0], ApplyN):
+class Traverse(TypeClass, ApplyN):
     # FIXME lens functions return index lenses, which is not a property of Traverse
 
-    def apply_n_funcs(self) -> List[str]:
+    def apply_n_funcs(self) -> list:
         return ['traverse']
 
     @abc.abstractmethod

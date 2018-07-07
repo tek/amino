@@ -35,4 +35,5 @@ class DoSpec(Spec):
             yield EvalState.inspect(lambda s: f'{s}: {a}')
         run().run_a('init').value.should.equal('state: 1')
 
+
 __all__ = ('DoSpec',)

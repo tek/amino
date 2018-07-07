@@ -1,4 +1,4 @@
-from typing import Iterable, TypeVar
+from typing import Iterable, TypeVar, Any
 
 from lenses.ui import UnboundLens
 from lenses.optics import TrivialIso
@@ -22,9 +22,10 @@ lens = UnboundLensA(TrivialIso())
 A = TypeVar('A')
 
 
-@from_iter.register(List)
 def list_from_iter(self, iterable: Iterable[A]) -> List[A]:
     return Lists.wrap(iterable)
 
+
+from_iter.register(List[Any])(list_from_iter)
 
 __all__ = ('lens',)

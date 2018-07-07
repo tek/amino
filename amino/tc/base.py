@@ -1,6 +1,6 @@
 import importlib
 import abc
-from typing import Dict, Tuple, Any, Callable, Union, Optional, GenericMeta, TypeVar, Generic
+from typing import Dict, Any, Callable, Union, Optional, TypeVar, Generic, _GenericAlias
 from functools import partial, wraps
 
 import amino
@@ -13,7 +13,15 @@ A = TypeVar('A')
 TC = TypeVar('TC', bound='TypeClass')
 
 
-class TypeClassMeta(GenericMeta):
+def regularize_type(tpe: type) -> type:
+    return (
+        tpe.__origin__
+        if isinstance(tpe, _GenericAlias) else
+        tpe
+    )
+
+
+class TypeClassMeta(type):
 
     def __new__(
             cls: type,
@@ -50,9 +58,10 @@ class TypeClassMeta(GenericMeta):
         return self.m(type(a))
 
     def e(self, tpe: type) -> 'amino.maybe.Maybe[TypeClass]':
+        reg = regularize_type(tpe)
         return (
-            self.m(tpe)
-            .to_either(f'no `{self.__name__}` instance for {tpe}')
+            self.m(reg)
+            .to_either(f'no `{self.__name__}` instance for {reg} ({tpe})')
         )
 
     def e_for(self, a: A) -> 'amino.either.Either[str, TC]':
@@ -64,7 +73,7 @@ class TypeClassMeta(GenericMeta):
     exists = exists_instance
 
 
-class TypeClass(Generic[A], Logging, metaclass=TypeClassMeta):
+class TypeClass(Logging, metaclass=TypeClassMeta):
     pass
 
 
@@ -162,7 +171,7 @@ def infer_implicits_class(name: str) -> str:
     return '{}Instances'.format(name)
 
 
-class ImplicitsMeta(GenericMeta):
+class ImplicitsMeta(abc.ABCMeta):
 
     @staticmethod
     def _mk_operator(name: str) -> Callable:
@@ -382,7 +391,8 @@ class AllInstances:
             if isinstance(G, TypeVar) else
             G
         )
-        return next((attach_type(a) for a in map(match, scrutinee.__mro__) if a is not None), None)
+        mro = scrutinee.__origin__.__mro__ if isinstance(scrutinee, _GenericAlias) else scrutinee.__mro__
+        return next((attach_type(a) for a in map(match, mro) if a is not None), None)
 
     def lookup_auto_attr(self, tpe: type, name: str) -> Optional[Callable]:
         def check(t: type) -> Optional[Callable]:

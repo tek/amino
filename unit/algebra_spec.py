@@ -8,15 +8,15 @@ from amino import ADT
 A = TypeVar('A')
 
 
-class Base(Generic[A], ADT['Base']):
+class Base(Generic[A], ADT['Base[A]']):
     pass
 
 
-class A1(Generic[A], Base):
+class A1(Base[A]):
     pass
 
 
-class A2(Generic[A], Base):
+class A2(Base[A]):
     pass
 
 

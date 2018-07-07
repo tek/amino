@@ -1,4 +1,5 @@
-from typing import TypeVar, Generic, Callable, Union, Any, cast, Optional, Type, Iterator, List as TList, Awaitable
+import typing
+from typing import TypeVar, Generic, Callable, Union, Any, cast, Optional, Type, Iterator, Awaitable
 from functools import wraps
 from operator import eq
 import inspect
@@ -118,7 +119,7 @@ class Maybe(Generic[A], F[A], implicits=True):
     empty = is_empty
 
     @property
-    def to_list(self) -> TList[A]:
+    def to_list(self) -> list:
         from amino.list import List, Nil
         return self.cata(List, Nil)
 

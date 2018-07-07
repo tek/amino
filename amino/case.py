@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from typing import Type, Generic, Any, TypeVar, GenericMeta, Callable, Tuple
+from typing import Type, Generic, Any, TypeVar, Callable, Tuple, _GenericAlias
 import inspect
 
 from amino.util.string import snake_case
@@ -14,7 +14,7 @@ A = TypeVar('A')
 B = TypeVar('B')
 
 
-class CaseMeta(GenericMeta):
+class CaseMeta(type):
 
     def __new__(cls: type, name: str, bases: tuple, namespace: SimpleNamespace, alg: Type[Alg]=None, **kw: Any) -> type:
         inst = super().__new__(cls, name, bases, namespace, **kw)
@@ -34,7 +34,7 @@ class Case(Generic[Alg, B], metaclass=CaseMeta):
 
 
 def normalize_type(tpe: Type[C]) -> Type[C]:
-    return tpe.__origin__ or tpe
+    return getattr(tpe, '__origin__', tpe)
 
 
 def case_list(
@@ -51,7 +51,9 @@ def case_list(
         param_type = yield Map(spec.annotations).lift(param_name)
         yield (
             Just((normalize_type(param_type), f))
-            if issubclass(param_type, alg) else
+            if isinstance(param_type, type) and issubclass(param_type, alg) else
+            Just((normalize_type(param_type), f))
+            if isinstance(param_type, _GenericAlias) and issubclass(param_type.__origin__, alg) else
             Nothing
         )
     handlers = Lists.wrap(inspect.getmembers(cls, inspect.isfunction)).flat_map2(is_handler)
@@ -80,7 +82,7 @@ def case_dispatch(cls: Type[Case[C, B]], alg: Type[C]) -> Callable[[Case[C, B], 
     return case
 
 
-class CaseRecMeta(GenericMeta):
+class CaseRecMeta(type):
 
     def __new__(cls, name: str, bases: tuple, namespace: dict, alg: Type[Alg]=None, **kw: Any) -> type:
         inst = super().__new__(cls, name, bases, namespace, **kw)

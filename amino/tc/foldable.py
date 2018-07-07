@@ -29,11 +29,11 @@ class FoldableABC(Generic[A], abc.ABC):
 F = FoldableABC
 
 
-class Foldable(Generic[H], TypeClass[H], ApplyN):
+class Foldable(TypeClass, ApplyN):
     # FIXME lens functions return index lenses, which is not a property of
     # Foldable
 
-    def apply_n_funcs(self) -> List[str]:
+    def apply_n_funcs(self) -> list:
         return ['filter', 'find_map']
 
     @abc.abstractmethod
