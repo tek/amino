@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from typing import Type, Generic, Any, TypeVar, Callable, Tuple, _GenericAlias
+from typing import Type, Generic, Any, TypeVar, Callable, Tuple, _GenericAlias, get_type_hints
 import inspect
 
 from amino.util.string import snake_case
@@ -46,9 +46,10 @@ def case_list(
     @do(Maybe[Tuple[Type[C], Callable[[Case[C, B]], B]]])
     def is_handler(name: str, f: Callable) -> Do:
         effective = getattr(f, '__do_original', f)
+        hints = yield Try(get_type_hints, effective).to_maybe
         spec = yield Try(inspect.getfullargspec, effective).to_maybe
         param_name = yield Lists.wrap(spec.args).lift(1)
-        param_type = yield Map(spec.annotations).lift(param_name)
+        param_type = yield Map(hints).lift(param_name)
         yield (
             Just((normalize_type(param_type), f))
             if isinstance(param_type, type) and issubclass(param_type, alg) else

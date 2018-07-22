@@ -378,6 +378,8 @@ class AllInstances:
         checking whether the instance is a subclass of the target type
         class `TC`.
         '''
+        if isinstance(G, str):
+            raise ImplicitNotFound(TC, G, f'{G} is a string annotation')
         match = lambda a: self._lookup_type(TC, a)
         def attach_type(tc: TypeClass) -> TypeClass:
             setattr(tc, 'tpe', G)
@@ -391,7 +393,9 @@ class AllInstances:
             if isinstance(G, TypeVar) else
             G
         )
-        mro = scrutinee.__origin__.__mro__ if isinstance(scrutinee, _GenericAlias) else scrutinee.__mro__
+        safe_mro = lambda t: getattr(t, '__mro__', (t,))
+        target = scrutinee.__origin__ if isinstance(scrutinee, _GenericAlias) else scrutinee
+        mro = safe_mro(target)
         return next((attach_type(a) for a in map(match, mro) if a is not None), None)
 
     def lookup_auto_attr(self, tpe: type, name: str) -> Optional[Callable]:

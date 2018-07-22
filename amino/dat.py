@@ -1,7 +1,8 @@
+from __future__ import annotations
 import abc
 import inspect
-from types import SimpleNamespace
-from typing import TypeVar, Type, Any, Generic, cast, Tuple
+from types import SimpleNamespace, FunctionType
+from typing import TypeVar, Type, Any, Generic, cast, Tuple, get_type_hints
 
 from amino import Map, Lists, List, Nil, _, Maybe, Just, L
 from amino.util.string import ToStr
@@ -83,9 +84,10 @@ class FieldProxy(Generic[Sub], FieldMutator[Sub]):
         return self.tpe(name, self.target)
 
 
-def init_fields(spec: inspect.FullArgSpec) -> List[Field]:
+def init_fields(init: FunctionType) -> List[Field]:
+    spec = inspect.getfullargspec(init)
     args = Lists.wrap(spec.args).tail | Nil
-    types = Map(spec.annotations)
+    types = Map(get_type_hints(init))
     def field(name: str) -> Field:
         tpe = types.lift(name) | Val(Any)
         return Field(name, tpe)
@@ -95,7 +97,7 @@ def init_fields(spec: inspect.FullArgSpec) -> List[Field]:
 class DatMeta(abc.ABCMeta):
 
     def __new__(cls: type, name: str, bases: tuple, namespace: SimpleNamespace, **kw) -> type:
-        fs = Map(namespace).lift('__init__') / inspect.getfullargspec / init_fields | Nil
+        fs = Map(namespace).lift('__init__') / init_fields | Nil
         inst = super().__new__(cls, name, bases, namespace, **kw)
         if not (fs.empty and hasattr(inst, '_dat__fields_value')):
             inst._dat__fields_value = fs

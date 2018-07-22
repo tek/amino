@@ -1,11 +1,12 @@
 import random
 import string
 from functools import reduce
-from typing import TypeVar, Callable, Generic, Iterable, Any, Union, Tuple, Type, List as TList
+from typing import TypeVar, Callable, Iterable, Any, Union, Tuple, Type, List as TList
 
 from toolz.itertoolz import cons, groupby
 
 from amino import maybe, boolean, Path
+
 from amino.tc.base import ImplicitsMeta, Implicits
 from amino.func import curried, I, call_by_name, tailrec, TailrecResult
 from amino.util.string import safe_string
@@ -27,7 +28,7 @@ def _rand_str(chars: str, num: int=10) -> str:
     return ''.join(random.choice(chars) for i in range(num))
 
 
-class List(TList[A], list, Implicits, implicits=True, metaclass=ListMeta):
+class List(TList[A], Implicits, implicits=True, metaclass=ListMeta):
 
     def __init__(self, *elements: A) -> None:
         list.__init__(self, elements)
@@ -199,7 +200,7 @@ class List(TList[A], list, Implicits, implicits=True, metaclass=ListMeta):
     def cat(self, item: A) -> 'List[A]':
         return self + List(item)
 
-    def cat_m(self, item: 'maybe.Maybe') -> 'List[A]':
+    def cat_m(self, item: 'maybe.Maybe[A]') -> 'List[A]':
         return item / self.cat | self
 
     @property
