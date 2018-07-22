@@ -118,11 +118,13 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
 
     @staticmethod
     def delay(f: Callable[..., A], *a: Any, **kw: Any) -> 'IO[A]':
-        return Suspend(L(f)(*a, **kw) >> Pure, safe_fmt(f, a, kw))
+        def g() -> IO[A]:
+            return Pure(f(*a, **kw))
+        return Suspend(g, safe_fmt(f, a, kw))
 
     @staticmethod
     def suspend(f: Callable[..., 'IO[A]'], *a: Any, **kw: Any) -> 'IO[A]':
-        return Suspend(L(f)(*a, **kw), safe_fmt(f, a, kw))
+        return Suspend(lambda: f(*a, **kw), safe_fmt(f, a, kw))
 
     @staticmethod
     def call(f: Callable[..., A], *a, **kw):
@@ -279,11 +281,8 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
     def recover_with(self, f: Callable[[IOException], 'IO[B]']) -> 'IO[B]':
         return IO.delay(lambda: self.attempt).flat_map(__.map(IO.pure).value_or(f))
 
-    @do('IO[A]')
-    def ensure(self, f: Callable[[Either[IOException, A]], 'IO[None]']) -> Do:
-        result = yield IO.delay(lambda: self.attempt)
-        yield f(result)
-        yield IO.from_either(result)
+    def ensure(self, f: Callable[[Either[IOException, A]], 'IO[None]']) -> 'IO[A]':
+        return io_ensure(self, f)
 
     @property
     def coro(self) -> Awaitable[Either[IOException, A]]:
@@ -356,6 +355,13 @@ def io(fun: Callable[..., A]) -> Callable[..., IO[A]]:
     def dec(*a: Any, **kw: Any) -> IO[A]:
         return IO.delay(fun, *a, **kw)
     return dec
+
+
+@do(IO[A])
+def io_ensure(io: IO[A], f: Callable[[Either[IOException, A]], 'IO[None]']) -> Do:
+    result = yield IO.delay(lambda: io.attempt)
+    yield f(result)
+    yield IO.from_either(result)
 
 
 __all__ = ('IO', 'io')
