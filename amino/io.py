@@ -244,7 +244,7 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
 
     @property
     def fatal(self) -> A:
-        return self.attempt.get_or_raise
+        return self.attempt.get_or_raise()
 
     def and_then(self, nxt: 'IO[B]') -> 'IO[B]':
         fs = Eval.later(lambda: 'and_then({nxt.lambda_str()})')
