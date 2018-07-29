@@ -8,6 +8,7 @@ from amino.tc.base import tc_prop
 from amino.tc.apply_n import ApplyN
 
 F = TypeVar('F')
+G = TypeVar('G')
 A = TypeVar('A')
 B = TypeVar('B')
 
@@ -22,7 +23,7 @@ class FlatMap(Apply, ApplyN):
         return self.flat_map(ff, f)
 
     @abc.abstractmethod
-    def flat_map(self, fa: F, f: Callable[[A], F]) -> F:
+    def flat_map(self, fa: F, f: Callable[[A], G]) -> G:
         ...
 
     def __floordiv__(self, fa, f):

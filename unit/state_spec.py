@@ -1,26 +1,35 @@
-from amino.state import MaybeState, EitherState, EvalState, IdState, State
+from typing import Tuple
+
+from amino.state.maybe import MaybeState
+from amino import Maybe, Just, Left, Right, Either, Id, List
+from amino.state.either import EitherState
+from amino.state.eval import EvalState
+from amino.state.id import IdState
 from amino.test.spec_spec import Spec
-from amino import Just, Left, List, Either, Right, I
-from amino.id import Id
 
 
-class StateSpec(Spec):
+class State3Spec(Spec):
+
+    def types(self) -> None:
+        s: MaybeState[int, int] = MaybeState.pure(5)
+        x: Maybe[Tuple[int, int]] = s.run(2)
+        x
 
     def pure(self) -> None:
-        MaybeState.pure(1).run('state').should.equal(Just(('state', 1)))
+        assert(MaybeState.s(str).pure(1).run('state') == Just(('state', 1)))
 
     def flat_map(self) -> None:
-        s = MaybeState.pure(1)
-        def f(a: int) -> None:
-            return MaybeState.inspect(lambda s: len(s) + a)
+        s = MaybeState.s(str).pure(1)
+        def f(a: int) -> MaybeState[str, int]:
+            return MaybeState.s(str).inspect(lambda s: len(s) + a)
         s1 = s.flat_map(f)
-        return s1.run('str').should.equal(Just(('str', 4)))
+        assert(s1.run('str') == Just(('str', 4)))
 
     def modify(self) -> None:
-        MaybeState.modify((lambda s: s + ' updated')).run_s('state').should.equal(Just('state updated'))
+        MaybeState.s(str).modify((lambda s: s + ' updated')).run_s('state').should.equal(Just('state updated'))
 
     def modify_f(self) -> None:
-        MaybeState.modify_f((lambda s: Just(s + ' updated'))).run_s('state').should.equal(Just('state updated'))
+        MaybeState.s(str).modify_f((lambda s: Just(s + ' updated'))).run_s('state').should.equal(Just('state updated'))
 
     def flat_map_f(self) -> None:
         l = Left('boing')
@@ -32,12 +41,13 @@ class StateSpec(Spec):
     def eff(self) -> None:
         def f(a: int) -> EvalState[int, Either[str, int]]:
             return EvalState.pure(Right(2))
-        s0 = EvalState.pure(Right(1))
+        s0: EvalState[int, Either[str, int]] = EvalState.s(int).pure(Right(1))
         s0.eff(Either).flat_map(f).value.run(1)._value().should.equal((1, Right(2)))
-        (s0 // EvalState.modify(I).replace).eff(Either).flat_map(f).value.run(1)._value().should.equal((1, Right(2)))
+        assert ((s0 // EvalState.s(int).modify(lambda a: a).replace).eff(Either).flat_map(f).value.run(1)._value() ==
+                (1, Right(2)))
 
     def id(self) -> None:
-        s = IdState.inspect(lambda s0: s0 * 2).flat_map(lambda a: IdState.pure(a + 4))
+        s = IdState.s(int).inspect(lambda s0: s0 * 2).flat_map(lambda a: IdState.pure(a + 4))
         s.run(5).should.equal(Id((5, 14)))
 
     def transform_s(self) -> None:
@@ -45,7 +55,7 @@ class StateSpec(Spec):
             return int(r)
         def trans_to(r: str, s: int) -> str:
             return str(s)
-        s1 = State(Id(lambda s: Id((s + 1, None)))).transform_s(trans_from, trans_to)
+        s1 = IdState(Id(lambda s: Id((s + 1, None)))).transform_s(trans_from, trans_to)
         s1.run_s('2').value.should.equal('3')
 
     def transform_f(self) -> None:
@@ -55,4 +65,4 @@ class StateSpec(Spec):
         EitherState.lift(Left(1)).run_a(None).should.equal(Left(1))
 
 
-__all__ = ('StateSpec',)
+__all__ = ('State3Spec',)

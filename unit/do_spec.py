@@ -2,8 +2,8 @@ from typing import Any
 
 from amino.test.spec_spec import Spec
 
-from amino import Just, Nothing, Maybe, do, Eval, Do, List
-from amino.state import EvalState, StateT
+from amino import Just, Nothing, Maybe, do, Do
+from amino.state import EvalState
 
 
 class DoSpec(Spec):
@@ -28,7 +28,7 @@ class DoSpec(Spec):
         run(3).should.equal(Nothing)
 
     def eval_state(self) -> None:
-        @do(StateT[Eval, str, Any])
+        @do(EvalState[str, Any])
         def run() -> Do:
             a = yield EvalState.pure(1)
             yield EvalState.set('state')

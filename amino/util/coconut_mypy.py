@@ -38,14 +38,14 @@ def substitute(files: Files, path: Path, lnum: int, col: Either[str, int], error
     yield Right(Map(lnum=coco_lnum_i, text=error, valid=1, maker_name='mypy') ** col_map)
 
 
-@do(EitherState[Files, Entry])
+@do(EitherState[str, Files, Entry])
 def handle_coco(path: Path, lnum: int, col: Either[str, int], error: str, coco_path: Path) -> Generator:
     yield EitherState.modify(lambda s: update_for(path, s))
     files = yield EitherState.get()
     yield EitherState.lift(substitute(files, path, lnum, col, error, coco_path))
 
 
-@do(EitherState[Files, Entry])
+@do(EitherState[str, Files, Entry])
 def line(l: str) -> Generator:
     r = excludes.traverse(lambda a: a.search(l).swap, Either)
     yield EitherState.lift(r)
@@ -59,7 +59,7 @@ def line(l: str) -> Generator:
     )
 
 
-def recover(est: EitherState[Files, Entry]) -> State[Map, Either[str, Entry]]:
+def recover(est: EitherState[str, Files, Entry]) -> State[Map, Either[str, Entry]]:
     def fix(s: Map, r: Map) -> Id[Tuple[Map, Either[str, Map]]]:
         return Id((s, Right(r)))
     return State.apply(lambda s: est.run(s).map2(fix).value_or(lambda err: Id((s, Left(err)))))
