@@ -8,7 +8,10 @@ from amino.tc.zip import Zip
 from amino.instances.list import ListTraverse
 from amino import List, curried
 from amino.util.string import ToStr
+from amino.state.base import StateT
 from amino.maybe import Maybe
+
+
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -55,6 +58,7 @@ class MaybeStateCtor(Generic[S]):
     @property
     def unit(self) -> 'MaybeState[S, None]':
         return MaybeState.pure(None)
+
 
 
 class MaybeStateMeta(ImplicitsMeta):
@@ -115,7 +119,8 @@ class MaybeStateMeta(ImplicitsMeta):
         return MaybeStateCtor()
 
 
-class MaybeState(Generic[S, A], ToStr, Implicits, implicits=True, auto=True, metaclass=MaybeStateMeta):
+
+class MaybeState(Generic[S, A], StateT, ToStr, Implicits, implicits=True, auto=True, metaclass=MaybeStateMeta):
 
     def __init__(self, run_f: Maybe[Callable[[S], Maybe[Tuple[S, A]]]]) -> None:
         self.run_f = run_f
@@ -218,6 +223,7 @@ class MaybeStateZip(Zip, tpe=MaybeState):
     ) -> MaybeState[S, List[A]]:
         v = ListTraverse().sequence(List(fa, fb, *fs), MaybeState)  # type: ignore
         return cast(MaybeState[S, List[A]], v)
+
 
 
 __all__ = ('MaybeState',)

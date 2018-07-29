@@ -8,7 +8,10 @@ from amino.tc.zip import Zip
 from amino.instances.list import ListTraverse
 from amino import List, curried
 from amino.util.string import ToStr
+from amino.state.base import StateT
 from amino.id import Id
+
+
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -55,6 +58,7 @@ class IdStateCtor(Generic[S]):
     @property
     def unit(self) -> 'IdState[S, None]':
         return IdState.pure(None)
+
 
 
 class IdStateMeta(ImplicitsMeta):
@@ -115,7 +119,8 @@ class IdStateMeta(ImplicitsMeta):
         return IdStateCtor()
 
 
-class IdState(Generic[S, A], ToStr, Implicits, implicits=True, auto=True, metaclass=IdStateMeta):
+
+class IdState(Generic[S, A], StateT, ToStr, Implicits, implicits=True, auto=True, metaclass=IdStateMeta):
 
     def __init__(self, run_f: Id[Callable[[S], Id[Tuple[S, A]]]]) -> None:
         self.run_f = run_f
@@ -218,6 +223,7 @@ class IdStateZip(Zip, tpe=IdState):
     ) -> IdState[S, List[A]]:
         v = ListTraverse().sequence(List(fa, fb, *fs), IdState)  # type: ignore
         return cast(IdState[S, List[A]], v)
+
 
 
 __all__ = ('IdState',)

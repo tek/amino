@@ -8,7 +8,7 @@ class CodegenTask(Dat['CodegenTask']):
 
     @staticmethod
     def cons(
-            template: str,
+            template: Path,
             subs: List[Tuple[str, str]],
             imports: List[str],
     ) -> 'CodegenTask':
@@ -20,7 +20,7 @@ class CodegenTask(Dat['CodegenTask']):
 
     def __init__(
             self,
-            template: str,
+            template: Path,
             subs: List[Tuple[str, str]],
             imports: List[str],
     ) -> None:
@@ -31,7 +31,7 @@ class CodegenTask(Dat['CodegenTask']):
 
 @do(IO[str])
 def codegen(task: CodegenTask) -> Do:
-    template_path = yield IO.delay(Path(task.template).absolute)
+    template_path = yield IO.delay(task.template.absolute)
     template_code = yield IO.delay(template_path.read_text)
     replaced = task.subs.fold_left(template_code)(lambda z, a: re.sub(a[0], a[1], z))
     return task.imports.cat(replaced).join_lines

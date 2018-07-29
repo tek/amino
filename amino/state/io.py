@@ -8,7 +8,10 @@ from amino.tc.zip import Zip
 from amino.instances.list import ListTraverse
 from amino import List, curried
 from amino.util.string import ToStr
+from amino.state.base import StateT
 from amino.io import IO
+
+
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -55,6 +58,7 @@ class IOStateCtor(Generic[S]):
     @property
     def unit(self) -> 'IOState[S, None]':
         return IOState.pure(None)
+
 
 
 class IOStateMeta(ImplicitsMeta):
@@ -115,7 +119,8 @@ class IOStateMeta(ImplicitsMeta):
         return IOStateCtor()
 
 
-class IOState(Generic[S, A], ToStr, Implicits, implicits=True, auto=True, metaclass=IOStateMeta):
+
+class IOState(Generic[S, A], StateT, ToStr, Implicits, implicits=True, auto=True, metaclass=IOStateMeta):
 
     def __init__(self, run_f: IO[Callable[[S], IO[Tuple[S, A]]]]) -> None:
         self.run_f = run_f
@@ -218,6 +223,7 @@ class IOStateZip(Zip, tpe=IOState):
     ) -> IOState[S, List[A]]:
         v = ListTraverse().sequence(List(fa, fb, *fs), IOState)  # type: ignore
         return cast(IOState[S, List[A]], v)
+
 
 
 __all__ = ('IOState',)

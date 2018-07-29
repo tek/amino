@@ -8,7 +8,10 @@ from amino.tc.zip import Zip
 from amino.instances.list import ListTraverse
 from amino import List, curried
 from amino.util.string import ToStr
+from amino.state.base import StateBase
 {f_import}
+
+{extra_import}
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -56,6 +59,7 @@ class StateTCtor(Generic[S]):
     def unit(self) -> 'StateT[S, None]':
         return StateT.pure(None)
 
+{ctor_extra}
 
 class StateTMeta(ImplicitsMeta):
 
@@ -114,8 +118,9 @@ class StateTMeta(ImplicitsMeta):
     def s(self, tpe: Type[S]) -> StateTCtor[S]:
         return StateTCtor()
 
+{meta_extra}
 
-class StateT(Generic[{tpar}S, A], ToStr, Implicits, implicits=True, auto=True, metaclass=StateTMeta):
+class StateT(Generic[{tpar}S, A], StateBase, ToStr, Implicits, implicits=True, auto=True, metaclass=StateTMeta):
 
     def __init__(self, run_f: F[Callable[[S], F[Tuple[S, A]]]]) -> None:
         self.run_f = run_f
@@ -174,7 +179,7 @@ class StateT(Generic[{tpar}S, A], ToStr, Implicits, implicits=True, auto=True, m
     def flat_map(self, f: Callable[[A], 'StateT[S, B]']) -> 'StateT[S, B]':
         return Monad_StateT.flat_map(self, f)
 
-
+{class_extra}
 def run_function(s: StateT[S, A]) -> F[Callable[[S], F[Tuple[S, A]]]]:
     try:
         return s.run_f
@@ -219,5 +224,6 @@ class StateTZip(Zip, tpe=StateT):
         v = ListTraverse().sequence(List(fa, fb, *fs), StateT)  # type: ignore
         return cast(StateT[S, List[A]], v)
 
+{extra}
 
 __all__ = ('StateT',)

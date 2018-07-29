@@ -8,7 +8,10 @@ from amino.tc.zip import Zip
 from amino.instances.list import ListTraverse
 from amino import List, curried
 from amino.util.string import ToStr
+from amino.state.base import StateT
 from amino.eval import Eval
+
+
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -55,6 +58,7 @@ class EvalStateCtor(Generic[S]):
     @property
     def unit(self) -> 'EvalState[S, None]':
         return EvalState.pure(None)
+
 
 
 class EvalStateMeta(ImplicitsMeta):
@@ -115,7 +119,8 @@ class EvalStateMeta(ImplicitsMeta):
         return EvalStateCtor()
 
 
-class EvalState(Generic[S, A], ToStr, Implicits, implicits=True, auto=True, metaclass=EvalStateMeta):
+
+class EvalState(Generic[S, A], StateT, ToStr, Implicits, implicits=True, auto=True, metaclass=EvalStateMeta):
 
     def __init__(self, run_f: Eval[Callable[[S], Eval[Tuple[S, A]]]]) -> None:
         self.run_f = run_f
@@ -218,6 +223,7 @@ class EvalStateZip(Zip, tpe=EvalState):
     ) -> EvalState[S, List[A]]:
         v = ListTraverse().sequence(List(fa, fb, *fs), EvalState)  # type: ignore
         return cast(EvalState[S, List[A]], v)
+
 
 
 __all__ = ('EvalState',)

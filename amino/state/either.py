@@ -8,7 +8,10 @@ from amino.tc.zip import Zip
 from amino.instances.list import ListTraverse
 from amino import List, curried
 from amino.util.string import ToStr
+from amino.state.base import StateT
 from amino.either import Either
+
+
 
 A = TypeVar('A')
 B = TypeVar('B')
@@ -55,6 +58,7 @@ class EitherStateCtor(Generic[S]):
     @property
     def unit(self) -> 'EitherState[E, S, None]':
         return EitherState.pure(None)
+
 
 
 class EitherStateMeta(ImplicitsMeta):
@@ -115,7 +119,8 @@ class EitherStateMeta(ImplicitsMeta):
         return EitherStateCtor()
 
 
-class EitherState(Generic[E, S, A], ToStr, Implicits, implicits=True, auto=True, metaclass=EitherStateMeta):
+
+class EitherState(Generic[E, S, A], StateT, ToStr, Implicits, implicits=True, auto=True, metaclass=EitherStateMeta):
 
     def __init__(self, run_f: Either[E, Callable[[S], Either[E, Tuple[S, A]]]]) -> None:
         self.run_f = run_f
@@ -218,6 +223,7 @@ class EitherStateZip(Zip, tpe=EitherState):
     ) -> EitherState[E, S, List[A]]:
         v = ListTraverse().sequence(List(fa, fb, *fs), EitherState)  # type: ignore
         return cast(EitherState[E, S, List[A]], v)
+
 
 
 __all__ = ('EitherState',)
