@@ -153,6 +153,10 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
         return a.cata(IO.failed, IO.now)
 
     @staticmethod
+    def e(a: Either[Any, A]) -> 'IO[A]':
+        return IO.from_either(a)
+
+    @staticmethod
     def fork_io(f: Callable[..., 'IO[None]'], *a: Any, **kw: Any) -> 'IO[None]':
         def run() -> None:
             try:
