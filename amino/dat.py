@@ -84,7 +84,7 @@ class FieldProxy(Generic[Sub], FieldMutator[Sub]):
         return self.tpe(name, self.target)
 
 
-def init_fields(init: FunctionType) -> List[Field]:
+def init_fields(init: FunctionType, globalns: dict) -> List[Field]:
     spec = inspect.getfullargspec(init)
     args = Lists.wrap(spec.args).tail | Nil
     types = Map(get_type_hints(init))
@@ -97,7 +97,10 @@ def init_fields(init: FunctionType) -> List[Field]:
 class DatMeta(abc.ABCMeta):
 
     def __new__(cls: type, name: str, bases: tuple, namespace: SimpleNamespace, **kw) -> type:
-        fs = Map(namespace).lift('__init__') / init_fields | Nil
+        mod = inspect.currentframe()
+        caller = mod.f_back
+        globalns = caller.f_globals
+        fs = Map(namespace).lift('__init__') / (lambda a: init_fields(a, globalns)) | Nil
         inst = super().__new__(cls, name, bases, namespace, **kw)
         if not (fs.empty and hasattr(inst, '_dat__fields_value')):
             inst._dat__fields_value = fs
