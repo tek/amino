@@ -1,5 +1,5 @@
 import collections
-from typing import Type, TypeVar, Collection, Mapping, Callable, Tuple
+from typing import Type, TypeVar, Collection, Mapping, Callable, Tuple, _SpecialForm
 from numbers import Number
 from uuid import UUID
 
@@ -175,6 +175,8 @@ def decode_field(data: Json) -> Do:
     def decode_field(field: Field) -> Do:
         value = yield data.field(field.name)
         yield (
+            Left(JsonError(data, f'invalid type for json: {field}'))
+            if isinstance(field.tpe, _SpecialForm) else
             decode.match(value)
             if isinstance(field.tpe, TypeVar) else
             decode_field_type(field.tpe, value)

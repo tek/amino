@@ -1,12 +1,23 @@
-from typing import Iterable, Any, Type, TypeVar, _GenericAlias
+from typing import Iterable, Any, TypeVar, _GenericAlias
 
 from amino import do, Either, Do, Maybe, Right, Left, Lists
+from amino.logging import module_log
 
 A = TypeVar('A')
+log = module_log()
 
 
-def qualified_type(tpe: Type[A]) -> str:
-    return tpe.__name__ if tpe.__module__ == 'builtins' else f'{tpe.__module__}.{tpe.__name__}'
+def normalize_generic_type(tpe: type) -> type:
+    return (
+        tpe.__origin__
+        if isinstance(tpe, _GenericAlias) else
+        tpe
+    )
+
+
+def qualified_type(tpe: type) -> str:
+    ntpe = normalize_generic_type(tpe)
+    return ntpe.__name__ if ntpe.__module__ == 'builtins' else f'{ntpe.__module__}.{ntpe.__name__}'
 
 
 def qualified_name(inst: Any) -> str:
@@ -24,14 +35,6 @@ def type_arg(tpe: type, index: int) -> Do:
 
 def first_type_arg(tpe: type) -> Either[str, type]:
     return type_arg(tpe, 0)
-
-
-def normalize_generic_type(tpe: type) -> type:
-    return (
-        tpe.__origin__
-        if isinstance(tpe, _GenericAlias) else
-        tpe
-    )
 
 
 def qualname(a: Any) -> str:

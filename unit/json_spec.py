@@ -3,7 +3,7 @@ from typing import Any, Callable, TypeVar, Type, Generic
 
 from amino.test.spec_spec import Spec
 from amino.dat import Dat
-from amino import Right, Maybe, List, Either, Left, do, Do, ADT
+from amino import Right, Maybe, List, Either, Left, do, Do, ADT, Map, Nothing, Just
 from amino.json import dump_json, decode_json
 from amino.json.data import JsonError, tpe_key
 
@@ -115,6 +115,12 @@ class _Gen(Generic[A], Dat['_Gen[A]']):
         self.a = a
 
 
+class _MM(Dat['_MM']):
+
+    def __init__(self, m: Maybe[Map[str, str]]) -> None:
+        self.m = m
+
+
 class JsonSpec(Spec):
 
     def codec_dat(self) -> None:
@@ -168,5 +174,10 @@ class JsonSpec(Spec):
     def generic(self) -> None:
         a = _Gen(E(5, '55'))
         _code_json(a).should.equal(Right(a))
+
+    def maybe_map(self) -> None:
+        a = _MM(Just(Map(a='a')))
+        _code_json(a).should.equal(Right(a))
+
 
 __all__ = ('JsonSpec',)

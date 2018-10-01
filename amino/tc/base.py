@@ -380,6 +380,8 @@ class AllInstances:
         '''
         if isinstance(G, str):
             raise ImplicitNotFound(TC, G, f'{G} is a string annotation')
+        if not isinstance(G, (type, TypeVar, _GenericAlias)):
+            raise ImplicitNotFound(TC, G, f'{G} is neither type, _GenericAlias nor TypeVar: {type(G)}')
         match = lambda a: self._lookup_type(TC, a)
         def attach_type(tc: TypeClass) -> TypeClass:
             setattr(tc, 'tpe', G)
