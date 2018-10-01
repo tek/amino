@@ -4,7 +4,7 @@ import inspect
 from types import SimpleNamespace, FunctionType
 from typing import TypeVar, Type, Any, Generic, cast, Tuple, get_type_hints
 
-from amino import Map, Lists, List, Nil, _, Maybe, Just, L
+from amino import Map, Lists, List, Nil, _, Maybe, Just, L, Try
 from amino.util.string import ToStr
 from amino.func import Val
 from amino.lazy import lazy
@@ -27,7 +27,7 @@ class Field(ToStr):
 
     @property
     def qualified_type(self) -> None:
-        return qualified_type(self.tpe)
+        return Try(qualified_type, self.tpe).get_or_strict(self.tpe)
 
     def _arg_desc(self) -> List[str]:
         return List(self.name, self.qualified_type)
@@ -46,10 +46,14 @@ class FieldMutator(Generic[Sub]):
         self.name = name
         self.target = target
 
+    @abc.abstractmethod
+    def __call__(self, value: Any) -> Sub:
+        ...
+
 
 class FieldSetter(Generic[Sub], FieldMutator[Sub]):
 
-    def __call__(self, value) -> Sub:
+    def __call__(self, value: Any) -> Sub:
         return self.target.copy(**{self.name: value})
 
 
@@ -73,14 +77,14 @@ class FieldAppender1(Generic[Sub], FieldMutator[Sub]):
 
 class FieldProxy(Generic[Sub], FieldMutator[Sub]):
 
-    def __init__(self, target: 'Dat', tpe: type) -> None:
+    def __init__(self, target: Sub, tpe: Type[FieldMutator[Sub]]) -> None:
         self.target = target
         self.tpe = tpe
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> FieldMutator[Sub]:
         return self(name)
 
-    def __call__(self, name):
+    def __call__(self, name: str) -> FieldMutator[Sub]:
         return self.tpe(name, self.target)
 
 
@@ -162,19 +166,19 @@ class Dat(Generic[Sub], ToStr, metaclass=DatMeta):
         return cast(Dat, type(self)(*updated))
 
     @property
-    def append(self) -> FieldProxy:
+    def append(self) -> FieldProxy[Sub]:
         return FieldProxy(self, FieldAppender)
 
     @property
-    def append1(self) -> FieldProxy:
+    def append1(self) -> FieldProxy[Sub]:
         return FieldProxy(self, FieldAppender1)
 
     @property
-    def mod(self) -> FieldProxy:
+    def mod(self) -> FieldProxy[Sub]:
         return FieldProxy(self, FieldModifier)
 
     @property
-    def set(self) -> FieldProxy:
+    def set(self) -> FieldProxy[Sub]:
         return FieldProxy(self, FieldSetter)
 
     def __eq__(self, other: Any) -> bool:
