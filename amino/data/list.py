@@ -165,7 +165,7 @@ class List(TList[A], Implicits, implicits=True, metaclass=ListMeta):
     def split_type(self, tpe: Union[Type, Tuple[Type[B]]]) -> Tuple['List[B]', 'List[A]']:
         return self.split(lambda a: isinstance(a, tpe))
 
-    def index_of(self, target: Any) -> 'maybe.Maybe[int]':
+    def index_of(self, target: A) -> 'maybe.Maybe[int]':
         return self.index_where(lambda a: a == target)
 
     @property
@@ -283,6 +283,9 @@ class List(TList[A], Implicits, implicits=True, metaclass=ListMeta):
 
     def collect(self, f: Callable[[A], 'maybe.Maybe[B]']) -> 'List[B]':
         return self.flat_map(f)
+
+    def modify_at(self, index: int, mod: Callable[[A], A]) -> 'maybe.Maybe[List[A]]':
+        return self.lift(index).map(lambda a: self[:index].cat(mod(a)) + self[index + 1:])
 
 
 class Lists:
