@@ -150,24 +150,24 @@ class IO(Generic[A], Implicits, ToStr, implicits=True, metaclass=IOMeta):
 
     @staticmethod
     def from_either(a: Either[Any, A]) -> 'IO[A]':
-        return a.cata(IO.failed, IO.now)
+        return a.cata(IO.failed, IO.pure)
 
     @staticmethod
     def e(a: Either[Any, A]) -> 'IO[A]':
         return IO.from_either(a)
 
     @staticmethod
-    def fork_io(f: Callable[..., 'IO[None]'], *a: Any, **kw: Any) -> 'IO[None]':
+    def fork_io(f: Callable[..., 'IO[None]'], *a: Any, daemon: bool=True, **kw: Any) -> 'IO[Thread]':
         def run() -> None:
             try:
                 f(*a, **kw).attempt.lmap(lambda a: log.error(f'forked IO failed: {a}'))
             except Exception as e:
                 log.caught_exception_error(f'running forked IO', e)
-        thread = Thread(target=run)
+        thread = Thread(target=run, daemon=daemon)
         return IO.delay(thread.start).replace(thread)
 
     @staticmethod
-    def fork(f: Callable[..., None], *a: Any, **kw: Any) -> 'IO[None]':
+    def fork(f: Callable[..., None], *a: Any, **kw: Any) -> 'IO[Thread]':
         return IO.fork_io(IO.delay, f, *a, **kw)
 
     @staticmethod
