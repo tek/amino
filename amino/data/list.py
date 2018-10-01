@@ -289,7 +289,7 @@ class List(TList[A], Implicits, implicits=True, metaclass=ListMeta):
 
 
 class Lists:
-    empty = List()
+    empty: List = List()
 
     @staticmethod
     def wrap(l: Iterable[B]) -> List[B]:
@@ -310,8 +310,12 @@ class Lists:
         return _rand_str(chars, num)
 
     @staticmethod
-    def gen(num: int, f: Callable[[], 'List[A]']) -> List[A]:
+    def gen(num: int, f: Callable[[], List[A]]) -> List[A]:
         return List.range(num) // (lambda a: f())
+
+    @staticmethod
+    def fill(num: int, value: A) -> List[A]:
+        return Lists.range(num).replace(value)
 
     @staticmethod
     def lines(data: str) -> List[str]:
@@ -350,6 +354,7 @@ class Lists:
             match = data.find(target, current)
             return (False, result) if match == -1 else (True, (match + 1, result.cat(match)))
         return find(0, Nil)
+
 
 Nil = Lists.empty
 
