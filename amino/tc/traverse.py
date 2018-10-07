@@ -28,7 +28,7 @@ class Traverse(TypeClass, ApplyN):
     # FIXME lens functions return index lenses, which is not a property of Traverse
 
     def apply_n_funcs(self) -> list:
-        return ['traverse']
+        return ['traverse', 'flat_traverse']
 
     @abc.abstractmethod
     def traverse(self, fa: F[G[A]], f: Callable[[A], B], tpe: type) -> G[F[B]]:
