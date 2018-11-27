@@ -148,7 +148,7 @@ def init_loglevel(handler: logging.Handler, level: int=None) -> None:
     (
         amino.Maybe.check(level)
         .o(env_log_level.value)
-        .o(amino.Boolean(amino.development).flat_m(VERBOSE)) %
+        .o(amino.Boolean(amino.development).flat_m(amino.Just(VERBOSE))) %
         handler.setLevel
     )
 
@@ -166,7 +166,7 @@ def amino_stdout_logging(level: int=None) -> None:
 
 def log_dir() -> None:
     return env_amino_log_dir.value / Path | (
-        (Path(env_xdg_runtime_dir.value | (lambda: f'/run/user/{os.getuid()}'))) / 'amino'
+        (Path(env_xdg_runtime_dir.value | (lambda: f'/tmp/amino-{os.getuid()}')))
     )
 
 
