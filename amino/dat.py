@@ -123,6 +123,14 @@ class DatMeta(abc.ABCMeta):
         return Just(len(self._dat__fields))
 
 
+def to_str(a: Any) -> str:
+    return (
+        a.__name__
+        if isinstance(a, FunctionType) and hasattr(a, '__name__') else
+        str(a)
+    )
+
+
 # TODO typecheck ctor args in development
 class Dat(Generic[Sub], ToStr, metaclass=DatMeta):
     Keep = KeepField()
@@ -194,7 +202,7 @@ class Dat(Generic[Sub], ToStr, metaclass=DatMeta):
         return self.set(name)(value)
 
     def _arg_desc(self) -> List[str]:
-        return self._dat__values / str
+        return self._dat__values / to_str
 
 
 class DatImplicitsMeta(ImplicitsMeta, DatMeta):
