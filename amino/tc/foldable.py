@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Generic, Callable, Type, List
+from typing import TypeVar, Generic, Callable, Type, List, Tuple
 import operator
 
 from lenses import lens, UnboundLens
@@ -9,7 +9,7 @@ from amino.tc.functor import Functor
 from amino.func import curried, I, CallByName
 from amino.maybe import Maybe, Empty, Just
 from amino.boolean import Boolean
-from amino import _, Either
+from amino import _, Either, Nothing
 from amino.tc.monoid import Monoid
 from amino.tc.monad import Monad
 from amino.tc.apply_n import ApplyN
@@ -93,6 +93,14 @@ class Foldable(TypeClass, ApplyN):
     def find_type(self, fa: F[A], tpe: type) -> Maybe[A]:
         pred = lambda a: isinstance(a, tpe)
         return self.find(fa, pred)
+
+    def find_fold(self, fa: F[A], z: B) -> Callable[[Callable[[B, A], Tuple[B, Maybe[C]]]], Maybe[C]]:
+        def find_fold(f: Callable[[B, A], Tuple[B, Maybe[C]]]) -> Maybe[C]:
+            def g(zz: Tuple[B, Maybe[C]], a: A) -> Tuple[B, Maybe[C]]:
+                z, c = zz
+                return c.map(lambda c0: (z, Just(c0))).get_or(lambda: f(z, a))
+            return self.fold_left(fa)((z, Nothing))(g)
+        return find_fold
 
     @abc.abstractmethod
     def index_where(self, fa: F[A], f: Callable[[A], bool]) -> Maybe[int]:
