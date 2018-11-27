@@ -1,7 +1,7 @@
 import random
 import string
 from functools import reduce
-from typing import TypeVar, Callable, Iterable, Any, Union, Tuple, Type, List as TList
+from typing import TypeVar, Callable, Iterable, Any, Union, Tuple, Type, List as TList, Set
 
 from toolz.itertoolz import cons, groupby
 
@@ -134,8 +134,8 @@ class List(TList[A], Implicits, implicits=True, metaclass=ListMeta):
     def distinct(self) -> 'List[A]':
         return self.distinct_by(I)
 
-    def distinct_by(self, f: Callable[[A], bool]) -> 'List[A]':
-        seen = set()  # type: set
+    def distinct_by(self, f: Callable[[A], B]) -> 'List[A]':
+        seen: Set[B] = set()
         def pred(a: A) -> bool:
             v = f(a)
             if v in seen:
