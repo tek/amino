@@ -17,6 +17,12 @@ B = TypeVar('B')
 Sub = TypeVar('Sub', bound=Dat)
 
 
+class JsonDecoder(Decoder, tpe=Json):
+
+    def decode(self, tpe: Type[Json], data: Json) -> Either[JsonError, Json]:
+        return Right(data)
+
+
 class StringDecoder(Decoder, tpe=str):
 
     def decode(self, tpe: Type[str], data: Json) -> Either[JsonError, str]:
@@ -37,11 +43,28 @@ class MapDecoder(Decoder, sub=Mapping):
         return data.object.c(dec, lambda: Left(f'invalid type for `Map`: {data}'))
 
 
+@do(Maybe[Tuple[type, Decoder]])
+def list_type_decoder(ltpe: Type[Collection]) -> Do:
+    args = yield Maybe.getattr(ltpe, '__args__').map(Lists.wrap)
+    tpe = yield args.head
+    decoder = yield Decoder.m(tpe)
+    return tpe, decoder
+
+
 class ListDecoder(Decoder, sub=Collection):
 
     def decode(self, tpe: Type[Collection], data: Json) -> Either[JsonError, List[A]]:
+        tpe_decoder = list_type_decoder(tpe)
+        def dec_tpe(a: Json, err: str) -> Either[JsonError, A]:
+            return (
+                tpe_decoder
+                .map2(lambda t, dec: dec.decode(t, a))
+                .get_or(lambda: Left(JsonError(a, f'{err} and no type information is available')))
+            )
+        def dec_elem(a: Json) -> Either[JsonError, A]:
+            return decode.match(a).recover_with(lambda err: dec_tpe(a, err.error))
         def dec() -> Either[JsonError, List[A]]:
-            return Lists.wrap(data.data).traverse(decode.match, Either)
+            return Lists.wrap(data.data).traverse(dec_elem, Either)
         return data.array.c(dec, lambda: Left(f'invalid type for `List`: {data}'))
 
 

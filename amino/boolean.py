@@ -76,7 +76,7 @@ class Boolean:
     def cata_call(self, t, f):
         return t() if self.value else f()
 
-    def c(self, t, f):
+    def c(self, t: Callable[[], A], f: Callable[[], A]) -> A:
         return call_by_name(t) if self.value else call_by_name(f)
 
     def __bool__(self):
